@@ -1,0 +1,1 @@
+src/components/ui/collapsible.tsx(22,15): error TS2820: Type '"chevron_right"' is not assignable to type 'SFSymbols7_0'. Did you mean '"chevron.right"'?
