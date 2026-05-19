@@ -1,6 +1,21 @@
 // Centralized Form Type Definitions for VP Scholarship App
 // This file provides stable, type-safe interfaces for all form operations
 
+export interface BaseDocuments {
+  marksCard?: any;
+  aadhaar?: any;
+  incomeCert?: any;
+}
+
+export interface PUCDocuments extends BaseDocuments {
+  sslcMarksCard?: any;
+  studentPhoto?: any;
+  electricityBill?: any;
+  rationCard?: any;
+  familyPhoto?: any;
+  houseVideo?: any;
+}
+
 export interface BaseFormData {
   // Common fields across all forms
   guidelines: {
@@ -21,6 +36,7 @@ export interface BaseFormData {
   address: {
     pincode: string;
     district: string;
+    otherDistrict?: string;
     taluk: string;
     place: string;
     address: string;
@@ -32,11 +48,7 @@ export interface BaseFormData {
     familyComposition?: string[];
     annualIncome?: string;
   };
-  documents: {
-    marksCard?: any;
-    aadhaar?: any;
-    incomeCert?: any;
-  };
+  documents: BaseDocuments;
   review: {
     declarationAccepted: boolean;
     timestamp?: string;
@@ -68,8 +80,11 @@ export interface ProfessionalFormData extends BaseFormData {
 }
 
 export interface PUCFormData extends BaseFormData {
-  // PUC-specific fields (minimal additional fields)
-  // PUC forms use mostly base fields with some variations
+  documents: PUCDocuments;
+  family: BaseFormData['family'] & {
+    monthlyRent?: string;
+    residenceType?: 'OWNED' | 'RENTED' | 'HOSTEL';
+  };
 }
 
 export type FormDataUnion = ProfessionalFormData | PUCFormData;

@@ -41,14 +41,14 @@ export default function DocumentSection({ navigation }: any) {
     uploadState.incomeCert?.uploaded;
 
   const onSubmit = () => {
-    const documentData = {
+    const updatedDocuments = {
       marksCard: documentData.marksCard,
       aadhaar: documentData.aadhaar,
       incomeCert: documentData.incomeCert,
     };
     
-    updateSectionData('documents', documentData);
-    updateValidationState('documents', { isValid: allDocumentsUploaded, data: documentData });
+    updateSectionData('documents', updatedDocuments);
+    updateValidationState('documents', { isValid: allDocumentsUploaded, data: updatedDocuments });
     markStepComplete(5);
     navigation.navigate('review');
   };

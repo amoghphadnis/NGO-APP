@@ -21,13 +21,9 @@ export const pucFormConfig: FormConfig = {
     contact: 'contactDetailsSchema',
     address: 'addressDetailsSchema',
     family: 'familyDetailsSchema',
-    documents: 'documentDetailsSchema',
+    documents: 'pucDocumentDetailsSchema',
     review: null,
     success: null
-  },
-  submission: {
-    endpoint: '/api/forms/puc/submit',
-    mapper: 'pucMapper'
   }
 };
 
@@ -82,7 +78,7 @@ export const pucStepConfigs = [
     title: 'Document Upload',
     subtitle: 'Upload required documents',
     component: 'DocumentSection',
-    validation: 'documentDetailsSchema',
+    validation: 'pucDocumentDetailsSchema',
     required: true,
     icon: 'attach'
   },

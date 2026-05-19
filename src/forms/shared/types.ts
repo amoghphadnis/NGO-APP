@@ -20,10 +20,6 @@ export interface FormConfig {
   steps: FormStep[];
   totalSteps: number;
   validation: Record<string, any>;
-  submission: {
-    endpoint: string;
-    mapper: string;
-  };
 }
 
 export interface StepConfig {

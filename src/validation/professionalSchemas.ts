@@ -1,10 +1,9 @@
 import { z } from 'zod';
-import { 
-  personalDetailsSchema, 
-  contactDetailsSchema, 
-  addressDetailsSchema, 
+import {
+  personalDetailsSchema,
+  contactDetailsSchema,
+  addressDetailsSchema,
   familyDetailsSchema,
-  documentDetailsSchema 
 } from './sharedSchemas';
 
 // Professional form specific schemas
@@ -44,6 +43,12 @@ export const bankDetailsSchema = z.object({
   ifscVerified: z.boolean(),
 });
 
+export const professionalDocumentDetailsSchema = z.object({
+  marksCard: z.any().optional(),
+  aadhaar: z.any().optional(),
+  incomeCert: z.any().optional(),
+});
+
 // Complete professional form schema
 export const professionalFormSchema = z.object({
   personal: personalDetailsSchema,
@@ -53,7 +58,7 @@ export const professionalFormSchema = z.object({
   category: categoryDetailsSchema,
   academic: academicDetailsSchema,
   bank: bankDetailsSchema,
-  documents: documentDetailsSchema,
+  documents: professionalDocumentDetailsSchema,
 });
 
 // Type exports
@@ -61,3 +66,4 @@ export type CategoryDetailsFormValues = z.infer<typeof categoryDetailsSchema>;
 export type AcademicDetailsFormValues = z.infer<typeof academicDetailsSchema>;
 export type BankDetailsFormValues = z.infer<typeof bankDetailsSchema>;
 export type ProfessionalFormValues = z.infer<typeof professionalFormSchema>;
+export type ProfessionalDocumentDetailsFormValues = z.infer<typeof professionalDocumentDetailsSchema>;

@@ -7,13 +7,11 @@ import {
   contactDetailsSchema,
   addressDetailsSchema,
   familyDetailsSchema,
-  documentDetailsSchema,
   guidelinesSchema,
   type PersonalDetailsFormValues,
   type ContactDetailsFormValues,
   type AddressDetailsFormValues,
   type FamilyDetailsFormValues,
-  type DocumentDetailsFormValues,
   type GuidelinesFormValues,
 } from './sharedSchemas';
 
@@ -22,17 +20,21 @@ import {
   academicDetailsSchema,
   bankDetailsSchema,
   professionalFormSchema,
+  professionalDocumentDetailsSchema,
   type CategoryDetailsFormValues,
   type AcademicDetailsFormValues,
   type BankDetailsFormValues,
   type ProfessionalFormValues,
+  type ProfessionalDocumentDetailsFormValues,
 } from './professionalSchemas';
 
 import {
   pucAcademicDetailsSchema,
   pucFormSchema,
+  pucDocumentDetailsSchema,
   type PucAcademicDetailsFormValues,
   type PucFormValues,
+  type PUCDocumentDetailsFormValues,
 } from './pucSchemas';
 
 // Re-export everything for centralized access
@@ -41,26 +43,28 @@ export {
   contactDetailsSchema,
   addressDetailsSchema,
   familyDetailsSchema,
-  documentDetailsSchema,
   guidelinesSchema,
   categoryDetailsSchema,
   academicDetailsSchema,
   bankDetailsSchema,
   professionalFormSchema,
+  professionalDocumentDetailsSchema,
   pucAcademicDetailsSchema,
   pucFormSchema,
+  pucDocumentDetailsSchema,
   type PersonalDetailsFormValues,
   type ContactDetailsFormValues,
   type AddressDetailsFormValues,
   type FamilyDetailsFormValues,
-  type DocumentDetailsFormValues,
   type GuidelinesFormValues,
   type CategoryDetailsFormValues,
   type AcademicDetailsFormValues,
   type BankDetailsFormValues,
   type ProfessionalFormValues,
+  type ProfessionalDocumentDetailsFormValues,
   type PucAcademicDetailsFormValues,
   type PucFormValues,
+  type PUCDocumentDetailsFormValues,
 };
 
 // Legacy exports for backward compatibility

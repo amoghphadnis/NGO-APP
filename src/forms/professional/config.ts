@@ -27,13 +27,9 @@ export const professionalFormConfig: FormConfig = {
     category: 'categoryDetailsSchema',
     academic: 'academicDetailsSchema',
     bank: 'bankDetailsSchema',
-    documents: 'documentDetailsSchema',
+    documents: 'professionalDocumentDetailsSchema',
     review: null,
     success: null
-  },
-  submission: {
-    endpoint: '/api/forms/professional/submit',
-    mapper: 'professionalMapper'
   }
 };
 
@@ -115,7 +111,7 @@ export const professionalStepConfigs = [
     title: 'Document Upload',
     subtitle: 'Upload required documents',
     component: 'DocumentSection',
-    validation: 'documentDetailsSchema',
+    validation: 'professionalDocumentDetailsSchema',
     required: true,
     icon: 'attach'
   },

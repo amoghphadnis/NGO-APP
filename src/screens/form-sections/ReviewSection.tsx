@@ -6,12 +6,22 @@ import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import { useFormEngineStore } from '../../store/useFormEngineStore';
+import { preparePayload, submitApplication } from '@/submission';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
 
 export default function ReviewSection({ navigation }: any) {
-  const { formData, markStepComplete, updateValidationState, currentFormType } = useFormEngineStore();
+  const {
+    formData,
+    markStepComplete,
+    updateValidationState,
+    currentFormType,
+    submissionState,
+    setSubmissionLoading,
+    setSubmissionSuccess,
+    setSubmissionError,
+  } = useFormEngineStore();
   const [declarationAccepted, setDeclarationAccepted] = useState(false);
 
   const isFormComplete = () => {
@@ -27,10 +37,33 @@ export default function ReviewSection({ navigation }: any) {
 
   const canSubmit = isFormComplete() && declarationAccepted;
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     updateValidationState('review', { isValid: true, data: { declarationAccepted } });
-    markStepComplete(6);
-    navigation.navigate('review');
+    setSubmissionLoading(true);
+
+    if (!currentFormType) {
+      setSubmissionLoading(false);
+      setSubmissionError('Form type is not selected.');
+      return;
+    }
+
+    try {
+      const payload = preparePayload(currentFormType, formData as any);
+      const response = await submitApplication(currentFormType, payload);
+
+      if (!response.success) {
+        throw new Error(response.error || response.message);
+      }
+
+      setSubmissionSuccess(true, response.data?.applicationId || undefined);
+      markStepComplete(6);
+      navigation.navigate('success');
+    } catch (error: any) {
+      const message = error?.message || 'Failed to submit application. Please try again.';
+      setSubmissionError(message);
+    } finally {
+      setSubmissionLoading(false);
+    }
   };
 
   const renderSection = (title: string, data: any, icon: any, onEdit: () => void) => (
@@ -67,8 +100,9 @@ export default function ReviewSection({ navigation }: any) {
       step={7}
       onBack={navigation.goBack}
       onNext={onSubmit}
-      nextDisabled={!canSubmit}
+      nextDisabled={!canSubmit || submissionState.isSubmitting}
       nextLabel="Submit Application"
+      loading={submissionState.isSubmitting}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Application Summary */}
@@ -193,6 +227,15 @@ export default function ReviewSection({ navigation }: any) {
             </TouchableOpacity>
           </View>
         </FormCard>
+
+        {submissionState.error ? (
+          <FormCard>
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle" size={24} color={colors.error} style={styles.noticeIcon} />
+              <Text style={styles.errorText}>{submissionState.error}</Text>
+            </View>
+          </FormCard>
+        ) : null}
 
         {/* Submission Notice */}
         <FormCard>
@@ -341,5 +384,18 @@ const styles = StyleSheet.create({
     fontSize: platform.normalize.fontSize.body,
     lineHeight: platform.normalize.lineHeight.body,
     color: colors.textSecondary,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: spacing.sm,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+  },
+  errorText: {
+    flex: 1,
+    color: colors.error,
+    fontSize: platform.normalize.fontSize.body,
+    lineHeight: platform.normalize.lineHeight.body,
   },
 });

@@ -51,6 +51,7 @@ export const addressDetailsSchema = z.object({
       message: 'Pincode must be exactly 6 digits',
     }),
   district: z.string().optional(),
+  otherDistrict: z.string().optional(),
   taluk: z.string().optional(),
   place: z.string().optional(),
   address: z.string().optional(),
@@ -67,12 +68,8 @@ export const familyDetailsSchema = z.object({
     .refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(val), {
       message: 'Enter a valid amount',
     }),
-});
-
-export const documentDetailsSchema = z.object({
-  marksCard: z.any().optional(),
-  aadhaar: z.any().optional(),
-  incomeCert: z.any().optional(),
+  monthlyRent: z.string().optional(),
+  residenceType: z.enum(['OWNED', 'RENTED', 'HOSTEL']).optional(),
 });
 
 export const guidelinesSchema = z.object({
@@ -86,5 +83,4 @@ export type PersonalDetailsFormValues = z.infer<typeof personalDetailsSchema>;
 export type ContactDetailsFormValues = z.infer<typeof contactDetailsSchema>;
 export type AddressDetailsFormValues = z.infer<typeof addressDetailsSchema>;
 export type FamilyDetailsFormValues = z.infer<typeof familyDetailsSchema>;
-export type DocumentDetailsFormValues = z.infer<typeof documentDetailsSchema>;
 export type GuidelinesFormValues = z.infer<typeof guidelinesSchema>;
