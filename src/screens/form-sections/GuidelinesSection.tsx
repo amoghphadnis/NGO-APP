@@ -45,7 +45,7 @@ export default function GuidelinesSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Application Guidelines"
-      step={1}
+      step={0}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}

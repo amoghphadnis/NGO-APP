@@ -58,8 +58,8 @@ export const addressDetailsSchema = z.object({
 });
 
 export const familyDetailsSchema = z.object({
-  fatherOccupation: z.string().optional(),
-  motherOccupation: z.string().optional(),
+  fatherOccupationID: z.string().optional(),
+  motherOccupationID: z.string().optional(),
   familyMembers: z.number().min(1, { message: 'At least 1 family member' }),
   familyComposition: z.array(z.string()).optional(),
   annualIncome: z

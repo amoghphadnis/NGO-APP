@@ -12,13 +12,30 @@ import { familyDetailsSchema, FamilyDetailsFormValues } from '@/validation/formS
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { DropdownField } from '@/components/form/DropdownField';
+
+const fatherOccupationOptions = [
+  { value: "1", label: "Carpenter" },
+  { value: "2", label: "Coolie" },
+  { value: "3", label: "Daily Wage" },
+]; // 1=Carpenter, 2=Coolie, 3=Daily Wage
+
+const motherOccupationOptions = [
+  { value: "1", label: "Coolie" },
+  { value: "2", label: "Daily wages" },
+  { value: "3", label: "Home maker" },
+  { value: "4", label: "Not working" },
+  { value: "5", label: "Tailor" },
+  { value: "6", label: "Expired" },
+  { value: "7", label: "Other" },
+]; // 1=Coolie, 2=Daily wages, 3=Home maker, 4=Not working, 5=Tailor, 6=Expired, 7=Other
 
 export default function FamilySection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const familyData = formData?.family ?? {
-    fatherOccupation: '',
-    motherOccupation: '',
+    fatherOccupationID: '',
+    motherOccupationID: '',
     familyMembers: 1,
     familyComposition: [],
     annualIncome: '',
@@ -26,8 +43,8 @@ export default function FamilySection({ navigation }: any) {
 
   const { control, handleSubmit, formState } = useForm<FamilyDetailsFormValues>({
     defaultValues: {
-      fatherOccupation: familyData.fatherOccupation,
-      motherOccupation: familyData.motherOccupation,
+      fatherOccupationID: familyData.fatherOccupationID,
+      motherOccupationID: familyData.motherOccupationID,
       familyMembers: familyData.familyMembers,
       familyComposition: familyData.familyComposition,
       annualIncome: familyData.annualIncome,
@@ -67,28 +84,32 @@ export default function FamilySection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="fatherOccupation"
+          name="fatherOccupationID"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <DropdownField
               label="Father's Occupation"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter father's occupation"
-              error={formState.errors.fatherOccupation?.message}
+              value={value?.toString() ?? ''}
+              onValueChange={onChange}
+              options={fatherOccupationOptions}
+              placeholder="Select father's occupation"
+              error={formState.errors.fatherOccupationID?.message}
+              helperText="Select occupation from dropdown"
             />
           )}
         />
 
         <Controller
           control={control}
-          name="motherOccupation"
+          name="motherOccupationID"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <DropdownField
               label="Mother's Occupation"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter mother's occupation"
-              error={formState.errors.motherOccupation?.message}
+              value={value?.toString() ?? ''}
+              onValueChange={onChange}
+              options={motherOccupationOptions}
+              placeholder="Select mother's occupation"
+              error={formState.errors.motherOccupationID?.message}
+              helperText="Select occupation from dropdown"
             />
           )}
         />

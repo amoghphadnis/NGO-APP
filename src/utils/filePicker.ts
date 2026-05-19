@@ -3,21 +3,39 @@ import * as DocumentPicker from 'expo-document-picker';
 export const pickDocument = async () => {
   try {
     const result = await DocumentPicker.getDocumentAsync({
-      type: ['application/pdf', 'image/jpeg', 'image/png'],
+      multiple: false,
       copyToCacheDirectory: true,
+      type: '*/*',
     });
 
-    if (result.canceled) return null;
+    console.log('[filePicker] DocumentPicker result:', result);
 
-    const file = result.assets[0];
+    if (result.canceled) {
+      console.log('[filePicker] User canceled document picker');
+      return null;
+    }
+
+    const asset = result.assets?.[0];
+    if (!asset) {
+      console.error('[filePicker] No asset found in result');
+      return null;
+    }
+
+    console.log('[filePicker] Picked asset:', {
+      uri: asset.uri,
+      name: asset.name,
+      mimeType: asset.mimeType,
+      size: asset.size,
+    });
+
     return {
-      uri: file.uri,
-      name: file.name,
-      type: file.mimeType || 'application/octet-stream',
-      size: file.size,
+      uri: asset.uri,
+      name: asset.name || 'unknown',
+      type: asset.mimeType || 'application/octet-stream',
+      size: asset.size || 0,
     };
   } catch (err) {
-    console.error('Document picker error', err);
+    console.error('[filePicker] Document picker error:', err);
     return null;
   }
 };

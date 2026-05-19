@@ -7,6 +7,9 @@ import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import FileUploadField from '@/components/form/FileUploadField';
 import { useFormEngineStore } from '../../store/useFormEngineStore';
+import { pickDocument } from '@/utils/filePicker';
+import { PROFESSIONAL_UPLOAD_RULES, validateUpload } from '@/forms/professional/uploads';
+import { PROFESSIONAL_FILE_KEYS } from '@/forms/professional/fileKeys';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
@@ -18,7 +21,7 @@ interface DocumentFormData {
 }
 
 export default function DocumentSection({ navigation }: any) {
-  const { updateSectionData, markStepComplete, updateValidationState, formData, uploadState } = useFormEngineStore();
+  const { updateSectionData, markStepComplete, updateValidationState, formData, uploadState, updateUploadState } = useFormEngineStore();
 
   const documentData = formData?.documents ?? {
     marksCard: null,
@@ -34,6 +37,55 @@ export default function DocumentSection({ navigation }: any) {
     },
     mode: 'onChange',
   });
+
+  const handleFileUpload = async (documentKey: string) => {
+    console.log('[DocumentSection] Handling file upload for:', documentKey);
+    
+    updateUploadState(documentKey, { isUploading: true, error: undefined, progress: 0 });
+
+    const file = await pickDocument();
+    
+    if (!file) {
+      console.log('[DocumentSection] No file selected or picker canceled');
+      updateUploadState(documentKey, { isUploading: false });
+      return;
+    }
+
+    console.log('[DocumentSection] File picked:', file);
+
+    // Validate the file
+    const validation = validateUpload(file, documentKey);
+    if (!validation.valid) {
+      console.error('[DocumentSection] File validation failed:', validation.error);
+      updateUploadState(documentKey, { isUploading: false, error: validation.error });
+      return;
+    }
+
+    console.log('[DocumentSection] File validation passed');
+
+    // Update the documents in the store
+    const updatedDocuments = {
+      ...documentData,
+      [documentKey]: file,
+    };
+    updateSectionData('documents', updatedDocuments);
+
+    // Mark as uploaded (simulated - in real app, this would be after server upload)
+    updateUploadState(documentKey, { isUploading: false, uploaded: true, progress: 100 });
+
+    console.log('[DocumentSection] File upload complete for:', documentKey);
+  };
+
+  const handleDeleteFile = (documentKey: string) => {
+    console.log('[DocumentSection] Deleting file for:', documentKey);
+    
+    const updatedDocuments = {
+      ...documentData,
+      [documentKey]: null,
+    };
+    updateSectionData('documents', updatedDocuments);
+    updateUploadState(documentKey, { isUploading: false, uploaded: false, error: undefined, progress: 0 });
+  };
 
   const allDocumentsUploaded = 
     uploadState.marksCard?.uploaded &&
@@ -83,9 +135,8 @@ export default function DocumentSection({ navigation }: any) {
             subtitle="Upload your marks card (PDF/JPG, max 2MB)"
             file={documentData.marksCard}
             meta={uploadState.marksCard}
-            onUpload={() => {
-              // File upload logic will be handled by the component
-            }}
+            onUpload={() => handleFileUpload('marksCard')}
+            onDelete={() => handleDeleteFile('marksCard')}
             maxSize={2 * 1024 * 1024} // 2MB
             acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
           />
@@ -101,9 +152,8 @@ export default function DocumentSection({ navigation }: any) {
             subtitle="Upload your Aadhaar card (PDF/JPG, max 2MB)"
             file={documentData.aadhaar}
             meta={uploadState.aadhaar}
-            onUpload={() => {
-              // File upload logic will be handled by component
-            }}
+            onUpload={() => handleFileUpload('aadhaar')}
+            onDelete={() => handleDeleteFile('aadhaar')}
             maxSize={2 * 1024 * 1024} // 2MB
             acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
           />
@@ -119,9 +169,8 @@ export default function DocumentSection({ navigation }: any) {
             subtitle="Upload family income certificate (PDF/JPG, max 2MB)"
             file={documentData.incomeCert}
             meta={uploadState.incomeCert}
-            onUpload={() => {
-              // File upload logic will be handled by component
-            }}
+            onUpload={() => handleFileUpload('incomeCert')}
+            onDelete={() => handleDeleteFile('incomeCert')}
             maxSize={2 * 1024 * 1024} // 2MB
             acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
           />

@@ -12,17 +12,49 @@ import { addressDetailsSchema, AddressDetailsFormValues } from '@/validation/for
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { DropdownField } from '@/components/form/DropdownField';
+
+// Dropdown options matching HTML form
+const districtOptions = [
+  { value: '1', label: 'Dharwad' },
+  { value: '2', label: 'Gadag' },
+  { value: '3', label: 'Belagavi' },
+  { value: '4', label: 'Koppal' },
+  { value: '5', label: 'Bagalkot' },
+  { value: '6', label: 'Vijaypura' },
+  { value: '7', label: 'Uttarakannada' },
+  { value: '8', label: 'Shimogga' },
+  { value: '9', label: 'Davangere' },
+  { value: '10', label: 'Haveri' },
+  { value: '11', label: 'Other' },
+];
+
+const placeOptions = [
+  { value: '1', label: 'Rural' },
+  { value: '2', label: 'Urban' },
+  { value: '3', label: 'Semi_Urban' },
+];
 
 export default function AddressSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
+  // Defensive rendering: ensure address object exists
+  const addressData = formData?.address ?? {
+    pincode: '',
+    district: '',
+    otherDistrict: '',
+    taluk: '',
+    place: '',
+    address: '',
+  };
+
   const { control, handleSubmit, formState } = useForm<AddressDetailsFormValues>({
     defaultValues: {
-      pincode: formData.address.pincode ?? '',
-      district: formData.address.district ?? '',
-      taluk: formData.address.taluk ?? '',
-      place: formData.address.place ?? '',
-      address: formData.address.address ?? '',
+      pincode: addressData.pincode ?? '',
+      district: addressData.district ?? '',
+      taluk: addressData.taluk ?? '',
+      place: addressData.place ?? '',
+      address: addressData.address ?? '',
     },
     resolver: zodResolver(addressDetailsSchema),
     mode: 'onChange',
@@ -71,11 +103,12 @@ export default function AddressSection({ navigation }: any) {
           control={control}
           name="district"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <DropdownField
               label="District"
               value={value}
-              onChangeText={onChange}
-              placeholder="Enter district name"
+              onValueChange={onChange}
+              options={districtOptions}
+              placeholder="Select district"
               error={formState.errors.district?.message}
             />
           )}
@@ -99,11 +132,12 @@ export default function AddressSection({ navigation }: any) {
           control={control}
           name="place"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <DropdownField
               label="Place/Village"
               value={value}
-              onChangeText={onChange}
-              placeholder="Enter place or village name"
+              onValueChange={onChange}
+              options={placeOptions}
+              placeholder="Select place or village"
               error={formState.errors.place?.message}
             />
           )}

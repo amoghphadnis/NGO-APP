@@ -87,11 +87,16 @@ export interface PlacesResponse {
 
 // Type guards
 export const isUploadableFile = (file: any): file is UploadableFile => {
-  return (
+  console.log('[isUploadableFile] Checking file:', file);
+  
+  const isValid = (
     file &&
     typeof file === 'object' &&
     typeof file.uri === 'string' &&
-    typeof file.type === 'string' &&
-    typeof file.name === 'string'
+    (typeof file.type === 'string' || file.type === undefined) && // Allow undefined type
+    (typeof file.name === 'string' || file.name === undefined) // Allow undefined name
   );
+
+  console.log('[isUploadableFile] File is valid:', isValid);
+  return isValid;
 };

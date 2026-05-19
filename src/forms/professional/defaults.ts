@@ -26,8 +26,8 @@ export const PROFESSIONAL_FORM_DEFAULTS = {
     address: '',
   },
   family: {
-    fatherOccupation: '',
-    motherOccupation: '',
+    fatherOccupationID: '',
+    motherOccupationID: '',
     familyMembers: 1,
     annualIncome: '',
   },

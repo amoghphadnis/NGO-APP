@@ -42,8 +42,8 @@ export interface BaseFormData {
     address: string;
   };
   family: {
-    fatherOccupation?: string;
-    motherOccupation?: string;
+    fatherOccupationID?: string;
+    motherOccupationID?: string;
     familyMembers: number;
     familyComposition?: string[];
     annualIncome?: string;

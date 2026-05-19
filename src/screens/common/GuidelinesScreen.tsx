@@ -22,7 +22,7 @@ export default function GuidelinesScreen({ navigation }: GuidelinesScreenProps) 
 
   return (
     <View style={styles.container}>
-      <ProgressHeader step={1} total={8} />
+      <ProgressHeader step={0} total={8} />
       <View style={styles.card}>
         <Text style={styles.title}>Application Guidelines</Text>
         <Text style={styles.description}>

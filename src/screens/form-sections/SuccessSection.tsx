@@ -11,10 +11,11 @@ import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
 
 export default function SuccessSection({ navigation }: any) {
-  const { formData, resetForm } = useFormEngineStore();
+  const { formData, resetForm, submissionState } = useFormEngineStore();
   
-  // Generate mock application ID (in real app, this would come from backend)
-  const applicationId = `VP${new Date().getFullYear()}${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+  // Defensive rendering for nested state
+  const personalData = formData?.personal ?? { name: '' };
+  const applicationId = submissionState?.applicationId || `VP${new Date().getFullYear()}${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
   const submissionDate = new Date().toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'long',
@@ -64,7 +65,7 @@ export default function SuccessSection({ navigation }: any) {
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Student Name:</Text>
-          <Text style={styles.detailValue}>{formData.personal.name || 'N/A'}</Text>
+          <Text style={styles.detailValue}>{personalData.name || 'N/A'}</Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Submission Date:</Text>

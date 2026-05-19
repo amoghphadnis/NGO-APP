@@ -29,7 +29,7 @@ export default function ReviewSection({ navigation }: any) {
     const hasPersonal = formData.personal.name && formData.personal.dateOfBirth;
     const hasContact = formData.contact.email && formData.contact.phone;
     const hasAddress = formData.address.pincode;
-    const hasFamily = formData.family.fatherOccupation;
+    const hasFamily = formData.family.fatherOccupationID;
     const hasDocuments = formData.documents.marksCard && formData.documents.aadhaar && formData.documents.incomeCert;
     
     return hasPersonal && hasContact && hasAddress && hasFamily && hasDocuments;
@@ -154,8 +154,8 @@ export default function ReviewSection({ navigation }: any) {
         {renderSection(
           "Family Information",
           {
-            "Father's Occupation": formData.family.fatherOccupation,
-            "Mother's Occupation": formData.family.motherOccupation,
+            "Father's Occupation ID": formData.family.fatherOccupationID,
+            "Mother's Occupation ID": formData.family.motherOccupationID,
             "Family Members": formData.family.familyMembers,
             "Annual Income": formData.family.annualIncome,
           },

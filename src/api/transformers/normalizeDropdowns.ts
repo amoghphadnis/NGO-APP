@@ -40,13 +40,28 @@ export interface NormalizedDropdowns {
  * Normalizes Professional dropdown response
  */
 export function normalizeProfessionalDropdowns(apiResponse: any): NormalizedDropdowns {
-  return {
-    districts: normalizeDistricts(apiResponse.districts),
-    genders: normalizeGenders(apiResponse.genders),
-    castes: normalizeCastes(apiResponse.castes),
-    courses: normalizeCourses(apiResponse.courses),
-    places: normalizePlaces(apiResponse.places),
+  // Debug: log raw response
+  console.log('[normalizeDropdowns] Raw API response:', JSON.stringify(apiResponse, null, 2));
+
+  // Handle both capitalized and lowercase keys from backend
+  const districts = apiResponse.Districts || apiResponse.districts || [];
+  const genders = apiResponse.Genders || apiResponse.genders || [];
+  const castes = apiResponse.Castes || apiResponse.castes || apiResponse.CasteCategories || apiResponse.casteCategories || [];
+  const courses = apiResponse.Courses || apiResponse.courses || apiResponse.CourseTypes || apiResponse.courseTypes || [];
+  const places = apiResponse.Places || apiResponse.places || [];
+
+  const normalized = {
+    districts: normalizeDistricts(districts),
+    genders: normalizeGenders(genders),
+    castes: normalizeCastes(castes),
+    courses: normalizeCourses(courses),
+    places: normalizePlaces(places),
   };
+
+  // Debug: log normalized response
+  console.log('[normalizeDropdowns] Normalized dropdowns:', JSON.stringify(normalized, null, 2));
+
+  return normalized;
 }
 
 /**
@@ -63,41 +78,56 @@ export function normalizePUCDropdowns(apiResponse: any): NormalizedDropdowns {
 }
 
 function normalizeDistricts(data: any[]): NormalizedDropdownOption[] {
-  if (!Array.isArray(data)) return [];
+  if (!Array.isArray(data)) {
+    console.log('[normalizeDistricts] Data is not an array:', data);
+    return [];
+  }
   return data.map((item) => ({
-    value: item.DistrictID ?? item.id ?? item.value,
-    label: item.DistrictName ?? item.name ?? item.label ?? '',
+    value: item.DistrictID ?? item.id ?? item.value ?? item.DistrictId,
+    label: item.DistrictName ?? item.name ?? item.label ?? item.DistrictName ?? '',
   }));
 }
 
 function normalizeGenders(data: any[]): NormalizedDropdownOption[] {
-  if (!Array.isArray(data)) return [];
+  if (!Array.isArray(data)) {
+    console.log('[normalizeGenders] Data is not an array:', data);
+    return [];
+  }
   return data.map((item) => ({
-    value: item.GenderID ?? item.id ?? item.value,
-    label: item.GenderName ?? item.name ?? item.label ?? '',
+    value: item.GenderID ?? item.id ?? item.value ?? item.GenderId,
+    label: item.GenderName ?? item.name ?? item.label ?? item.GenderName ?? '',
   }));
 }
 
 function normalizeCastes(data: any[]): NormalizedDropdownOption[] {
-  if (!Array.isArray(data)) return [];
+  if (!Array.isArray(data)) {
+    console.log('[normalizeCastes] Data is not an array:', data);
+    return [];
+  }
   return data.map((item) => ({
-    value: item.CasteCategoryID ?? item.id ?? item.value,
-    label: item.CasteCategoryName ?? item.name ?? item.label ?? '',
+    value: item.CasteCategoryID ?? item.id ?? item.value ?? item.CasteCategoryId,
+    label: item.CasteCategoryName ?? item.name ?? item.label ?? item.CasteCategoryName ?? '',
   }));
 }
 
 function normalizeCourses(data: any[]): NormalizedDropdownOption[] {
-  if (!Array.isArray(data)) return [];
+  if (!Array.isArray(data)) {
+    console.log('[normalizeCourses] Data is not an array:', data);
+    return [];
+  }
   return data.map((item) => ({
-    value: item.CourseTypeID ?? item.id ?? item.value,
-    label: item.CourseTypeName ?? item.name ?? item.label ?? '',
+    value: item.CourseTypeID ?? item.id ?? item.value ?? item.CourseTypeId,
+    label: item.CourseTypeName ?? item.name ?? item.label ?? item.CourseTypeName ?? '',
   }));
 }
 
 function normalizePlaces(data: any[]): NormalizedDropdownOption[] {
-  if (!Array.isArray(data)) return [];
+  if (!Array.isArray(data)) {
+    console.log('[normalizePlaces] Data is not an array:', data);
+    return [];
+  }
   return data.map((item) => ({
-    value: item.PlaceID ?? item.id ?? item.value,
-    label: item.PlaceName ?? item.name ?? item.label ?? '',
+    value: item.PlaceID ?? item.id ?? item.value ?? item.PlaceId,
+    label: item.PlaceName ?? item.name ?? item.label ?? item.PlaceName ?? '',
   }));
 }

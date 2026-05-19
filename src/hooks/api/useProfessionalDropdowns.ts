@@ -22,8 +22,27 @@ export function useProfessionalDropdowns(): UseProfessionalDropdownsReturn {
     retry: 2,
   });
 
+  // Debug: log query state
+  console.log('[useProfessionalDropdowns] Query state:', {
+    isLoading: query.isLoading,
+    error: query.error,
+    data: query.data,
+  });
+
+  // Add fallback empty arrays to prevent undefined errors
+  const dropdownData = query.data?.success ? query.data.data : undefined;
+  const safeData: NormalizedDropdowns = dropdownData ?? {
+    districts: [],
+    genders: [],
+    castes: [],
+    courses: [],
+    places: [],
+  };
+
+  console.log('[useProfessionalDropdowns] Safe dropdown data:', safeData);
+
   return {
-    data: query.data?.success ? query.data.data : undefined,
+    data: safeData,
     isLoading: query.isLoading,
     error: query.error ? (query.error as Error).message : null,
     refetch: query.refetch,

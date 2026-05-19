@@ -51,7 +51,7 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
     guidelines: { accepted: false },
     personal: { name: '', dateOfBirth: '', gender: '', caste: '' },
     contact: { email: '', phone: '' },
-    address: { pincode: '', district: '', taluk: '', place: '', address: '' },
+    address: { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '' },
     family: { fatherOccupation: '', motherOccupation: '', familyMembers: 1, annualIncome: '' },
     category: { scholarshipCategory: '', courseType: '' },
     academic: { puPercentage: 0, course: '', collegeName: '', collegeType: 'Government', annualCollegeFees: 0 },
@@ -92,8 +92,24 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
       return acc;
     }, {} as FormDataUnion);
     
+    // Ensure all nested objects are initialized with safe defaults
+    const safeFormData: FormDataUnion = {
+      guidelines: defaultFormData.guidelines ?? { accepted: false },
+      personal: defaultFormData.personal ?? { name: '', dateOfBirth: '', gender: '', caste: '' },
+      contact: defaultFormData.contact ?? { email: '', phone: '' },
+      address: defaultFormData.address ?? { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '' },
+      family: defaultFormData.family ?? { fatherOccupationID: '', motherOccupationID: '', familyMembers: 1, annualIncome: '' },
+      documents: defaultFormData.documents ?? { marksCard: undefined, aadhaar: undefined, incomeCert: undefined },
+      review: defaultFormData.review ?? { declarationAccepted: false },
+      ...(formType === 'professional' ? {
+        category: (defaultFormData as any).category ?? { scholarshipCategory: '', courseType: '' },
+        academic: (defaultFormData as any).academic ?? { puPercentage: 0, course: '', collegeName: '', collegeType: 'Government', annualCollegeFees: 0 },
+        bank: (defaultFormData as any).bank ?? { accountHolderName: '', bankName: '', accountNumber: '', ifscCode: '', branchName: '', ifscVerified: false },
+      } : {}),
+    };
+
     set({ 
-      formData: defaultFormData,
+      formData: safeFormData,
       currentStep: 0,
       completedSteps: {},
       validationState: {},
@@ -169,8 +185,8 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
       guidelines: { accepted: false },
       personal: { name: '', dateOfBirth: '', gender: '', caste: '' },
       contact: { email: '', phone: '' },
-      address: { pincode: '', district: '', taluk: '', place: '', address: '' },
-      family: { fatherOccupation: '', motherOccupation: '', familyMembers: 1, annualIncome: '' },
+      address: { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '' },
+      family: { fatherOccupationID: '', motherOccupationID: '', familyMembers: 1, annualIncome: '' },
       category: { scholarshipCategory: '', courseType: '' },
       academic: { puPercentage: 0, course: '', collegeName: '', collegeType: 'Government', annualCollegeFees: 0 },
       bank: { accountHolderName: '', bankName: '', accountNumber: '', ifscCode: '', branchName: '', ifscVerified: false },

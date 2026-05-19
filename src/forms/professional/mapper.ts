@@ -30,6 +30,8 @@ function toString(value: string | number | undefined): string {
  * Maps Professional form data to backend API contract
  */
 export function professionalMapper(formData: ProfessionalFormData): FormData {
+  console.log('[professionalMapper] Input formData:', JSON.stringify(formData, null, 2));
+  
   const fd = new FormData();
 
   // Personal Information
@@ -84,6 +86,14 @@ export function professionalMapper(formData: ProfessionalFormData): FormData {
   }
 
   // Family Information
+  if (formData.family.fatherOccupationID) {
+    fd.append('FatherOccupationID', toString(formData.family.fatherOccupationID));
+  }
+
+  if (formData.family.motherOccupationID) {
+    fd.append('MotherOccupationID', toString(formData.family.motherOccupationID));
+  }
+
   if (formData.family.familyMembers) {
     fd.append('FamilyMembers', toString(formData.family.familyMembers));
   }
@@ -142,6 +152,14 @@ export function professionalMapper(formData: ProfessionalFormData): FormData {
   appendFileToFormData(fd, PROFESSIONAL_FILE_KEYS.MARKS_CARD, formData.documents.marksCard);
   appendFileToFormData(fd, PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE, formData.documents.incomeCert);
   appendFileToFormData(fd, PROFESSIONAL_FILE_KEYS.AADHAR_CARD, formData.documents.aadhaar);
+
+  // Debug: log file keys
+  console.log('[professionalMapper] Professional file keys:', PROFESSIONAL_FILE_KEYS);
+  console.log('[professionalMapper] Documents attached:', {
+    marksCard: !!formData.documents.marksCard,
+    incomeCert: !!formData.documents.incomeCert,
+    aadhaar: !!formData.documents.aadhaar,
+  });
 
   return fd;
 }
