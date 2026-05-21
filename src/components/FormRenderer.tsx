@@ -4,19 +4,19 @@ import { useFormEngineStore } from '../store/useFormEngineStore';
 import { getFormConfig } from '../forms/shared/registry';
 
 // Import core form section components that exist
-import GuidelinesSection from '../screens/form-sections/GuidelinesSection';
-import PersonalSection from '../screens/form-sections/PersonalSection';
-import ContactSection from '../screens/form-sections/ContactSection';
-import AddressSection from '../screens/form-sections/AddressSection';
-import FamilySection from '../screens/form-sections/FamilySection';
-import DocumentSection from '../screens/form-sections/DocumentSection';
-import ReviewSection from '../screens/form-sections/ReviewSection';
-import SuccessSection from '../screens/form-sections/SuccessSection';
+import GuidelinesSection from '../screens/form-sections/professional/GuidelinesSection';
+import PersonalSection from '../screens/form-sections/professional/PersonalSection';
+import ContactSection from '../screens/form-sections/professional/ContactSection';
+import AddressSection from '../screens/form-sections/professional/AddressSection';
+import FamilySection from '../screens/form-sections/professional/FamilySection';
+import DocumentSection from '../screens/form-sections/professional/DocumentSection';
+import ReviewSection from '../screens/form-sections/professional/ReviewSection';
+import SuccessSection from '../screens/form-sections/professional/SuccessSection';
 
 // Import professional-specific sections
-import CategorySection from '../screens/form-sections/CategorySection';
-import AcademicSection from '../screens/form-sections/AcademicSection';
-import BankSection from '../screens/form-sections/BankSection';
+import CategorySection from '../screens/form-sections/puc/CategorySection';
+import AcademicSection from '../screens/form-sections/professional/AcademicSection';
+import BankSection from '../screens/form-sections/professional/BankSection';
 
 interface FormRendererProps {
   navigation: any;

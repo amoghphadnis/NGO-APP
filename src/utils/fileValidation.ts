@@ -1,4 +1,5 @@
 import { UploadableFile } from '@/types/api';
+import { ALLOWED_DOCUMENT_MIME_TYPES, MAX_FILE_SIZE_BYTES } from '@/constants/formOptions';
 
 export interface FileValidationResult {
   isValid: boolean;
@@ -13,28 +14,20 @@ export const validateFileType = (file: UploadableFile): FileValidationResult => 
     };
   }
 
-  // Check file size (2MB for images, 5MB for documents)
-  const maxSize = file.type.startsWith('image/') ? 2 * 1024 * 1024 : 5 * 1024 * 1024;
-  
-  if (file.size && file.size > maxSize) {
-    const maxSizeMB = Math.round(maxSize / (1024 * 1024));
+  // Check file size (2MB limit for all files)
+  if (file.size && file.size > MAX_FILE_SIZE_BYTES) {
+    const maxSizeMB = Math.round(MAX_FILE_SIZE_BYTES / (1024 * 1024));
     return {
       isValid: false,
       error: `File size exceeds ${maxSizeMB}MB limit`,
     };
   }
 
-  // Check MIME type
-  const allowedMimeTypes = [
-    'image/jpeg',
-    'image/png',
-    'application/pdf',
-  ];
-
-  if (!allowedMimeTypes.includes(file.type)) {
+  // Check MIME type against centralized allowed types
+  if (!ALLOWED_DOCUMENT_MIME_TYPES.includes(file.type as any)) {
     return {
       isValid: false,
-      error: 'Invalid file type. Only JPG, PNG, and PDF files are allowed',
+      error: 'Invalid file type. Only JPG, JPEG, PNG, and PDF files are allowed',
     };
   }
 

@@ -5,8 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
-import { useFormEngineStore } from '../../store/useFormEngineStore';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 import { preparePayload, submitApplication } from '@/submission';
+import { isProfessionalForm } from '@/types/forms';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
@@ -28,9 +29,21 @@ export default function ReviewSection({ navigation }: any) {
     // Check if all required sections are filled
     const hasPersonal = formData.personal.name && formData.personal.dateOfBirth;
     const hasContact = formData.contact.email && formData.contact.phone;
-    const hasAddress = formData.address.pincode;
-    const hasFamily = formData.family.fatherOccupationID;
-    const hasDocuments = formData.documents.marksCard && formData.documents.aadhaar && formData.documents.incomeCert;
+    const hasAddress = formData.address.pincode && formData.address.district;
+    const hasFamily = formData.family.familyMembers > 0;
+    const hasDocuments = isProfessionalForm(formData) && 
+      'marksCard' in formData.documents && 
+      'aadhaar' in formData.documents && 
+      'incomeCert' in formData.documents &&
+      formData.documents.marksCard && 
+      formData.documents.aadhaar && 
+      formData.documents.incomeCert;
+    
+    if (isProfessionalForm(formData)) {
+      const hasAcademic = formData.academic.courseTypeID && formData.academic.collegeName && formData.academic.collegeFees > 0;
+      const hasBank = formData.bank.accountNumber && formData.bank.ifscCode;
+      return hasPersonal && hasContact && hasAddress && hasFamily && hasDocuments && hasAcademic && hasBank;
+    }
     
     return hasPersonal && hasContact && hasAddress && hasFamily && hasDocuments;
   };
@@ -48,7 +61,8 @@ export default function ReviewSection({ navigation }: any) {
     }
 
     try {
-      const payload = preparePayload(currentFormType, formData as any);
+      // Pass formData directly to preparePayload which uses the correct mappers
+      const payload = preparePayload(currentFormType, formData);
       const response = await submitApplication(currentFormType, payload);
 
       if (!response.success) {
@@ -125,6 +139,35 @@ export default function ReviewSection({ navigation }: any) {
           () => navigation.navigate('personal')
         )}
 
+        {/* Academic Details (Professional only) */}
+        {isProfessionalForm(formData) && renderSection(
+          "Academic Details",
+          {
+            "PU Percentage": `${formData.academic.puPercentage}%`,
+            "CET/NEET Rank": formData.academic.cetNeetRank || 'N/A',
+            "Course Type": formData.academic.courseTypeID,
+            "College Name": formData.academic.collegeName,
+            "College Type": formData.academic.collegeTypeID === '1' ? 'Government' : formData.academic.collegeTypeID === '2' ? 'Aided' : 'Private',
+            "Annual Fees": `₹${formData.academic.collegeFees}`,
+          },
+          "school",
+          () => navigation.navigate('academic')
+        )}
+
+        {/* Bank Details (Professional only) */}
+        {isProfessionalForm(formData) && renderSection(
+          "Bank Details",
+          {
+            "Account Holder": formData.bank.accountHolderName,
+            "Bank Name": formData.bank.bankName,
+            "Account Number": formData.bank.accountNumber,
+            "IFSC Code": formData.bank.ifscCode,
+            "Branch": formData.bank.branchName || 'N/A',
+          },
+          "card",
+          () => navigation.navigate('bank')
+        )}
+
         {/* Contact Information */}
         {renderSection(
           "Contact Information",
@@ -154,10 +197,10 @@ export default function ReviewSection({ navigation }: any) {
         {renderSection(
           "Family Information",
           {
-            "Father's Occupation ID": formData.family.fatherOccupationID,
-            "Mother's Occupation ID": formData.family.motherOccupationID,
+            "Father's Occupation ID": formData.family.fatherOccupationID || 'N/A',
+            "Mother's Occupation ID": formData.family.motherOccupationID || 'N/A',
             "Family Members": formData.family.familyMembers,
-            "Annual Income": formData.family.annualIncome,
+            "Annual Income": formData.family.annualIncome || 'N/A',
           },
           "people",
           () => navigation.navigate('family')
@@ -179,14 +222,14 @@ export default function ReviewSection({ navigation }: any) {
           <View style={styles.sectionContent}>
             <View style={styles.documentRow}>
               <Text style={styles.documentLabel}>Marks Card:</Text>
-              <Text style={formData.documents.marksCard ? styles.documentUploaded : styles.documentPending}>
-                {formData.documents.marksCard ? '✓ Uploaded' : 'Not uploaded'}
+              <Text style={isProfessionalForm(formData) && 'marksCard' in formData.documents && formData.documents.marksCard ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && 'marksCard' in formData.documents && formData.documents.marksCard ? '✓ Uploaded' : 'Not uploaded'}
               </Text>
             </View>
             <View style={styles.documentRow}>
               <Text style={styles.documentLabel}>Aadhaar Card:</Text>
-              <Text style={formData.documents.aadhaar ? styles.documentUploaded : styles.documentPending}>
-                {formData.documents.aadhaar ? '✓ Uploaded' : 'Not uploaded'}
+              <Text style={isProfessionalForm(formData) && 'aadhaar' in formData.documents && formData.documents.aadhaar ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && 'aadhaar' in formData.documents && formData.documents.aadhaar ? '✓ Uploaded' : 'Not uploaded'}
               </Text>
             </View>
             <View style={styles.documentRow}>

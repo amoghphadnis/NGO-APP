@@ -10,17 +10,21 @@ export const pucFormConfig: FormConfig = {
     'contact', 
     'address',
     'family',
+    'category',
+    'academic',
     'documents',
     'review',
     'success'
   ],
-  totalSteps: 8,
+  totalSteps: 10,
   validation: {
     guidelines: 'guidelinesSchema',
     personal: 'personalDetailsSchema',
     contact: 'contactDetailsSchema',
     address: 'addressDetailsSchema',
-    family: 'familyDetailsSchema',
+    family: 'pucFamilyDetailsSchema',
+    category: 'pucCategoryHousingSchema',
+    academic: 'pucAcademicDetailsSchema',
     documents: 'pucDocumentDetailsSchema',
     review: null,
     success: null
@@ -69,9 +73,27 @@ export const pucStepConfigs = [
     title: 'Family Information',
     subtitle: 'Tell us about your family',
     component: 'FamilySection',
-    validation: 'familyDetailsSchema',
+    validation: 'pucFamilyDetailsSchema',
     required: true,
     icon: 'people'
+  },
+  {
+    id: 'category' as FormStep,
+    title: 'Category & Housing',
+    subtitle: 'Caste and housing details',
+    component: 'CategorySection',
+    validation: 'pucCategoryHousingSchema',
+    required: true,
+    icon: 'pricetag'
+  },
+  {
+    id: 'academic' as FormStep,
+    title: 'Academic Details',
+    subtitle: 'Course and academic information',
+    component: 'AcademicSection',
+    validation: 'pucAcademicDetailsSchema',
+    required: true,
+    icon: 'school'
   },
   {
     id: 'documents' as FormStep,

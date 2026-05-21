@@ -7,12 +7,19 @@ import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import VPInputField from '@/components/common/VPInputField';
-import { useFormEngineStore } from '../../store/useFormEngineStore';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 import { isProfessionalForm } from '@/types/forms';
-import { academicDetailsSchema, AcademicDetailsFormValues } from '@/validation/formSchemas';
+import { academicDetailsSchema, AcademicDetailsFormValues } from '@/validation/professionalSchemas';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+
+const collegeType: Option<'1' | '2' | '3'>[] = [
+  { value: '1', label: 'Government' },
+  { value: '2', label: 'Aided' },
+  { value: '3', label: 'Private' },
+];
 
 export default function AcademicSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
@@ -21,10 +28,10 @@ export default function AcademicSection({ navigation }: any) {
     defaultValues: {
       puPercentage: isProfessionalForm(formData) ? formData.academic.puPercentage ?? 0 : 0,
       cetNeetRank: isProfessionalForm(formData) ? formData.academic.cetNeetRank ?? undefined : undefined,
-      course: isProfessionalForm(formData) ? formData.academic.course ?? '' : '',
+      courseTypeID: isProfessionalForm(formData) ? formData.academic.courseTypeID ?? '' : '',
       collegeName: isProfessionalForm(formData) ? formData.academic.collegeName ?? '' : '',
-      collegeType: isProfessionalForm(formData) ? formData.academic.collegeType ?? 'Government' : 'Government',
-      annualCollegeFees: isProfessionalForm(formData) ? formData.academic.annualCollegeFees ?? 0 : 0,
+      collegeTypeID: isProfessionalForm(formData) ? formData.academic.collegeTypeID ?? '1' : '1',
+      collegeFees: isProfessionalForm(formData) ? formData.academic.collegeFees ?? 0 : 0,
     },
     resolver: zodResolver(academicDetailsSchema),
     mode: 'onChange',
@@ -81,7 +88,7 @@ export default function AcademicSection({ navigation }: any) {
             <VPInputField
               label="CET/NEET Rank"
               value={value?.toString() ?? ''}
-              onChangeText={(text) => onChange(parseInt(text) || 0)}
+              onChangeText={(text) => onChange(text ? parseInt(text, 10) : undefined)}
               placeholder="Enter rank if applicable"
               keyboardType="numeric"
               error={formState.errors.cetNeetRank?.message}
@@ -102,14 +109,14 @@ export default function AcademicSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="course"
+          name="courseTypeID"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Course Name"
+              label="Course Type"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter your course name"
-              error={formState.errors.course?.message}
+              placeholder="Enter your course type"
+              error={formState.errors.courseTypeID?.message}
               required
             />
           )}
@@ -130,7 +137,27 @@ export default function AcademicSection({ navigation }: any) {
           )}
         />
 
-        <Controller
+          <Controller
+            control={control}
+            name="collegeTypeID"
+            render={({ field }) => (
+              <ModalSelectField
+                label="College Type"
+                placeholder="Select college type"
+                value={field.value}
+                onChange={field.onChange}
+                options={collegeType}
+                error={
+                  formState.errors.collegeTypeID
+                    ?.message
+                }
+                required
+              />
+            )}
+          />
+          
+        
+        {/* <Controller
           control={control}
           name="collegeType"
           render={({ field: { onChange, value } }) => (
@@ -143,7 +170,7 @@ export default function AcademicSection({ navigation }: any) {
               required
             />
           )}
-        />
+        /> */}
       </FormCard>
 
       {/* Fee Information */}
@@ -157,16 +184,16 @@ export default function AcademicSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="annualCollegeFees"
+          name="collegeFees"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Annual College Fees"
               value={value?.toString() ?? ''}
-              onChangeText={(text) => onChange(parseFloat(text.replace(/,/g, '')) || 0)}
+              onChangeText={(text) => onChange(text ? parseFloat(text.replace(/,/g, '')) : undefined)}
               placeholder="Enter annual fees"
               keyboardType="numeric"
               prefix="₹"
-              error={formState.errors.annualCollegeFees?.message}
+              error={formState.errors.collegeFees?.message}
               helperText="Enter total annual college fees"
               required
             />

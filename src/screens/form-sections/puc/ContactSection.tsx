@@ -7,8 +7,8 @@ import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import VPInputField from '@/components/common/VPInputField';
-import { useFormEngineStore } from '../../store/useFormEngineStore';
-import { contactDetailsSchema, ContactDetailsFormValues } from '@/validation/formSchemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
+import { contactDetailsSchema, ContactDetailsFormValues } from '@/validation/sharedSchemas';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
@@ -19,12 +19,14 @@ export default function ContactSection({ navigation }: any) {
   const contactData = formData?.contact ?? {
     email: '',
     phone: '',
+    alternatePhone: '',
   };
 
   const { control, handleSubmit, watch, formState } = useForm<ContactDetailsFormValues>({
     defaultValues: {
       email: contactData.email,
       phone: contactData.phone,
+      alternatePhone: contactData.alternatePhone,
     },
     resolver: zodResolver(contactDetailsSchema),
     mode: 'onChange',
@@ -37,7 +39,7 @@ export default function ContactSection({ navigation }: any) {
     updateSectionData('contact', data);
     updateValidationState('contact', { isValid: true, data });
     markStepComplete(2);
-    navigation.navigate('family');
+    navigation.navigate('address');
   };
 
   const isNextDisabled = !formState.isValid;
@@ -83,7 +85,7 @@ export default function ContactSection({ navigation }: any) {
           name="phone"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Mobile Number"
+              label="Contact Number"
               value={value}
               onChangeText={onChange}
               placeholder="Enter 10-digit mobile number"
@@ -92,6 +94,23 @@ export default function ContactSection({ navigation }: any) {
               error={formState.errors.phone?.message}
               helperText="We'll use this number for important updates"
               required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="alternatePhone"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Alternate Number"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter alternate 10-digit number"
+              keyboardType="phone-pad"
+              maxLength={10}
+              error={formState.errors.alternatePhone?.message}
+              helperText="Optional alternate contact number"
             />
           )}
         />

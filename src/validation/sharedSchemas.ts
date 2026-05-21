@@ -41,20 +41,27 @@ export const contactDetailsSchema = z.object({
     .min(10, { message: 'Please enter a valid 10-digit number' })
     .max(10, { message: 'Please enter a valid 10-digit number' })
     .regex(/^[0-9]{10}$/, 'Please enter a valid 10-digit number'),
+  alternatePhone: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^[0-9]{10}$/.test(val), {
+      message: 'Please enter a valid 10-digit number',
+    }),
 });
 
 export const addressDetailsSchema = z.object({
   pincode: z
     .string()
-    .optional()
-    .refine((val) => !val || /^\d{6}$/.test(val), {
+    .min(1, { message: 'Pincode is required' })
+    .refine((val) => /^\d{6}$/.test(val), {
       message: 'Pincode must be exactly 6 digits',
     }),
-  district: z.string().optional(),
+  district: z.string().min(1, { message: 'District is required' }),
   otherDistrict: z.string().optional(),
-  taluk: z.string().optional(),
-  place: z.string().optional(),
-  address: z.string().optional(),
+  taluk: z.string().min(1, { message: 'Taluk is required' }),
+  place: z.string().min(1, { message: 'Place is required' }),
+  address: z.string().min(1, { message: 'Address is required' }),
+  area: z.string().optional(), // Same as place, used in PUC form with different label
 });
 
 export const familyDetailsSchema = z.object({
@@ -73,9 +80,10 @@ export const familyDetailsSchema = z.object({
 });
 
 export const guidelinesSchema = z.object({
-  guidelinesAccepted: z.boolean().refine(val => val === true, {
+  accepted: z.boolean().refine(val => val === true, {
     message: 'You must accept the guidelines to proceed'
-  })
+  }),
+  timestamp: z.string().optional(),
 });
 
 // Type exports

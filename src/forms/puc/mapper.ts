@@ -6,7 +6,7 @@
 
 import dayjs from 'dayjs';
 import { PUC_FILE_KEYS } from './fileKeys';
-import { PUCFormData } from '@/types/forms';
+import { PucFormValues } from '@/types/forms';
 import { appendFileToFormData } from '@/submission/attachFiles';
 
 /**
@@ -29,7 +29,7 @@ function toString(value: string | number | undefined): string {
 /**
  * Maps PUC form data to backend API contract
  */
-export function pucMapper(formData: PUCFormData): FormData {
+export function pucMapper(formData: PucFormValues): FormData {
   const fd = new FormData();
 
   // Personal Information
@@ -58,6 +58,10 @@ export function pucMapper(formData: PUCFormData): FormData {
     fd.append('ContactNumber', formData.contact.phone);
   }
 
+  if (formData.contact.alternatePhone) {
+    fd.append('AlternatePhone', formData.contact.alternatePhone);
+  }
+
   // Address Information
   if (formData.address.district) {
     fd.append('DistrictID', toString(formData.address.district));
@@ -83,7 +87,19 @@ export function pucMapper(formData: PUCFormData): FormData {
     fd.append('Pincode', formData.address.pincode);
   }
 
+  if (formData.address.area) {
+    fd.append('Area', formData.address.area);
+  }
+
   // Family Information
+  if (formData.family.fatherName) {
+    fd.append('FatherName', formData.family.fatherName);
+  }
+
+  if (formData.family.motherName) {
+    fd.append('MotherName', formData.family.motherName);
+  }
+
   if (formData.family.familyMembers) {
     fd.append('FamilyMembers', toString(formData.family.familyMembers));
   }
@@ -100,6 +116,48 @@ export function pucMapper(formData: PUCFormData): FormData {
     fd.append('ResidenceType', formData.family.residenceType);
   }
 
+  // Category & Housing Information
+  if (formData.category.caste) {
+    fd.append('Caste', formData.category.caste);
+  }
+
+  if (formData.category.houseType) {
+    fd.append('HouseType', formData.category.houseType);
+  }
+
+  if (formData.category.monthlyRent) {
+    fd.append('MonthlyRent', formData.category.monthlyRent);
+  }
+
+  if (formData.category.referenceSource) {
+    fd.append('ReferenceSource', formData.category.referenceSource);
+  }
+
+  // Academic Information
+  if (formData.academic.course) {
+    fd.append('Course', formData.academic.course);
+  }
+
+  if (formData.academic.collegeName) {
+    fd.append('CollegeName', formData.academic.collegeName);
+  }
+
+  if (formData.academic.collegeType) {
+    fd.append('CollegeType', formData.academic.collegeType);
+  }
+
+  if (formData.academic.expectedFees) {
+    fd.append('ExpectedFees', toString(formData.academic.expectedFees));
+  }
+
+  if (formData.academic.percentage) {
+    fd.append('Percentage', toString(formData.academic.percentage));
+  }
+
+  if (formData.academic.totalMarks) {
+    fd.append('TotalMarks', toString(formData.academic.totalMarks));
+  }
+
   // Document Uploads
   appendFileToFormData(fd, PUC_FILE_KEYS.SSLC_MARKS_CARD, formData.documents.sslcMarksCard);
   appendFileToFormData(fd, PUC_FILE_KEYS.STUDENT_PHOTO, formData.documents.studentPhoto);
@@ -108,6 +166,10 @@ export function pucMapper(formData: PUCFormData): FormData {
   appendFileToFormData(fd, PUC_FILE_KEYS.INCOME_CERTIFICATE, formData.documents.incomeCert);
   appendFileToFormData(fd, PUC_FILE_KEYS.FAMILY_PHOTO, formData.documents.familyPhoto);
   appendFileToFormData(fd, PUC_FILE_KEYS.HOUSE_VIDEO, formData.documents.houseVideo);
+
+  if (formData.documents.houseVisitLink) {
+    fd.append('HouseVisitLink', formData.documents.houseVisitLink);
+  }
 
   return fd;
 }

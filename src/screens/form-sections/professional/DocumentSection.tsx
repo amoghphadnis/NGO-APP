@@ -6,34 +6,36 @@ import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import FileUploadField from '@/components/form/FileUploadField';
-import { useFormEngineStore } from '../../store/useFormEngineStore';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 import { pickDocument } from '@/utils/filePicker';
 import { PROFESSIONAL_UPLOAD_RULES, validateUpload } from '@/forms/professional/uploads';
 import { PROFESSIONAL_FILE_KEYS } from '@/forms/professional/fileKeys';
+import { UploadedDocument } from '@/types/documents';
+import { isProfessionalForm } from '@/types/forms';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
 
 interface DocumentFormData {
-  marksCard?: any;
-  aadhaar?: any;
-  incomeCert?: any;
+  marksCard?: UploadedDocument;
+  aadhaar?: UploadedDocument;
+  incomeCert?: UploadedDocument;
 }
 
 export default function DocumentSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData, uploadState, updateUploadState } = useFormEngineStore();
 
-  const documentData = formData?.documents ?? {
-    marksCard: null,
-    aadhaar: null,
-    incomeCert: null,
+  const documentData = (isProfessionalForm(formData) ? formData.documents : null) ?? {
+    marksCard: undefined,
+    aadhaar: undefined,
+    incomeCert: undefined,
   };
 
   const { control, handleSubmit, formState } = useForm<DocumentFormData>({
     defaultValues: {
-      marksCard: documentData.marksCard ?? null,
-      aadhaar: documentData.aadhaar ?? null,
-      incomeCert: documentData.incomeCert ?? null,
+      marksCard: 'marksCard' in documentData ? documentData.marksCard : undefined,
+      aadhaar: 'aadhaar' in documentData ? documentData.aadhaar : undefined,
+      incomeCert: 'incomeCert' in documentData ? documentData.incomeCert : undefined,
     },
     mode: 'onChange',
   });
@@ -63,10 +65,13 @@ export default function DocumentSection({ navigation }: any) {
 
     console.log('[DocumentSection] File validation passed');
 
-    // Update the documents in the store
+    // Update the documents in the store with UploadedDocument structure
     const updatedDocuments = {
       ...documentData,
-      [documentKey]: file,
+      [documentKey]: {
+        file: file,
+        uploadedAt: new Date().toISOString(),
+      },
     };
     updateSectionData('documents', updatedDocuments);
 
@@ -94,9 +99,9 @@ export default function DocumentSection({ navigation }: any) {
 
   const onSubmit = () => {
     const updatedDocuments = {
-      marksCard: documentData.marksCard,
-      aadhaar: documentData.aadhaar,
-      incomeCert: documentData.incomeCert,
+      marksCard: 'marksCard' in documentData ? documentData.marksCard : undefined,
+      aadhaar: 'aadhaar' in documentData ? documentData.aadhaar : undefined,
+      incomeCert: 'incomeCert' in documentData ? documentData.incomeCert : undefined,
     };
     
     updateSectionData('documents', updatedDocuments);
@@ -110,7 +115,7 @@ export default function DocumentSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Document Upload"
-      step={6}
+      step={8}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
@@ -127,13 +132,10 @@ export default function DocumentSection({ navigation }: any) {
         
         <FormCard>
           <Text style={styles.documentTitle}>Previous Year Marks Card</Text>
-          <Text style={styles.documentSubtitle}>
-            Upload your previous year marks card (PDF/JPG, max 2MB)
-          </Text>
           <FileUploadField
-            title="Previous Year Marks Card"
-            subtitle="Upload your marks card (PDF/JPG, max 2MB)"
-            file={documentData.marksCard}
+            title="Marks Card"
+            subtitle="Upload your previous year marks card"
+            file={'marksCard' in documentData ? documentData.marksCard?.file : undefined}
             meta={uploadState.marksCard}
             onUpload={() => handleFileUpload('marksCard')}
             onDelete={() => handleDeleteFile('marksCard')}
@@ -150,10 +152,10 @@ export default function DocumentSection({ navigation }: any) {
           <FileUploadField
             title="Aadhaar Card"
             subtitle="Upload your Aadhaar card (PDF/JPG, max 2MB)"
-            file={documentData.aadhaar}
+            file={documentData.aadhaar?.file}
             meta={uploadState.aadhaar}
-            onUpload={() => handleFileUpload('aadhaar')}
-            onDelete={() => handleDeleteFile('aadhaar')}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.AADHAR_CARD)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.AADHAR_CARD)}
             maxSize={2 * 1024 * 1024} // 2MB
             acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
           />
@@ -167,10 +169,10 @@ export default function DocumentSection({ navigation }: any) {
           <FileUploadField
             title="Income Certificate"
             subtitle="Upload family income certificate (PDF/JPG, max 2MB)"
-            file={documentData.incomeCert}
+            file={documentData.incomeCert?.file}
             meta={uploadState.incomeCert}
-            onUpload={() => handleFileUpload('incomeCert')}
-            onDelete={() => handleDeleteFile('incomeCert')}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE)}
             maxSize={2 * 1024 * 1024} // 2MB
             acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
           />

@@ -1,36 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import ModalSelectField from '@/components/common/ModalSelectField';
 
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import VPInputField from '@/components/common/VPInputField';
-import { useFormEngineStore } from '../../store/useFormEngineStore';
-import { familyDetailsSchema, FamilyDetailsFormValues } from '@/validation/formSchemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
+import { familyDetailsSchema, FamilyDetailsFormValues } from '@/validation/sharedSchemas';
+import { OCCUPATION_OPTIONS } from '@/constants/formOptions';
+import { Option } from '@/components/common/ModalSelectField';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
-import { DropdownField } from '@/components/form/DropdownField';
 
-const fatherOccupationOptions = [
-  { value: "1", label: "Carpenter" },
-  { value: "2", label: "Coolie" },
-  { value: "3", label: "Daily Wage" },
-]; // 1=Carpenter, 2=Coolie, 3=Daily Wage
-
-const motherOccupationOptions = [
-  { value: "1", label: "Coolie" },
-  { value: "2", label: "Daily wages" },
-  { value: "3", label: "Home maker" },
-  { value: "4", label: "Not working" },
-  { value: "5", label: "Tailor" },
-  { value: "6", label: "Expired" },
-  { value: "7", label: "Other" },
-]; // 1=Coolie, 2=Daily wages, 3=Home maker, 4=Not working, 5=Tailor, 6=Expired, 7=Other
+const fatherOccupationOptions: Option<string>[] = OCCUPATION_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
+const motherOccupationOptions: Option<string>[] = OCCUPATION_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
 
 export default function FamilySection({ navigation }: any) {
+  const [showMotherOccupationPicker, setShowMotherOccupationPicker] = useState(false);
+  const [showFatherOccupationPicker, setShowFatherOccupationPicker] = useState(false);
+
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const familyData = formData?.family ?? {
@@ -57,7 +49,7 @@ export default function FamilySection({ navigation }: any) {
     updateSectionData('family', data);
     updateValidationState('family', { isValid: true, data });
     markStepComplete(4);
-    
+
     // Navigate based on form type
     const currentFormType = useFormEngineStore.getState().currentFormType;
     if (currentFormType === 'puc') {
@@ -80,36 +72,42 @@ export default function FamilySection({ navigation }: any) {
         title="Parents Information"
         subtitle="Tell us about your parents"
       />
-      
+
       <FormCard>
         <Controller
-          control={control}
-          name="fatherOccupationID"
-          render={({ field: { onChange, value } }) => (
-            <DropdownField
-              label="Father's Occupation"
-              value={value?.toString() ?? ''}
-              onValueChange={onChange}
-              options={fatherOccupationOptions}
-              placeholder="Select father's occupation"
-              error={formState.errors.fatherOccupationID?.message}
-              helperText="Select occupation from dropdown"
-            />
-          )}
-        />
+            control={control}
+            name="fatherOccupationID"
+            render={({ field: { onChange, value } }) => (
+              <ModalSelectField
+                label="Father's Occupation"
+                placeholder="Select father's occupation"
+                value={value}
+                onChange={onChange}
+                options={fatherOccupationOptions}
+                error={
+                  formState.errors.fatherOccupationID
+                    ?.message
+                }
+                required
+              />
+            )}
+          />
 
         <Controller
           control={control}
           name="motherOccupationID"
           render={({ field: { onChange, value } }) => (
-            <DropdownField
+            <ModalSelectField
               label="Mother's Occupation"
-              value={value?.toString() ?? ''}
-              onValueChange={onChange}
-              options={motherOccupationOptions}
               placeholder="Select mother's occupation"
-              error={formState.errors.motherOccupationID?.message}
-              helperText="Select occupation from dropdown"
+              value={value}
+              onChange={onChange}
+              options={motherOccupationOptions}
+              error={
+                formState.errors.motherOccupationID
+                  ?.message
+              }
+              required
             />
           )}
         />
@@ -121,7 +119,7 @@ export default function FamilySection({ navigation }: any) {
         title="Family Details"
         subtitle="Information about your family"
       />
-      
+
       <FormCard>
         <Controller
           control={control}

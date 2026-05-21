@@ -16,12 +16,10 @@ import {
 } from './sharedSchemas';
 
 import {
-  categoryDetailsSchema,
   academicDetailsSchema,
   bankDetailsSchema,
   professionalFormSchema,
   professionalDocumentDetailsSchema,
-  type CategoryDetailsFormValues,
   type AcademicDetailsFormValues,
   type BankDetailsFormValues,
   type ProfessionalFormValues,
@@ -44,7 +42,6 @@ export {
   addressDetailsSchema,
   familyDetailsSchema,
   guidelinesSchema,
-  categoryDetailsSchema,
   academicDetailsSchema,
   bankDetailsSchema,
   professionalFormSchema,
@@ -57,7 +54,6 @@ export {
   type AddressDetailsFormValues,
   type FamilyDetailsFormValues,
   type GuidelinesFormValues,
-  type CategoryDetailsFormValues,
   type AcademicDetailsFormValues,
   type BankDetailsFormValues,
   type ProfessionalFormValues,

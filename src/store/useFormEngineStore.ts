@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { FormType, FormStep, FormState } from '@/forms/shared/types';
 import { getFormConfig } from '@/forms/shared/registry';
-import { FormEngineState, FormDataUnion } from '@/types/forms';
+import { FormEngineState, FormDataUnion, ProfessionalFormValues, PucFormValues } from '@/types/forms';
+import { professionalFormSchema } from '@/validation/professionalSchemas';
+import { pucFormSchema } from '@/validation/pucSchemas';
 
 // Document interfaces for upload tracking
 export interface DocumentFile {
@@ -27,8 +29,8 @@ interface FormEngineStore extends FormEngineState {
   initializeForm: (formType: FormType) => void;
   setCurrentStep: (step: number) => void;
   markStepComplete: (step: number) => void;
-  updateSectionData: (section: keyof FormDataUnion | 'academic' | 'bank' | 'category', data: any) => void;
-  updateValidationState: (step: string, validation: any) => void;
+  updateSectionData: (section: keyof FormDataUnion | 'academic' | 'bank' | 'category' | 'documents', data: unknown) => void;
+  updateValidationState: (step: string, validation: { isValid: boolean; errors?: Record<string, string>; data?: unknown }) => void;
   updateUploadState: (documentKey: string, meta: Partial<DocumentsMetaItem>) => void;
   setSubmissionLoading: (loading: boolean) => void;
   setSubmissionError: (error: string | undefined) => void;
@@ -36,7 +38,7 @@ interface FormEngineStore extends FormEngineState {
   resetForm: () => void;
   
   // Getters
-  getCurrentStepConfig: () => any;
+  getCurrentStepConfig: () => unknown;
   getFormProgress: () => number;
 }
 
@@ -46,19 +48,17 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
   currentStep: 0,
   completedSteps: {},
   
-  // Form data
+  // Form data - initialized with safe defaults matching Zod schemas
   formData: {
-    guidelines: { accepted: false },
     personal: { name: '', dateOfBirth: '', gender: '', caste: '' },
     contact: { email: '', phone: '' },
     address: { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '' },
-    family: { fatherOccupation: '', motherOccupation: '', familyMembers: 1, annualIncome: '' },
+    family: { fatherOccupationID: '', motherOccupationID: '', familyMembers: 1, familyComposition: [], annualIncome: '' },
     category: { scholarshipCategory: '', courseType: '' },
-    academic: { puPercentage: 0, course: '', collegeName: '', collegeType: 'Government', annualCollegeFees: 0 },
+    academic: { puPercentage: 0, cetNeetRank: undefined, courseTypeID: '', collegeName: '', collegeTypeID: '1', collegeFees: 0 },
     bank: { accountHolderName: '', bankName: '', accountNumber: '', ifscCode: '', branchName: '', ifscVerified: false },
     documents: { marksCard: undefined, aadhaar: undefined, incomeCert: undefined },
-    review: { declarationAccepted: false },
-  } as FormDataUnion,
+  } as ProfessionalFormValues,
   
   // Validation state
   validationState: {},
@@ -83,40 +83,44 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
     const config = getFormConfig(formType);
     set({ currentFormType: formType });
     
-    // Reset form data for new formType
-    const defaultFormData = config.steps.reduce((acc, stepId) => {
-      const stepConfig = config.validation[stepId];
-      if (stepConfig?.defaultValues) {
-        return { ...acc, ...stepConfig.defaultValues };
-      }
-      return acc;
-    }, {} as FormDataUnion);
-    
-    // Ensure all nested objects are initialized with safe defaults
-    const safeFormData: FormDataUnion = {
-      guidelines: defaultFormData.guidelines ?? { accepted: false },
-      personal: defaultFormData.personal ?? { name: '', dateOfBirth: '', gender: '', caste: '' },
-      contact: defaultFormData.contact ?? { email: '', phone: '' },
-      address: defaultFormData.address ?? { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '' },
-      family: defaultFormData.family ?? { fatherOccupationID: '', motherOccupationID: '', familyMembers: 1, annualIncome: '' },
-      documents: defaultFormData.documents ?? { marksCard: undefined, aadhaar: undefined, incomeCert: undefined },
-      review: defaultFormData.review ?? { declarationAccepted: false },
-      ...(formType === 'professional' ? {
-        category: (defaultFormData as any).category ?? { scholarshipCategory: '', courseType: '' },
-        academic: (defaultFormData as any).academic ?? { puPercentage: 0, course: '', collegeName: '', collegeType: 'Government', annualCollegeFees: 0 },
-        bank: (defaultFormData as any).bank ?? { accountHolderName: '', bankName: '', accountNumber: '', ifscCode: '', branchName: '', ifscVerified: false },
-      } : {}),
-    };
+    // Initialize form data based on form type using Zod schema defaults
+    const safeFormData: FormDataUnion = formType === 'professional' 
+      ? {
+          personal: { name: '', dateOfBirth: '', gender: '', caste: '' },
+          contact: { email: '', phone: '', alternatePhone: undefined },
+          address: { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '', area: undefined },
+          family: { fatherOccupationID: '', motherOccupationID: '', familyMembers: 1, familyComposition: [], annualIncome: '' },
+          academic: { puPercentage: 0, cetNeetRank: undefined, courseTypeID: '', collegeName: '', collegeTypeID: '1', collegeFees: 0 },
+          bank: { accountHolderName: '', bankName: '', accountNumber: '', ifscCode: '', branchName: '', ifscVerified: false },
+          documents: { marksCard: undefined, aadhaar: undefined, incomeCert: undefined },
+        } as ProfessionalFormValues
+      : {
+          personal: { name: '', dateOfBirth: '', gender: '', caste: '' },
+          contact: { email: '', phone: '', alternatePhone: undefined },
+          address: { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '', area: undefined },
+          family: { fatherName: '', motherName: '', fatherOccupationID: '', motherOccupationID: '', familyMembers: 1, familyComposition: [], annualIncome: '', monthlyRent: '', residenceType: undefined },
+          category: { caste: '', houseType: '', monthlyRent: '', referenceSource: '' },
+          academic: { course: '', collegeName: '', collegeType: '', expectedFees: 0, percentage: 0, totalMarks: 0 },
+          documents: { sslcMarksCard: undefined, studentPhoto: undefined, electricityBill: undefined, rationCard: undefined, incomeCert: undefined, familyPhoto: undefined, houseVideo: undefined, houseVisitLink: undefined },
+        } as PucFormValues;
 
     set({ 
       formData: safeFormData,
       currentStep: 0,
       completedSteps: {},
       validationState: {},
-      uploadState: {
+      uploadState: formType === 'professional' ? {
         marksCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
         aadhaar: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
         incomeCert: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+      } : {
+        sslcMarksCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        studentPhoto: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        electricityBill: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        rationCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        incomeCert: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        familyPhoto: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        houseVideo: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
       },
       submissionState: {
         isSubmitting: false,
@@ -135,16 +139,21 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
 
   updateSectionData: (section, data) => set((state) => {
     if (section === 'academic' || section === 'bank' || section === 'category') {
-      // For professional form specific sections, ensure we're working with ProfessionalFormData
+      // For professional form specific sections, ensure we're working with ProfessionalFormValues
       if (state.currentFormType === 'professional') {
         return {
-          formData: { ...state.formData, [section]: { ...(state.formData as any)[section], ...data } },
+          formData: { ...state.formData, [section]: { ...(state.formData as ProfessionalFormValues)[section as keyof ProfessionalFormValues], ...(data as object) } },
         };
       }
       return state; // Ignore updates for non-professional forms
     }
+    if (section === 'documents') {
+      return {
+        formData: { ...state.formData, documents: { ...state.formData.documents, ...(data as object) } },
+      };
+    }
     return {
-      formData: { ...state.formData, [section]: { ...state.formData[section], ...data } },
+      formData: { ...state.formData, [section]: { ...state.formData[section as keyof FormDataUnion], ...(data as object) } },
     };
   }),
 
@@ -182,17 +191,15 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
     currentStep: 0,
     completedSteps: {},
     formData: {
-      guidelines: { accepted: false },
       personal: { name: '', dateOfBirth: '', gender: '', caste: '' },
       contact: { email: '', phone: '' },
       address: { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '' },
-      family: { fatherOccupationID: '', motherOccupationID: '', familyMembers: 1, annualIncome: '' },
+      family: { fatherOccupationID: '', motherOccupationID: '', familyMembers: 1, familyComposition: [], annualIncome: '' },
       category: { scholarshipCategory: '', courseType: '' },
-      academic: { puPercentage: 0, course: '', collegeName: '', collegeType: 'Government', annualCollegeFees: 0 },
+      academic: { puPercentage: 0, cetNeetRank: undefined, courseTypeID: '', collegeName: '', collegeTypeID: '1', collegeFees: 0 },
       bank: { accountHolderName: '', bankName: '', accountNumber: '', ifscCode: '', branchName: '', ifscVerified: false },
       documents: { marksCard: undefined, aadhaar: undefined, incomeCert: undefined },
-      review: { declarationAccepted: false },
-    } as FormDataUnion,
+    } as ProfessionalFormValues,
     validationState: {},
     uploadState: {
       marksCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },

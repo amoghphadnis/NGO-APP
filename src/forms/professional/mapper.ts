@@ -6,7 +6,7 @@
 
 import dayjs from 'dayjs';
 import { PROFESSIONAL_FILE_KEYS } from './fileKeys';
-import { ProfessionalFormData } from '@/types/forms';
+import { ProfessionalFormValues } from '@/types/forms';
 import { appendFileToFormData } from '@/submission/attachFiles';
 
 /**
@@ -29,7 +29,7 @@ function toString(value: string | number | undefined): string {
 /**
  * Maps Professional form data to backend API contract
  */
-export function professionalMapper(formData: ProfessionalFormData): FormData {
+export function professionalMapper(formData: ProfessionalFormValues): FormData {
   console.log('[professionalMapper] Input formData:', JSON.stringify(formData, null, 2));
   
   const fd = new FormData();
@@ -111,20 +111,21 @@ export function professionalMapper(formData: ProfessionalFormData): FormData {
     fd.append('CET_NEET_Rank', toString(formData.academic.cetNeetRank));
   }
 
-  if (formData.academic.course) {
-    fd.append('CourseTypeID', toString(formData.academic.course));
+  if (formData.academic.courseTypeID) {
+    fd.append('CourseTypeID', toString(formData.academic.courseTypeID));
   }
 
   if (formData.academic.collegeName) {
     fd.append('CollegeName', formData.academic.collegeName);
   }
 
-  if (formData.academic.collegeType) {
-    fd.append('CollegeTypeID', toString(formData.academic.collegeType));
+  // collegeTypeID is already the correct field name
+  if (formData.academic.collegeTypeID) {
+    fd.append('CollegeTypeID', toString(formData.academic.collegeTypeID));
   }
 
-  if (formData.academic.annualCollegeFees) {
-    fd.append('CollegeFees', toString(formData.academic.annualCollegeFees));
+  if (formData.academic.collegeFees) {
+    fd.append('CollegeFees', toString(formData.academic.collegeFees));
   }
 
   // Bank Information

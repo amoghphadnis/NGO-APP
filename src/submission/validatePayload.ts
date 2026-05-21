@@ -1,7 +1,7 @@
 import { FormType } from '@/forms/shared/types';
 import { professionalFormSchema } from '@/validation/professionalSchemas';
 import { pucFormSchema } from '@/validation/pucSchemas';
-import { ProfessionalFormData, PUCFormData } from '@/types/forms';
+import { ProfessionalFormValues, PucFormValues } from '@/types/forms';
 
 export interface ValidationResult {
   success: boolean;
@@ -10,7 +10,7 @@ export interface ValidationResult {
 
 export function validatePayload(
   formType: FormType,
-  formData: ProfessionalFormData | PUCFormData
+  formData: ProfessionalFormValues | PucFormValues
 ): ValidationResult {
   if (formType === 'professional') {
     const result = professionalFormSchema.safeParse(formData);

@@ -38,7 +38,7 @@ export default function FormSelectionScreen() {
           >
             <View style={styles.optionHeader}>
               <Ionicons name="briefcase" size={32} color={colors.primary} />
-              <Text style={styles.optionTitle}>Professional Scholarship</Text>
+              <Text style={styles.optionTitle}>Professional Student</Text>
             </View>
             <Text style={styles.optionDescription}>
               For students pursuing professional courses like Engineering, Medicine, Architecture, etc.
@@ -58,7 +58,7 @@ export default function FormSelectionScreen() {
           >
             <View style={styles.optionHeader}>
               <Ionicons name="school" size={32} color={colors.primary} />
-              <Text style={styles.optionTitle}>PUC Scholarship</Text>
+              <Text style={styles.optionTitle}>PUC-I Students 2025-26</Text>
             </View>
             <Text style={styles.optionDescription}>
               For students in Pre-University College (11th & 12th grade)

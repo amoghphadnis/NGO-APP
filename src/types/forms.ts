@@ -1,121 +1,48 @@
 // Centralized Form Type Definitions for VP Scholarship App
-// This file provides stable, type-safe interfaces for all form operations
+// This file provides type-safe interfaces using Zod-inferred types as single source of truth
 
-export interface BaseDocuments {
-  marksCard?: any;
-  aadhaar?: any;
-  incomeCert?: any;
-}
+import { z } from 'zod';
+import {
+  personalDetailsSchema,
+  contactDetailsSchema,
+  addressDetailsSchema,
+  familyDetailsSchema,
+  guidelinesSchema,
+} from '@/validation/sharedSchemas';
+import {
+  academicDetailsSchema,
+  bankDetailsSchema,
+  professionalFormSchema,
+  professionalDocumentDetailsSchema,
+} from '@/validation/professionalSchemas';
+import {
+  pucCategoryHousingSchema,
+  pucAcademicDetailsSchema,
+  pucFormSchema,
+  pucDocumentDetailsSchema,
+} from '@/validation/pucSchemas';
 
-export interface PUCDocuments extends BaseDocuments {
-  sslcMarksCard?: any;
-  studentPhoto?: any;
-  electricityBill?: any;
-  rationCard?: any;
-  familyPhoto?: any;
-  houseVideo?: any;
-}
+// Type exports from Zod schemas (single source of truth)
+export type PersonalDetailsFormValues = z.infer<typeof personalDetailsSchema>;
+export type ContactDetailsFormValues = z.infer<typeof contactDetailsSchema>;
+export type AddressDetailsFormValues = z.infer<typeof addressDetailsSchema>;
+export type FamilyDetailsFormValues = z.infer<typeof familyDetailsSchema>;
+export type GuidelinesFormValues = z.infer<typeof guidelinesSchema>;
 
-export interface BaseFormData {
-  // Common fields across all forms
-  guidelines: {
-    accepted: boolean;
-    timestamp?: string;
-  };
-  personal: {
-    name: string;
-    dateOfBirth: string;
-    gender: string;
-    caste: string;
-  };
-  contact: {
-    email: string;
-    phone: string;
-    communicationPreference?: 'email' | 'phone' | 'both';
-  };
-  address: {
-    pincode: string;
-    district: string;
-    otherDistrict?: string;
-    taluk: string;
-    place: string;
-    address: string;
-  };
-  family: {
-    fatherOccupationID?: string;
-    motherOccupationID?: string;
-    familyMembers: number;
-    familyComposition?: string[];
-    annualIncome?: string;
-  };
-  documents: BaseDocuments;
-  review: {
-    declarationAccepted: boolean;
-    timestamp?: string;
-  };
-}
+export type AcademicDetailsFormValues = z.infer<typeof academicDetailsSchema>;
+export type BankDetailsFormValues = z.infer<typeof bankDetailsSchema>;
+export type ProfessionalDocumentDetailsFormValues = z.infer<typeof professionalDocumentDetailsSchema>;
+export type ProfessionalFormValues = z.infer<typeof professionalFormSchema>;
 
-export interface ProfessionalFormData extends BaseFormData {
-  // Professional-specific fields
-  category: {
-    scholarshipCategory: string;
-    courseType: string;
-  };
-  academic: {
-    puPercentage: number;
-    cetNeetRank?: number;
-    course: string;
-    collegeName: string;
-    collegeType: 'Government' | 'Private' | 'Aided';
-    annualCollegeFees: number;
-  };
-  bank: {
-    accountHolderName: string;
-    bankName: string;
-    accountNumber: string;
-    ifscCode: string;
-    branchName?: string;
-    ifscVerified: boolean;
-  };
-}
+export type PucCategoryHousingFormValues = z.infer<typeof pucCategoryHousingSchema>;
+export type PucAcademicDetailsFormValues = z.infer<typeof pucAcademicDetailsSchema>;
+export type PucDocumentDetailsFormValues = z.infer<typeof pucDocumentDetailsSchema>;
+export type PucFormValues = z.infer<typeof pucFormSchema>;
 
-export interface PUCFormData extends BaseFormData {
-  documents: PUCDocuments;
-  family: BaseFormData['family'] & {
-    monthlyRent?: string;
-    residenceType?: 'OWNED' | 'RENTED' | 'HOSTEL';
-  };
-}
+// Union type for all form types
+export type FormDataUnion = ProfessionalFormValues | PucFormValues;
 
-export type FormDataUnion = ProfessionalFormData | PUCFormData;
-
-export interface FormSection {
-  id: string;
-  title: string;
-  component: string;
-  required?: boolean;
-  validation?: any;
-}
-
-export interface FormStep {
-  id: string;
-  title: string;
-  sections: FormSection[];
-}
-
-export interface FormConfig {
-  id: 'professional' | 'puc';
-  title: string;
-  description: string;
-  steps: string[];
-  validation: Record<string, any>;
-  submission: {
-    endpoint: string;
-    method: 'POST' | 'PUT';
-    mapper: (data: FormDataUnion) => any;
-  };
-}
-
+// Form engine state interface (using Zod-inferred types)
 export interface FormEngineState {
   currentFormType: 'professional' | 'puc' | null;
   currentStep: number;
@@ -124,7 +51,7 @@ export interface FormEngineState {
   validationState: Record<string, {
     isValid: boolean;
     errors?: Record<string, string>;
-    data?: any;
+    data?: unknown;
   }>;
   uploadState: Record<string, {
     isUploading: boolean;
@@ -140,21 +67,22 @@ export interface FormEngineState {
   };
 }
 
+// Navigation props interface
 export interface NavigationProps {
   navigation: {
     goBack: () => void;
-    navigate: (screen: string, params?: Record<string, any>) => void;
+    navigate: (screen: string, params?: Record<string, unknown>) => void;
   };
   route: {
-    params?: Record<string, any>;
+    params?: Record<string, unknown>;
   };
 }
 
 // Type guards for safe form operations
-export const isProfessionalForm = (data: FormDataUnion): data is ProfessionalFormData => {
+export const isProfessionalForm = (data: FormDataUnion): data is ProfessionalFormValues => {
   return data && 'academic' in data && 'bank' in data;
 };
 
-export const isPUCForm = (data: FormDataUnion): data is PUCFormData => {
-  return data && !('academic' in data) && !('bank' in data);
+export const isPUCForm = (data: FormDataUnion): data is PucFormValues => {
+  return data && 'category' in data && !('bank' in data);
 };

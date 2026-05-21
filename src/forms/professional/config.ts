@@ -10,21 +10,19 @@ export const professionalFormConfig: FormConfig = {
     'contact',
     'address',
     'family',
-    'category',
     'academic',
     'bank',
     'documents',
     'review',
     'success'
   ],
-  totalSteps: 11,
+  totalSteps: 10,
   validation: {
     guidelines: 'guidelinesSchema',
     personal: 'personalDetailsSchema',
     contact: 'contactDetailsSchema',
     address: 'addressDetailsSchema',
     family: 'familyDetailsSchema',
-    category: 'categoryDetailsSchema',
     academic: 'academicDetailsSchema',
     bank: 'bankDetailsSchema',
     documents: 'professionalDocumentDetailsSchema',
@@ -78,15 +76,6 @@ export const professionalStepConfigs = [
     validation: 'familyDetailsSchema',
     required: true,
     icon: 'people'
-  },
-  {
-    id: 'category' as FormStep,
-    title: 'Category Details',
-    subtitle: 'Scholarship category information',
-    component: 'CategorySection',
-    validation: 'categorySchema',
-    required: true,
-    icon: 'pricetag'
   },
   {
     id: 'academic' as FormStep,

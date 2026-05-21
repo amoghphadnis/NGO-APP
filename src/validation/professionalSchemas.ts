@@ -5,23 +5,19 @@ import {
   addressDetailsSchema,
   familyDetailsSchema,
 } from './sharedSchemas';
-
-// Professional form specific schemas
-export const categoryDetailsSchema = z.object({
-  scholarshipCategory: z.string().min(1, { message: 'Scholarship category is required' }),
-  courseType: z.string().min(1, { message: 'Course type is required' }),
-});
+import { UploadedDocument } from '@/types/documents';
+import { CollegeTypeID } from '@/constants/formOptions';
 
 export const academicDetailsSchema = z.object({
   puPercentage: z.number().min(0, { message: 'Percentage must be at least 0' })
     .max(100, { message: 'Percentage cannot exceed 100' }),
   cetNeetRank: z.number().positive({ message: 'Rank must be a positive number' }).optional(),
-  course: z.string().min(1, { message: 'Course is required' }),
+  courseTypeID: z.string().min(1, { message: 'Course type is required' }),
   collegeName: z.string().min(1, { message: 'College name is required' }),
-  collegeType: z.enum(['Government', 'Private', 'Aided'] as const, {
+  collegeTypeID: z.enum(['1', '2', '3'] as const, {
     error: 'Please select a college type',
   }),
-  annualCollegeFees: z.number().positive({ message: 'Fees must be a positive number' }),
+  collegeFees: z.number().positive({ message: 'Fees must be a positive number' }),
 });
 
 export const bankDetailsSchema = z.object({
@@ -44,9 +40,9 @@ export const bankDetailsSchema = z.object({
 });
 
 export const professionalDocumentDetailsSchema = z.object({
-  marksCard: z.any().optional(),
-  aadhaar: z.any().optional(),
-  incomeCert: z.any().optional(),
+  marksCard: z.custom<UploadedDocument>().optional(),
+  aadhaar: z.custom<UploadedDocument>().optional(),
+  incomeCert: z.custom<UploadedDocument>().optional(),
 });
 
 // Complete professional form schema
@@ -55,14 +51,12 @@ export const professionalFormSchema = z.object({
   contact: contactDetailsSchema,
   address: addressDetailsSchema,
   family: familyDetailsSchema,
-  category: categoryDetailsSchema,
   academic: academicDetailsSchema,
   bank: bankDetailsSchema,
   documents: professionalDocumentDetailsSchema,
 });
 
 // Type exports
-export type CategoryDetailsFormValues = z.infer<typeof categoryDetailsSchema>;
 export type AcademicDetailsFormValues = z.infer<typeof academicDetailsSchema>;
 export type BankDetailsFormValues = z.infer<typeof bankDetailsSchema>;
 export type ProfessionalFormValues = z.infer<typeof professionalFormSchema>;
