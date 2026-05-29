@@ -46,8 +46,10 @@ export function normalizeApiResponse<T>(
 
 /**
  * Normalizes error responses
+ * Works with ApiError from the native fetch client and generic errors
  */
 export function normalizeApiError(error: any): NormalizedApiError {
+  // Handle ApiError with response (HTTP error status)
   if (error.response) {
     const status = error.response.status;
     const message = error.response.data?.Message || error.message || 'Request failed';
@@ -66,7 +68,8 @@ export function normalizeApiError(error: any): NormalizedApiError {
     };
   }
 
-  if (error.code === 'ECONNABORTED') {
+  // Handle timeout (AbortError / ECONNABORTED)
+  if (error.code === 'ECONNABORTED' || error.name === 'AbortError') {
     return {
       success: false,
       error: 'Request timeout. Please try again.',

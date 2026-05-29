@@ -38,7 +38,6 @@ export default function PersonalSection({ navigation }: any) {
     name: "",
     dateOfBirth: "",
     gender: "",
-    caste: "",
   };
 
   const { control, handleSubmit, watch, formState } =
@@ -50,7 +49,6 @@ export default function PersonalSection({ navigation }: any) {
             ? personalData.dateOfBirth
             : "",
         gender: personalData.gender,
-        caste: personalData.caste,
       },
       resolver: zodResolver(personalDetailsSchema),
       mode: "onChange",
@@ -140,21 +138,6 @@ export default function PersonalSection({ navigation }: any) {
               onChange={onChange}
               options={genderOptions}
               error={formState.errors.gender?.message}
-              required
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="caste"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Caste"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter your caste"
-              error={formState.errors.caste?.message}
               required
             />
           )}

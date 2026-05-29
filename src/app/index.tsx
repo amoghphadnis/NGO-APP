@@ -18,7 +18,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}> 
       <ThemedView style={styles.content}>
         {/* Hero Section */}
         <View style={styles.heroSection}>

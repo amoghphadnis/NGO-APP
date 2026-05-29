@@ -3,20 +3,26 @@ import { View, Text } from 'react-native';
 import { useFormEngineStore } from '../store/useFormEngineStore';
 import { getFormConfig } from '../forms/shared/registry';
 
-// Import core form section components that exist
+// Import shared/professional form section components
 import GuidelinesSection from '../screens/form-sections/professional/GuidelinesSection';
-import PersonalSection from '../screens/form-sections/professional/PersonalSection';
-import ContactSection from '../screens/form-sections/professional/ContactSection';
-import AddressSection from '../screens/form-sections/professional/AddressSection';
-import FamilySection from '../screens/form-sections/professional/FamilySection';
-import DocumentSection from '../screens/form-sections/professional/DocumentSection';
+import ProfPersonalSection from '../screens/form-sections/professional/PersonalSection';
+import ProfContactSection from '../screens/form-sections/professional/ContactSection';
+import ProfAddressSection from '../screens/form-sections/professional/AddressSection';
+import ProfFamilySection from '../screens/form-sections/professional/FamilySection';
+import ProfDocumentSection from '../screens/form-sections/professional/DocumentSection';
+import ProfAcademicSection from '../screens/form-sections/professional/AcademicSection';
+import BankSection from '../screens/form-sections/professional/BankSection';
 import ReviewSection from '../screens/form-sections/professional/ReviewSection';
 import SuccessSection from '../screens/form-sections/professional/SuccessSection';
 
-// Import professional-specific sections
-import CategorySection from '../screens/form-sections/puc/CategorySection';
-import AcademicSection from '../screens/form-sections/professional/AcademicSection';
-import BankSection from '../screens/form-sections/professional/BankSection';
+// Import PUC-specific form section components
+import PucPersonalSection from '../screens/form-sections/puc/PersonalSection';
+import PucContactSection from '../screens/form-sections/puc/ContactSection';
+import PucAddressSection from '../screens/form-sections/puc/AddressSection';
+import PucFamilySection from '../screens/form-sections/puc/FamilySection';
+import PucCategorySection from '../screens/form-sections/puc/CategorySection';
+import PucAcademicSection from '../screens/form-sections/puc/AcademicSection';
+import PucDocumentSection from '../screens/form-sections/puc/DocumentSection';
 
 interface FormRendererProps {
   navigation: any;
@@ -27,18 +33,31 @@ interface FormRendererProps {
   };
 }
 
-const componentMap = {
-  GuidelinesSection,
-  PersonalSection,
-  ContactSection,
-  AddressSection,
-  FamilySection,
-  CategorySection,
-  AcademicSection,
-  BankSection,
-  DocumentSection,
-  ReviewSection,
-  SuccessSection,
+// Component maps per form type
+const professionalComponentMap: Record<string, React.ComponentType<any>> = {
+  guidelines: GuidelinesSection,
+  personal: ProfPersonalSection,
+  contact: ProfContactSection,
+  address: ProfAddressSection,
+  family: ProfFamilySection,
+  academic: ProfAcademicSection,
+  bank: BankSection,
+  documents: ProfDocumentSection,
+  review: ReviewSection,
+  success: SuccessSection,
+};
+
+const pucComponentMap: Record<string, React.ComponentType<any>> = {
+  guidelines: GuidelinesSection,
+  personal: PucPersonalSection,
+  contact: PucContactSection,
+  address: PucAddressSection,
+  family: PucFamilySection,
+  category: PucCategorySection,
+  academic: PucAcademicSection,
+  documents: PucDocumentSection,
+  review: ReviewSection,
+  success: SuccessSection,
 };
 
 export default function FormRenderer({ navigation, route }: FormRendererProps) {
@@ -70,23 +89,9 @@ export default function FormRenderer({ navigation, route }: FormRendererProps) {
 
   const currentStepId = config.steps[currentStep];
 
-  // Map step IDs to component names (including professional-specific steps)
-  const stepComponentMap: Record<string, keyof typeof componentMap> = {
-    guidelines: 'GuidelinesSection',
-    personal: 'PersonalSection',
-    contact: 'ContactSection',
-    address: 'AddressSection',
-    family: 'FamilySection',
-    category: 'CategorySection',
-    academic: 'AcademicSection',
-    bank: 'BankSection',
-    documents: 'DocumentSection',
-    review: 'ReviewSection',
-    success: 'SuccessSection',
-  };
-
-  const componentName = stepComponentMap[currentStepId];
-  const ComponentToRender = componentName ? componentMap[componentName] : null;
+  // Select the correct component map based on form type
+  const activeComponentMap = formType === 'puc' ? pucComponentMap : professionalComponentMap;
+  const ComponentToRender = activeComponentMap[currentStepId] || null;
 
   if (!ComponentToRender) {
     return (
