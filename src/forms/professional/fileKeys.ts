@@ -4,9 +4,9 @@
  */
 
 export const PROFESSIONAL_FILE_KEYS = {
-  MARKS_CARD: 'PUCMarksCard',
-  INCOME_CERTIFICATE: 'IncomeCertificate',
-  AADHAR_CARD: 'AadharCard',
+  MARKS_CARD: 'marksCard',
+  INCOME_CERTIFICATE: 'incomeCert',
+  AADHAR_CARD: 'aadhaar',
 } as const;
 
 export type ProfessionalFileKey = typeof PROFESSIONAL_FILE_KEYS[keyof typeof PROFESSIONAL_FILE_KEYS];

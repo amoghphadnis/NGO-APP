@@ -11,12 +11,11 @@ export const professionalFormConfig: FormConfig = {
     'address',
     'family',
     'academic',
-    'bank',
     'documents',
     'review',
     'success'
   ],
-  totalSteps: 10,
+  totalSteps: 9,
   validation: {
     guidelines: 'guidelinesSchema',
     personal: 'personalDetailsSchema',
@@ -24,7 +23,6 @@ export const professionalFormConfig: FormConfig = {
     address: 'addressDetailsSchema',
     family: 'familyDetailsSchema',
     academic: 'academicDetailsSchema',
-    bank: 'bankDetailsSchema',
     documents: 'professionalDocumentDetailsSchema',
     review: null,
     success: null
@@ -87,18 +85,9 @@ export const professionalStepConfigs = [
     icon: 'school'
   },
   {
-    id: 'bank' as FormStep,
-    title: 'Bank Details',
-    subtitle: 'For scholarship disbursement',
-    component: 'BankSection',
-    validation: 'bankDetailsSchema',
-    required: true,
-    icon: 'card'
-  },
-  {
     id: 'documents' as FormStep,
     title: 'Document Upload',
-    subtitle: 'Upload required documents',
+    subtitle: 'Upload required documents and house visit link',
     component: 'DocumentSection',
     validation: 'professionalDocumentDetailsSchema',
     required: true,

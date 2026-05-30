@@ -40,18 +40,11 @@ export interface ProfessionalSubmissionDTO {
     collegeTypeID: string;
     collegeFees: number;
   };
-  bank: {
-    accountHolderName: string;
-    bankName: string;
-    accountNumber: string;
-    ifscCode: string;
-    branchName?: string;
-    ifscVerified: boolean;
-  };
   documents: {
     marksCard?: string; // File URI or ID
     aadhaar?: string;
     incomeCert?: string;
+    houseVisitLink?: string;
   };
 }
 
@@ -134,18 +127,11 @@ export function mapProfessionalToDTO(formData: ProfessionalFormValues): Professi
       collegeTypeID: formData.academic.collegeTypeID,
       collegeFees: formData.academic.collegeFees,
     },
-    bank: {
-      accountHolderName: formData.bank.accountHolderName,
-      bankName: formData.bank.bankName,
-      accountNumber: formData.bank.accountNumber,
-      ifscCode: formData.bank.ifscCode,
-      branchName: formData.bank.branchName,
-      ifscVerified: formData.bank.ifscVerified,
-    },
     documents: {
       marksCard: 'marksCard' in formData.documents ? formData.documents.marksCard?.file.uri : undefined,
       aadhaar: 'aadhaar' in formData.documents ? formData.documents.aadhaar?.file.uri : undefined,
       incomeCert: 'incomeCert' in formData.documents ? formData.documents.incomeCert?.file.uri : undefined,
+      houseVisitLink: formData.documents.houseVisitLink,
     },
   };
 }

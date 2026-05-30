@@ -19,19 +19,19 @@ export default function BankSection({ navigation }: any) {
 
   const { control, handleSubmit, formState } = useForm<BankDetailsFormValues>({
     defaultValues: {
-      accountHolderName: isProfessionalForm(formData) ? formData.bank.accountHolderName ?? '' : '',
-      bankName: isProfessionalForm(formData) ? formData.bank.bankName ?? '' : '',
-      accountNumber: isProfessionalForm(formData) ? formData.bank.accountNumber ?? '' : '',
-      ifscCode: isProfessionalForm(formData) ? formData.bank.ifscCode ?? '' : '',
-      branchName: isProfessionalForm(formData) ? formData.bank.branchName ?? '' : '',
-      ifscVerified: isProfessionalForm(formData) ? formData.bank.ifscVerified ?? false : false,
+      accountHolderName: (formData as any).bank?.accountHolderName ?? '',
+      bankName: (formData as any).bank?.bankName ?? '',
+      accountNumber: (formData as any).bank?.accountNumber ?? '',
+      ifscCode: (formData as any).bank?.ifscCode ?? '',
+      branchName: (formData as any).bank?.branchName ?? '',
+      ifscVerified: (formData as any).bank?.ifscVerified ?? false,
     },
     resolver: zodResolver(bankDetailsSchema),
     mode: 'onChange',
   });
 
   const onSubmit = (data: BankDetailsFormValues) => {
-    updateSectionData('bank', data);
+    updateSectionData('bank' as any, data);
     updateValidationState('bank', { isValid: true, data });
     markStepComplete(7);
     navigation.navigate('documents');

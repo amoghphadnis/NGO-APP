@@ -14,7 +14,6 @@ export const PROFESSIONAL_STEPS: FormStep[] = [
   'address',
   'family',
   'academic',
-  'bank',
   'documents',
   'review',
   'success',

@@ -11,7 +11,6 @@ import ProfAddressSection from '../screens/form-sections/professional/AddressSec
 import ProfFamilySection from '../screens/form-sections/professional/FamilySection';
 import ProfDocumentSection from '../screens/form-sections/professional/DocumentSection';
 import ProfAcademicSection from '../screens/form-sections/professional/AcademicSection';
-import BankSection from '../screens/form-sections/professional/BankSection';
 import ReviewSection from '../screens/form-sections/professional/ReviewSection';
 import SuccessSection from '../screens/form-sections/professional/SuccessSection';
 
@@ -41,7 +40,6 @@ const professionalComponentMap: Record<string, React.ComponentType<any>> = {
   address: ProfAddressSection,
   family: ProfFamilySection,
   academic: ProfAcademicSection,
-  bank: BankSection,
   documents: ProfDocumentSection,
   review: ReviewSection,
   success: SuccessSection,

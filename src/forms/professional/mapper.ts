@@ -128,25 +128,9 @@ export function professionalMapper(formData: ProfessionalFormValues): FormData {
     fd.append('CollegeFees', toString(formData.academic.collegeFees));
   }
 
-  // Bank Information
-  if (formData.bank.accountHolderName) {
-    fd.append('AccountHolderName', formData.bank.accountHolderName);
-  }
-
-  if (formData.bank.bankName) {
-    fd.append('BankName', formData.bank.bankName);
-  }
-
-  if (formData.bank.accountNumber) {
-    fd.append('AccountNumber', formData.bank.accountNumber);
-  }
-
-  if (formData.bank.ifscCode) {
-    fd.append('IFSCCode', formData.bank.ifscCode);
-  }
-
-  if (formData.bank.branchName) {
-    fd.append('BranchName', formData.bank.branchName);
+  // House Visit Link
+  if (formData.documents.houseVisitLink) {
+    fd.append('HouseVisitLink', formData.documents.houseVisitLink);
   }
 
   // Document Uploads

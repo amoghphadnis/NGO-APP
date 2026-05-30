@@ -21,11 +21,7 @@ export const mapFormToApi = (formData: FormDataUnion) => {
       collegeName: formData.academic.collegeName ?? '',
       collegeTypeID: formData.academic.collegeTypeID ?? '1',
       collegeFees: formData.academic.collegeFees ?? 0,
-      bankName: formData.bank.bankName ?? '',
-      accountNumber: formData.bank.accountNumber ?? '',
-      ifscCode: formData.bank.ifscCode ?? '',
-      accountHolderName: formData.bank.accountHolderName ?? '',
-      branchName: formData.bank.branchName ?? '',
+      houseVisitLink: formData.documents.houseVisitLink ?? '',
     };
   }
 

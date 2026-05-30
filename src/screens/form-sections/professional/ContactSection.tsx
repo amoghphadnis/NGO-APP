@@ -37,7 +37,7 @@ export default function ContactSection({ navigation }: any) {
     updateSectionData('contact', data);
     updateValidationState('contact', { isValid: true, data });
     markStepComplete(2);
-    navigation.navigate('family');
+    navigation.navigate('address');
   };
 
   const isNextDisabled = !formState.isValid;

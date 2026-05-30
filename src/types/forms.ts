@@ -80,7 +80,7 @@ export interface NavigationProps {
 
 // Type guards for safe form operations
 export const isProfessionalForm = (data: FormDataUnion): data is ProfessionalFormValues => {
-  return data && 'academic' in data && 'bank' in data;
+  return data && 'academic' in data && !('category' in data);
 };
 
 export const isPUCForm = (data: FormDataUnion): data is PucFormValues => {

@@ -40,8 +40,8 @@ export default function AcademicSection({ navigation }: any) {
   const onSubmit = (data: AcademicDetailsFormValues) => {
     updateSectionData('academic', data);
     updateValidationState('academic', { isValid: true, data });
-    markStepComplete(6);
-    navigation.navigate('bank');
+    markStepComplete(5);
+    navigation.navigate('documents');
   };
 
   const isNextDisabled = !formState.isValid;

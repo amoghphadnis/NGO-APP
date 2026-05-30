@@ -16,7 +16,14 @@ export interface UploadRule {
 export const PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
   {
     key: PROFESSIONAL_FILE_KEYS.MARKS_CARD,
-    label: 'PUC Marks Card',
+    label: 'PU Marks Card',
+    required: true,
+    maxSize: 2 * 1024 * 1024, // 2MB
+    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
+  },
+  {
+    key: PROFESSIONAL_FILE_KEYS.AADHAR_CARD,
+    label: 'Aadhaar Card',
     required: true,
     maxSize: 2 * 1024 * 1024, // 2MB
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
@@ -24,13 +31,6 @@ export const PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
   {
     key: PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE,
     label: 'Income Certificate',
-    required: true,
-    maxSize: 2 * 1024 * 1024, // 2MB
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
-  },
-  {
-    key: PROFESSIONAL_FILE_KEYS.AADHAR_CARD,
-    label: 'Aadhar Card',
     required: true,
     maxSize: 2 * 1024 * 1024, // 2MB
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],

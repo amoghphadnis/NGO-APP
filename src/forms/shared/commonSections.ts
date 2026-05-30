@@ -15,9 +15,7 @@ export const COMMON_SECTIONS = [
 ] as const;
 
 export const PROFESSIONAL_ONLY_SECTIONS = [
-  'CategorySection',
   'AcademicSection',
-  'BankSection',
 ] as const;
 
 export const PUC_ONLY_SECTIONS = [] as const; // PUC may have specific sections in future

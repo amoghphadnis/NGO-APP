@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import FileUploadField from '@/components/form/FileUploadField';
+import VPInputField from '@/components/common/VPInputField';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 import { pickDocument } from '@/utils/filePicker';
 import { PROFESSIONAL_UPLOAD_RULES, validateUpload } from '@/forms/professional/uploads';
@@ -20,6 +21,7 @@ interface DocumentFormData {
   marksCard?: UploadedDocument;
   aadhaar?: UploadedDocument;
   incomeCert?: UploadedDocument;
+  houseVisitLink: string;
 }
 
 export default function DocumentSection({ navigation }: any) {
@@ -29,16 +31,21 @@ export default function DocumentSection({ navigation }: any) {
     marksCard: undefined,
     aadhaar: undefined,
     incomeCert: undefined,
+    houseVisitLink: '',
   };
 
-  const { control, handleSubmit, formState } = useForm<DocumentFormData>({
+  const { control, handleSubmit, formState, watch } = useForm<DocumentFormData>({
     defaultValues: {
       marksCard: 'marksCard' in documentData ? documentData.marksCard : undefined,
       aadhaar: 'aadhaar' in documentData ? documentData.aadhaar : undefined,
       incomeCert: 'incomeCert' in documentData ? documentData.incomeCert : undefined,
+      houseVisitLink: documentData.houseVisitLink ?? '',
     },
     mode: 'onChange',
   });
+
+  // Watch the houseVisitLink value for live validation
+  const houseVisitLinkValue = watch('houseVisitLink');
 
   const handleFileUpload = async (documentKey: string) => {
     console.log('[DocumentSection] Handling file upload for:', documentKey);
@@ -93,29 +100,45 @@ export default function DocumentSection({ navigation }: any) {
   };
 
   const allDocumentsUploaded = 
-    uploadState.marksCard?.uploaded &&
-    uploadState.aadhaar?.uploaded &&
-    uploadState.incomeCert?.uploaded;
+    uploadState[PROFESSIONAL_FILE_KEYS.MARKS_CARD]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.AADHAR_CARD]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE]?.uploaded;
 
-  const onSubmit = () => {
+  const isHouseVisitLinkValid = (link: string): boolean => {
+    return link.trim().startsWith('https://');
+  };
+
+  const onSubmit = (data: DocumentFormData) => {
     const updatedDocuments = {
       marksCard: 'marksCard' in documentData ? documentData.marksCard : undefined,
       aadhaar: 'aadhaar' in documentData ? documentData.aadhaar : undefined,
       incomeCert: 'incomeCert' in documentData ? documentData.incomeCert : undefined,
+      houseVisitLink: data.houseVisitLink,
     };
     
     updateSectionData('documents', updatedDocuments);
-    updateValidationState('documents', { isValid: allDocumentsUploaded, data: updatedDocuments });
-    markStepComplete(5);
+    updateValidationState('documents', { isValid: allDocumentsUploaded && isHouseVisitLinkValid(data.houseVisitLink), data: updatedDocuments });
+    markStepComplete(6);
     navigation.navigate('review');
   };
 
-  const isNextDisabled = !allDocumentsUploaded;
+  const isNextDisabled = !allDocumentsUploaded || !isHouseVisitLinkValid(houseVisitLinkValue || '');
+
+  // Debug logging
+  console.log('[DocumentSection] Debug:', {
+    allDocumentsUploaded,
+    marksCardUploaded: uploadState[PROFESSIONAL_FILE_KEYS.MARKS_CARD]?.uploaded,
+    aadhaarUploaded: uploadState[PROFESSIONAL_FILE_KEYS.AADHAR_CARD]?.uploaded,
+    incomeCertUploaded: uploadState[PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE]?.uploaded,
+    houseVisitLink: houseVisitLinkValue,
+    houseVisitLinkValid: isHouseVisitLinkValid(houseVisitLinkValue || ''),
+    isNextDisabled,
+  });
 
   return (
     <FormScreenLayout
       title="Document Upload"
-      step={8}
+      step={6}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
@@ -131,29 +154,24 @@ export default function DocumentSection({ navigation }: any) {
         />
         
         <FormCard>
-          <Text style={styles.documentTitle}>Previous Year Marks Card</Text>
           <FileUploadField
-            title="Marks Card"
-            subtitle="Upload your previous year marks card"
-            file={'marksCard' in documentData ? documentData.marksCard?.file : undefined}
-            meta={uploadState.marksCard}
-            onUpload={() => handleFileUpload('marksCard')}
-            onDelete={() => handleDeleteFile('marksCard')}
+            title="PU Marks Card"
+            subtitle="Upload your PU marks card"
+            file={documentData.marksCard?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.MARKS_CARD]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.MARKS_CARD)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.MARKS_CARD)}
             maxSize={2 * 1024 * 1024} // 2MB
             acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
           />
         </FormCard>
 
         <FormCard>
-          <Text style={styles.documentTitle}>Aadhaar Card</Text>
-          <Text style={styles.documentSubtitle}>
-            Upload your Aadhaar card (PDF/JPG, max 2MB)
-          </Text>
           <FileUploadField
             title="Aadhaar Card"
             subtitle="Upload your Aadhaar card (PDF/JPG, max 2MB)"
             file={documentData.aadhaar?.file}
-            meta={uploadState.aadhaar}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.AADHAR_CARD]}
             onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.AADHAR_CARD)}
             onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.AADHAR_CARD)}
             maxSize={2 * 1024 * 1024} // 2MB
@@ -162,10 +180,6 @@ export default function DocumentSection({ navigation }: any) {
         </FormCard>
 
         <FormCard>
-          <Text style={styles.documentTitle}>Income Certificate</Text>
-          <Text style={styles.documentSubtitle}>
-            Upload family income certificate (PDF/JPG, max 2MB)
-          </Text>
           <FileUploadField
             title="Income Certificate"
             subtitle="Upload family income certificate (PDF/JPG, max 2MB)"
@@ -175,6 +189,37 @@ export default function DocumentSection({ navigation }: any) {
             onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE)}
             maxSize={2 * 1024 * 1024} // 2MB
             acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        {/* House Visit Link */}
+        <FormSectionHeader
+          icon="link"
+          title="House Visit Google Link"
+          subtitle="Paste the Google link for house visit verification"
+          showRequired
+        />
+        
+        <FormCard>
+          <Controller
+            control={control}
+            name="houseVisitLink"
+            render={({ field: { onChange, value } }) => (
+              <VPInputField
+                label="House Visit Google Link"
+                value={value}
+                onChangeText={onChange}
+                placeholder="https://..."
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                multiline
+                numberOfLines={3}
+                error={formState.errors.houseVisitLink?.message}
+                helperText="Link must start with https://"
+                required
+              />
+            )}
           />
         </FormCard>
 

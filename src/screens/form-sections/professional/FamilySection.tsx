@@ -53,9 +53,9 @@ export default function FamilySection({ navigation }: any) {
     // Navigate based on form type
     const currentFormType = useFormEngineStore.getState().currentFormType;
     if (currentFormType === 'puc') {
-      navigation.navigate('documents');
-    } else {
       navigation.navigate('category');
+    } else {
+      navigation.navigate('academic');
     }
   };
 
@@ -127,10 +127,15 @@ export default function FamilySection({ navigation }: any) {
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Total Family Members"
-              value={value?.toString() ?? '1'}
-              onChangeText={(text) => onChange(parseInt(text) || 1)}
+              value={value?.toString() ?? ''}
+              onChangeText={(text) => {
+                const num = parseInt(text.replace(/[^0-9]/g, ''), 10);
+                onChange(isNaN(num) ? '' : num);
+              }}
               placeholder="Enter total family members"
               keyboardType="numeric"
+              maxLength={2}
+              selectTextOnFocus
               error={formState.errors.familyMembers?.message}
               helperText="Include all family members living together"
             />

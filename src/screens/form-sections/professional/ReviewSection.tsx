@@ -41,8 +41,8 @@ export default function ReviewSection({ navigation }: any) {
     
     if (isProfessionalForm(formData)) {
       const hasAcademic = formData.academic.courseTypeID && formData.academic.collegeName && formData.academic.collegeFees > 0;
-      const hasBank = formData.bank.accountNumber && formData.bank.ifscCode;
-      return hasPersonal && hasContact && hasAddress && hasFamily && hasDocuments && hasAcademic && hasBank;
+      const hasHouseVisitLink = formData.documents.houseVisitLink && formData.documents.houseVisitLink.startsWith('https://');
+      return hasPersonal && hasContact && hasAddress && hasFamily && hasDocuments && hasAcademic && hasHouseVisitLink;
     }
     
     return hasPersonal && hasContact && hasAddress && hasFamily && hasDocuments;
@@ -70,7 +70,7 @@ export default function ReviewSection({ navigation }: any) {
       }
 
       setSubmissionSuccess(true, response.data?.applicationId || undefined);
-      markStepComplete(6);
+      markStepComplete(8);
       navigation.navigate('success');
     } catch (error: any) {
       const message = error?.message || 'Failed to submit application. Please try again.';
@@ -154,20 +154,6 @@ export default function ReviewSection({ navigation }: any) {
           () => navigation.navigate('academic')
         )}
 
-        {/* Bank Details (Professional only) */}
-        {isProfessionalForm(formData) && renderSection(
-          "Bank Details",
-          {
-            "Account Holder": formData.bank.accountHolderName,
-            "Bank Name": formData.bank.bankName,
-            "Account Number": formData.bank.accountNumber,
-            "IFSC Code": formData.bank.ifscCode,
-            "Branch": formData.bank.branchName || 'N/A',
-          },
-          "card",
-          () => navigation.navigate('bank')
-        )}
-
         {/* Contact Information */}
         {renderSection(
           "Contact Information",
@@ -238,6 +224,14 @@ export default function ReviewSection({ navigation }: any) {
                 {formData.documents.incomeCert ? '✓ Uploaded' : 'Not uploaded'}
               </Text>
             </View>
+            {isProfessionalForm(formData) && (
+              <View style={styles.documentRow}>
+                <Text style={styles.documentLabel}>House Visit Link:</Text>
+                <Text style={formData.documents.houseVisitLink ? styles.documentUploaded : styles.documentPending}>
+                  {formData.documents.houseVisitLink ? '✓ Provided' : 'Not provided'}
+                </Text>
+              </View>
+            )}
           </View>
         </FormCard>
 

@@ -16,4 +16,5 @@ export const colors = {
   warning: '#F59E0B',
 
   disabled: '#D1D5DB',
+  splash: '#208AEF',
 };

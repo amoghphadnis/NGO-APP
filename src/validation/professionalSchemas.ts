@@ -43,6 +43,9 @@ export const professionalDocumentDetailsSchema = z.object({
   marksCard: z.custom<UploadedDocument>().optional(),
   aadhaar: z.custom<UploadedDocument>().optional(),
   incomeCert: z.custom<UploadedDocument>().optional(),
+  houseVisitLink: z.string()
+    .min(1, { message: 'House visit link is required' })
+    .regex(/^https:\/\/.*/, { message: 'Link must start with https://' }),
 });
 
 // Complete professional form schema
@@ -52,7 +55,6 @@ export const professionalFormSchema = z.object({
   address: addressDetailsSchema,
   family: familyDetailsSchema,
   academic: academicDetailsSchema,
-  bank: bankDetailsSchema,
   documents: professionalDocumentDetailsSchema,
 });
 
