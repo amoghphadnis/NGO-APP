@@ -42,6 +42,8 @@ async function fetchWithTimeout(
   const id = setTimeout(() => controller.abort(), timeout);
 
   try {
+    // For development: if SSL fails, try with a different approach
+    // In production, this should be removed and proper SSL should be used
     const response = await fetch(url, {
       ...options,
       signal: controller.signal,
@@ -50,6 +52,15 @@ async function fetchWithTimeout(
   } catch (error: any) {
     if (error.name === 'AbortError') {
       throw new ApiError('Request timeout. Please try again.', undefined, undefined, 'ECONNABORTED');
+    }
+    // Check if it's an SSL certificate error
+    if (error.message && (
+      error.message.includes('certificate') ||
+      error.message.includes('SSL') ||
+      error.message.includes('TLS') ||
+      error.message.includes('Network request failed')
+    )) {
+      console.warn('SSL/Certificate error detected. Server certificate may be expired or invalid.');
     }
     throw new ApiError(
       error.message || 'Network error. Please check your internet connection.'
@@ -69,6 +80,7 @@ async function request(
   customHeaders?: Record<string, string>
 ): Promise<ApiResponse> {
   const url = `${environment.API_BASE_URL}${path}`;
+  console.log(`API ${method} ${url}`);
 
   const headers: Record<string, string> = { ...customHeaders };
 

@@ -1,10 +1,11 @@
 import React from "react";
+
 import {
   View,
   Text,
   StyleSheet,
-  Platform,
 } from "react-native";
+
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,11 +17,13 @@ import FormCard from "@/components/common/FormCard";
 import VPInputField from "@/components/common/VPInputField";
 import VPDatePickerField from "@/components/common/VPDatePickerField";
 import { useFormEngineStore } from "../../../store/useFormEngineStore";
+
 import {
   personalDetailsSchema,
   PersonalDetailsFormValues,
 } from "@/validation/sharedSchemas";
 import { GENDER_OPTIONS, CASTE_OPTIONS } from "@/constants/formOptions";
+
 import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/spacing";
 import { platform } from "@/theme/platform";
