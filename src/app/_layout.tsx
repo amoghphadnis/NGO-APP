@@ -23,6 +23,8 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="form-selection" />
           <Stack.Screen name="form-engine" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="dashboard" />
         </Stack>
       </>
     </QueryClientProvider>

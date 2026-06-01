@@ -71,6 +71,16 @@ export default function FormSelectionScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Volunteer Login */}
+        <TouchableOpacity
+          style={styles.volunteerLoginButton}
+          onPress={() => (router.push as any)('/login')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="log-in-outline" size={20} color={colors.card} />
+          <Text style={styles.volunteerLoginText}>Volunteer Login</Text>
+        </TouchableOpacity>
+
         {/* Help Section */}
         <View style={styles.helpSection}>
           <Text style={styles.helpTitle}>Need Help?</Text>
@@ -163,6 +173,22 @@ const styles = StyleSheet.create({
     fontSize: platform.normalize.fontSize.body,
     lineHeight: platform.normalize.lineHeight.body,
     color: colors.textSecondary,
+  },
+  volunteerLoginButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    borderRadius: 12,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  volunteerLoginText: {
+    color: colors.card,
+    fontWeight: '600',
+    fontSize: platform.normalize.fontSize.body,
+    lineHeight: platform.normalize.lineHeight.body,
   },
   helpSection: {
     alignItems: 'center',

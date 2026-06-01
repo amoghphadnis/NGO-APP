@@ -1,5 +1,5 @@
 export const environment = {
-  API_BASE_URL: 'http://vpwebservices.testserver.envisage-workflow.in/api',
+  API_BASE_URL: 'https://vpwebservices.testserver.envisage-workflow.in/api',
   API_TIMEOUT: 30000,
   API_RETRY_ATTEMPTS: 3,
   LOG_LEVEL: 'INFO',

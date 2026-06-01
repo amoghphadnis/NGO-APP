@@ -55,8 +55,8 @@ export default function LoginScreen() {
     const success = await login({ Email: email, Password: password });
     
     if (success) {
-      // Navigate to form selection screen after successful login
-      router.push('/form-selection');
+      // Navigate to dashboard after successful login
+      router.push('/dashboard');
     }
   };
 

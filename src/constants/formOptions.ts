@@ -52,26 +52,25 @@ export type CourseTypeID = 'engineering' | 'medical' | 'dental' | 'pharmacy' | '
 // ============================================================================
 
 export const GENDER_OPTIONS = [
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'other', label: 'Other' },
+  { value: '1', label: 'Male' },
+  { value: '2', label: 'Female' },
 ] as const;
 
-export type GenderID = 'male' | 'female' | 'other';
+export type GenderID = '1' | '2';
 
 // ============================================================================
 // CASTE CATEGORY OPTIONS
 // ============================================================================
 
 export const CASTE_OPTIONS = [
-  { value: 'general', label: 'General' },
-  { value: 'obc', label: 'OBC' },
-  { value: 'sc', label: 'SC' },
-  { value: 'st', label: 'ST' },
-  { value: 'ews', label: 'EWS' },
+  { value: '1', label: 'General' },
+  { value: '2', label: 'OBC' },
+  { value: '3', label: 'SC' },
+  { value: '4', label: 'ST' },
+  { value: '5', label: 'EWS' },
 ] as const;
 
-export type CasteID = 'general' | 'obc' | 'sc' | 'st' | 'ews';
+export type CasteID = '1' | '2' | '3' | '4' | '5';
 
 // ============================================================================
 // OCCUPATION OPTIONS (for father/mother)
@@ -96,12 +95,12 @@ export type OccupationID = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 // ============================================================================
 
 export const RESIDENCE_TYPE_OPTIONS = [
-  { value: 'OWNED', label: 'Owned' },
-  { value: 'RENTED', label: 'Rented' },
-  { value: 'HOSTEL', label: 'Hostel' },
+  { value: '1', label: 'Owned' },
+  { value: '2', label: 'Rented' },
+  { value: '3', label: 'Hostel' },
 ] as const;
 
-export type ResidenceTypeID = 'OWNED' | 'RENTED' | 'HOSTEL';
+export type ResidenceTypeID = '1' | '2' | '3';
 
 // ============================================================================
 // DOCUMENT TYPE OPTIONS
