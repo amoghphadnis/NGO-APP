@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/useAuthStore';
+import { isDistrictScopedRole } from '@/utils/roleUtils';
 import VPInputField from '@/components/common/VPInputField';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -53,10 +54,14 @@ export default function LoginScreen() {
 
     // Call login API
     const success = await login({ Email: email, Password: password });
-    
+
     if (success) {
-      // Navigate to dashboard after successful login
-      router.push('/dashboard');
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser && isDistrictScopedRole(currentUser.Role)) {
+        router.replace('/dashboard');
+      } else {
+        router.replace('/pdashboard');
+      }
     }
   };
 

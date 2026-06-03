@@ -1,7 +1,10 @@
 import { create } from 'zustand';
-import { authApi, LoginRequest, LoginResponse } from '@/api/authApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { authApi, LoginRequest } from '@/api/authApi';
 
-interface UserData {
+const AUTH_STORAGE_KEY = '@vp_auth_user';
+
+export interface UserData {
   UserID: number;
   UserName: string;
   Role: string;
@@ -15,8 +18,10 @@ interface AuthStore {
   user: UserData | null;
   isLoading: boolean;
   error: string | null;
+  hydrated: boolean;
+  hydrate: () => Promise<void>;
   login: (credentials: LoginRequest) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -25,25 +30,37 @@ export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isLoading: false,
   error: null,
+  hydrated: false,
+
+  hydrate: async () => {
+    try {
+      const raw = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
+      if (raw) {
+        const user: UserData = JSON.parse(raw);
+        set({ user, isLoggedIn: true, hydrated: true });
+      } else {
+        set({ hydrated: true });
+      }
+    } catch {
+      set({ hydrated: true });
+    }
+  },
 
   login: async (credentials: LoginRequest) => {
     set({ isLoading: true, error: null });
     try {
       const response = await authApi.login(credentials);
       if (response.Success) {
-        set({
-          isLoggedIn: true,
-          user: {
-            UserID: response.UserID,
-            UserName: response.UserName,
-            Role: response.Role,
-            EmployeeID: response.EmployeeID,
-            AssignedRole: response.AssignedRole,
-            District: response.District,
-          },
-          isLoading: false,
-          error: null,
-        });
+        const user: UserData = {
+          UserID: response.UserID,
+          UserName: response.UserName,
+          Role: response.Role,
+          EmployeeID: response.EmployeeID,
+          AssignedRole: response.AssignedRole,
+          District: response.District,
+        };
+        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+        set({ isLoggedIn: true, user, isLoading: false, error: null });
         return true;
       }
       set({ isLoading: false, error: 'Login failed' });
@@ -54,7 +71,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
     }
   },
 
-  logout: () => set({ isLoggedIn: false, user: null, error: null }),
+  logout: async () => {
+    await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+    set({ isLoggedIn: false, user: null, error: null });
+  },
 
   clearError: () => set({ error: null }),
 }));

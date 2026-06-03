@@ -92,6 +92,7 @@ async function request(
   const options: RequestInit = {
     method,
     headers,
+    credentials: 'include',
   };
 
   if (body !== undefined) {
@@ -123,9 +124,11 @@ function getStatusMessage(status: number): string {
   switch (status) {
     case 400: return 'Invalid request data.';
     case 401: return 'Authentication failed. Please login again.';
+    case 403: return 'You do not have permission to access this resource.';
     case 404: return 'Resource not found.';
     case 409: return 'Data already exists.';
     case 417: return 'Request failed. Please try again.';
+    case 500: return 'Server error. Please try again later.';
     default:  return `Request failed with status ${status}.`;
   }
 }

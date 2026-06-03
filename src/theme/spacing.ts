@@ -4,6 +4,9 @@ export const spacing = {
   md: 16,
   lg: 24,
   xl: 32,
+  xxl: 40,
+  xxxl: 48,
+  xxxxl: 56,
   
   // Global form spacing rules - MANDATORY across all screens
   form: {
