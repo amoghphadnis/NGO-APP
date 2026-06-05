@@ -16,7 +16,7 @@ import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
 
-const occupationOptions: Option<string>[] = OCCUPATION_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
+const occupationOptions: Option<number>[] = OCCUPATION_OPTIONS.map(opt => ({ value: parseInt(opt.value, 10), label: opt.label }));
 
 export default function FamilySection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
@@ -24,8 +24,8 @@ export default function FamilySection({ navigation }: any) {
   const familyData = isPUCForm(formData) ? formData.family ?? {
     fatherName: '',
     motherName: '',
-    fatherOccupationID: '',
-    motherOccupationID: '',
+    fatherOccupationID: undefined,
+    motherOccupationID: undefined,
     familyMembers: 1,
     familyComposition: [],
     annualIncome: '',
@@ -34,8 +34,8 @@ export default function FamilySection({ navigation }: any) {
   } : {
     fatherName: '',
     motherName: '',
-    fatherOccupationID: '',
-    motherOccupationID: '',
+    fatherOccupationID: undefined,
+    motherOccupationID: undefined,
     familyMembers: 1,
     familyComposition: [],
     annualIncome: '',

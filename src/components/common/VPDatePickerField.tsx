@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Modal } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
@@ -8,7 +8,7 @@ import { platform } from '@/theme/platform';
 interface VPDatePickerFieldProps {
   label?: string;
   value?: Date | string;
-  onChange: (date: Date) => void;
+  onChange: (date: Date | string) => void;
   placeholder?: string;
   error?: string;
   helperText?: string;
@@ -22,19 +22,29 @@ export default function VPDatePickerField({
   label,
   value,
   onChange,
-  placeholder = 'Select date',
+  placeholder = 'dd/mm/yyyy',
   error,
   helperText,
   required,
   disabled,
   maximumDate = new Date(), // Prevent future dates by default
-  minimumDate,
+  minimumDate = new Date(new Date().getFullYear() - 80, 0, 1), // Start from 80 years ago (reasonable birth year range)
 }: VPDatePickerFieldProps) {
   const [showPicker, setShowPicker] = useState(false);
-  
   // Convert string to Date if needed
   const dateValue = typeof value === 'string' ? new Date(value) : value;
-  
+
+  // Check if date is valid
+  const isValidDate = (date: Date | null | undefined): date is Date => {
+    return date instanceof Date && !isNaN(date.getTime());
+  };
+
+  // Temporary date state for picker
+  const [tempDate, setTempDate] = useState<Date>(
+    isValidDate(dateValue) ? dateValue : new Date()
+  )
+
+
   // Format date as DD/MM/YYYY
   const formatDate = (date: Date) => {
     const day = date.getDate().toString().padStart(2, '0');
@@ -43,21 +53,37 @@ export default function VPDatePickerField({
     return `${day}/${month}/${year}`;
   };
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowPicker(false);
-    
-    if (event.type === 'set' && selectedDate) {
-      onChange(selectedDate);
+  const handleDateChange = (
+    event: any,
+    selectedDate?: Date
+  ) => {
+    if (!selectedDate) return;
+
+    if (Platform.OS === 'android') {
+      setShowPicker(false);
+      // Convert Date to YYYY-MM-DD string for schema compatibility
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      onChange(`${year}-${month}-${day}`);
+    } else {
+      setTempDate(selectedDate);
     }
   };
 
   const showDatePicker = () => {
-    if (!disabled) {
-      setShowPicker(true);
-    }
+    if (disabled) return;
+
+    setTempDate(
+      isValidDate(dateValue)
+        ? dateValue
+        : new Date()
+    );
+
+    setShowPicker(true);
   };
 
-  const displayValue = dateValue ? formatDate(dateValue) : placeholder;
+  const displayValue = isValidDate(dateValue) ? formatDate(dateValue) : placeholder;
 
   return (
     <View style={styles.container}>
@@ -87,7 +113,7 @@ export default function VPDatePickerField({
         >
           {displayValue}
         </Text>
-        
+
         <Ionicons
           name="calendar-outline"
           size={24}
@@ -99,16 +125,60 @@ export default function VPDatePickerField({
       {error && <Text style={styles.error}>{error}</Text>}
       {!error && helperText && <Text style={styles.helper}>{helperText}</Text>}
 
-      {showPicker && (
+      {Platform.OS === 'ios' && (
+        <Modal
+          visible={showPicker}
+          transparent
+          animationType="slide"
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <TouchableOpacity
+                  onPress={() => setShowPicker(false)}
+                >
+                  <Text style={styles.actionText}>
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    // Convert Date to YYYY-MM-DD string for schema compatibility
+                    const year = tempDate.getFullYear();
+                    const month = String(tempDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(tempDate.getDate()).padStart(2, '0');
+                    onChange(`${year}-${month}-${day}`);
+                    setShowPicker(false);
+                  }}
+                >
+                  <Text style={styles.actionText}>
+                    Done
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                maximumDate={maximumDate}
+                minimumDate={minimumDate}
+                themeVariant="light"
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+      {Platform.OS === 'android' && showPicker && (
         <DateTimePicker
           value={dateValue || new Date()}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          display="default"
           onChange={handleDateChange}
           maximumDate={maximumDate}
           minimumDate={minimumDate}
-          themeVariant="light"
-          textColor={colors.textPrimary}
         />
       )}
     </View>
@@ -194,4 +264,30 @@ const styles = StyleSheet.create({
     fontSize: platform.normalize.fontSize.caption,
     lineHeight: platform.normalize.lineHeight.caption,
   },
+  modalOverlay: {
+  flex: 1,
+  justifyContent: 'flex-end',
+  backgroundColor: 'rgba(0,0,0,0.3)',
+},
+
+modalContent: {
+  backgroundColor: 'white',
+  borderTopLeftRadius: 20,
+  borderTopRightRadius: 20,
+  paddingBottom: 30,
+},
+
+modalHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  paddingHorizontal: 20,
+  paddingVertical: 16,
+  borderBottomWidth: 1,
+  borderBottomColor: '#eee',
+},
+
+actionText: {
+  fontSize: 16,
+  fontWeight: '600',
+},
 });

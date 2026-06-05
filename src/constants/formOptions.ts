@@ -181,6 +181,12 @@ export const PUC_REQUIRED_DOCUMENTS = [
   'houseVideo',
 ] as const;
 
+export const SEMI_PROFESSIONAL_REQUIRED_DOCUMENTS = [
+  'pucMarksCard',
+  'incomeCertificate',
+  'aadharCard',
+] as const;
+
 // ============================================================================
 // PUC-SPECIFIC OPTIONS
 // ============================================================================

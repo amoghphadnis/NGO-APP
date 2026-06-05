@@ -8,6 +8,7 @@ import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import VPInputField from '@/components/common/VPInputField';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
+import { isProfessionalForm } from '@/types/forms';
 import { addressDetailsSchema, AddressDetailsFormValues } from '@/validation/sharedSchemas';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -39,14 +40,9 @@ export default function AddressSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   // Defensive rendering: ensure address object exists
-  const addressData = formData?.address ?? {
-    pincode: '',
-    district: '',
-    otherDistrict: '',
-    taluk: '',
-    place: '',
-    address: '',
-  };
+  const addressData = isProfessionalForm(formData) 
+    ? formData.address 
+    : { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '' };
 
   const { control, handleSubmit, formState } = useForm<AddressDetailsFormValues>({
     defaultValues: {

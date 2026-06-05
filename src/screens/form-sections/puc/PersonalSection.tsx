@@ -15,6 +15,7 @@ import FormCard from "@/components/common/FormCard";
 import VPInputField from "@/components/common/VPInputField";
 import VPDatePickerField from "@/components/common/VPDatePickerField";
 import { useFormEngineStore } from "../../../store/useFormEngineStore";
+import { isPUCForm } from "@/types/forms";
 import {
   personalDetailsSchema,
   PersonalDetailsFormValues,
@@ -34,11 +35,9 @@ export default function PersonalSection({ navigation }: any) {
     formData,
   } = useFormEngineStore();
 
-  const personalData = formData?.personal ?? {
-    name: "",
-    dateOfBirth: "",
-    gender: "",
-  };
+  const personalData = isPUCForm(formData) 
+    ? formData.personal 
+    : { name: "", dateOfBirth: "", gender: "" };
 
   const { control, handleSubmit, watch, formState } =
     useForm<PersonalDetailsFormValues>({
@@ -107,6 +106,12 @@ export default function PersonalSection({ navigation }: any) {
               label="Date of Birth"
               value={value ? new Date(value) : undefined}
               onChange={(date) => {
+                // If already a string (YYYY-MM-DD format), pass through directly
+                if (typeof date === 'string') {
+                  onChange(date);
+                  return;
+                }
+                // Otherwise format the Date object
                 const formatted = [
                   date.getFullYear(),
                   String(date.getMonth() + 1).padStart(2, "0"),

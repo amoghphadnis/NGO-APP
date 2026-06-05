@@ -13,14 +13,15 @@ export const pucCategoryHousingSchema = z.object({
   houseType: z.string().min(1, { message: 'House type is required' }),
   monthlyRent: z.string().optional(),
   referenceSource: z.string().min(1, { message: 'Reference source is required' }),
+  referenceSourceOther: z.string().optional(),
 });
 
 // PUC Family schema (extends shared with additional fields)
 export const pucFamilyDetailsSchema = z.object({
   fatherName: z.string().min(1, { message: 'Father name is required' }),
   motherName: z.string().min(1, { message: 'Mother name is required' }),
-  fatherOccupationID: z.string().optional(),
-  motherOccupationID: z.string().optional(),
+  fatherOccupationID: z.number().optional(),
+  motherOccupationID: z.number().optional(),
   familyMembers: z.number().min(1, { message: 'At least 1 family member' }),
   familyComposition: z.array(z.string()).optional(),
   annualIncome: z

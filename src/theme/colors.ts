@@ -3,6 +3,7 @@ export const colors = {
   primaryDark: '#3F4AE0',
   background: '#F5F6FA',
   card: '#FFFFFF',
+  darkMode: '#132749',
 
   textPrimary: '#1A1A1A',
   textSecondary: '#6B7280',

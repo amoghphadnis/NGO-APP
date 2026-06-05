@@ -1,6 +1,7 @@
 import { FormType } from '@/forms/shared/types';
 import { createProfessionalStudent } from '@/api/professionalApi';
 import { createPUCStudent } from '@/api/pucApi';
+import { createSemiProfessionalStudent } from '@/api/semiProfessionalApi';
 import { SubmissionPayload } from './preparePayload';
 import { NormalizedApiResponse } from '@/api/transformers/normalizeApiResponse';
 
@@ -10,6 +11,10 @@ export async function submitApplication(
 ): Promise<NormalizedApiResponse<any>> {
   if (formType === 'professional') {
     return await createProfessionalStudent(payload);
+  }
+
+  if (formType === 'semiProfessional') {
+    return await createSemiProfessionalStudent(payload);
   }
 
   return await createPUCStudent(payload);

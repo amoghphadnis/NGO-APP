@@ -15,10 +15,10 @@ import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 
-const collegeType: Option<'1' | '2' | '3'>[] = [
-  { value: '1', label: 'Government' },
-  { value: '2', label: 'Aided' },
-  { value: '3', label: 'Private' },
+const collegeType: Option<number>[] = [
+  { value: 1, label: 'Government' },
+  { value: 2, label: 'Aided' },
+  { value: 3, label: 'Private' },
 ];
 
 export default function AcademicSection({ navigation }: any) {
@@ -30,7 +30,7 @@ export default function AcademicSection({ navigation }: any) {
       cetNeetRank: isProfessionalForm(formData) ? formData.academic.cetNeetRank ?? undefined : undefined,
       courseTypeID: isProfessionalForm(formData) ? formData.academic.courseTypeID ?? '' : '',
       collegeName: isProfessionalForm(formData) ? formData.academic.collegeName ?? '' : '',
-      collegeTypeID: isProfessionalForm(formData) ? formData.academic.collegeTypeID ?? '1' : '1',
+      collegeTypeID: isProfessionalForm(formData) ? formData.academic.collegeTypeID ?? 1 : 1,
       collegeFees: isProfessionalForm(formData) ? formData.academic.collegeFees ?? 0 : 0,
     },
     resolver: zodResolver(academicDetailsSchema),
@@ -87,12 +87,11 @@ export default function AcademicSection({ navigation }: any) {
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="CET/NEET Rank"
-              value={value?.toString() ?? ''}
-              onChangeText={(text) => onChange(text ? parseInt(text, 10) : undefined)}
-              placeholder="Enter rank if applicable"
-              keyboardType="numeric"
+              value={value ?? ''}
+              onChangeText={onChange}
+              placeholder="Enter rank or 'Not Appeared'"
               error={formState.errors.cetNeetRank?.message}
-              helperText="Optional: Enter CET/NEET rank if applicable"
+              helperText="Optional: Enter CET/NEET rank or 'Not Appeared'"
             />
           )}
         />

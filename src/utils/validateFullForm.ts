@@ -1,14 +1,30 @@
-import { FormDataUnion, isProfessionalForm, isPUCForm } from '@/types/forms';
+import { FormDataUnion, isProfessionalForm, isPUCForm, isSemiProfessionalForm } from '@/types/forms';
 
 export const validateFullForm = (formData: FormDataUnion) => {
   const errors: string[] = [];
 
-  if (!formData.personal?.name) {
-    errors.push('Personal details incomplete.');
+  // Check personal details based on form type
+  if (isProfessionalForm(formData) || isPUCForm(formData)) {
+    if (!formData.personal?.name) {
+      errors.push('Personal details incomplete.');
+    }
+  } else if (isSemiProfessionalForm(formData)) {
+    // Semi Professional form uses studentName
+    if (!formData.personal?.studentName) {
+      errors.push('Personal details incomplete.');
+    }
+  } else {
+    // Payana form uses studentName
+    if (!formData.personal?.studentName) {
+      errors.push('Personal details incomplete.');
+    }
   }
 
-  if (!formData.contact?.email) {
-    errors.push('Contact details incomplete.');
+  // Contact section exists in professional, puc, payana but NOT semiProfessional
+  if (!isSemiProfessionalForm(formData)) {
+    if (!formData.contact?.email) {
+      errors.push('Contact details incomplete.');
+    }
   }
 
   if (isProfessionalForm(formData)) {

@@ -1,0 +1,76 @@
+/**
+ * PUC Student List API
+ * 
+ * Endpoint: GET /api/pucstudents/studentlist
+ * 
+ * Features:
+ * - Student name search
+ * - District filtering
+ * - Volunteer-based filtering (via session)
+ * - Returns house visit status
+ */
+
+import api from './client';
+import {
+  PUCStudentListResponse,
+  StudentListQueryParams,
+  StudentListError,
+} from '@/types/studentList';
+
+const BASE_URL = '/api/pucstudents';
+
+/**
+ * Fetch PUC student list for volunteers
+ * 
+ * @param params - Query parameters (search, districtId)
+ * @returns Student list with districts dropdown
+ * 
+ * Session Requirements:
+ * - UserRole: Determines Volunteer/Admin access
+ * - UserID: Required for Volunteer filtering
+ * 
+ * Business Logic:
+ * - Only students with ApprovalStatus='Approved' are returned
+ * - Volunteer users only see assigned students
+ * - Admin users see all students
+ * - Optional search by student name
+ * - Optional filter by district
+ */
+export async function getPUCStudentList(
+  params?: StudentListQueryParams
+): Promise<PUCStudentListResponse> {
+  const queryParams = new URLSearchParams();
+  
+  if (params?.search) {
+    queryParams.append('search', params.search);
+  }
+  
+  if (params?.districtId !== undefined) {
+    queryParams.append('districtId', params.districtId.toString());
+  }
+  
+  const queryString = queryParams.toString();
+  const url = `${BASE_URL}/studentlist${queryString ? `?${queryString}` : ''}`;
+  
+  const response = await api.get(url);
+  
+  if (!response.ok) {
+    const errorData = response.data as StudentListError;
+    throw new Error(errorData?.message || 'Failed to fetch PUC students');
+  }
+  
+  return response.data as PUCStudentListResponse;
+}
+
+/**
+ * Hook-compatible wrapper for React Query
+ */
+export const pucStudentApi = {
+  getList: getPUCStudentList,
+  
+  // Query key for React Query
+  queryKeys: {
+    list: (params?: StudentListQueryParams) => 
+      ['pucStudents', 'list', params] as const,
+  },
+};

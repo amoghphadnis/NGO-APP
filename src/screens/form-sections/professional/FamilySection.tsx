@@ -9,6 +9,7 @@ import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import VPInputField from '@/components/common/VPInputField';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
+import { isProfessionalForm } from '@/types/forms';
 import { familyDetailsSchema, FamilyDetailsFormValues } from '@/validation/sharedSchemas';
 import { OCCUPATION_OPTIONS } from '@/constants/formOptions';
 import { Option } from '@/components/common/ModalSelectField';
@@ -16,8 +17,8 @@ import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
 
-const fatherOccupationOptions: Option<string>[] = OCCUPATION_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
-const motherOccupationOptions: Option<string>[] = OCCUPATION_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
+const fatherOccupationOptions: Option<number>[] = OCCUPATION_OPTIONS.map(opt => ({ value: parseInt(opt.value, 10), label: opt.label }));
+const motherOccupationOptions: Option<number>[] = OCCUPATION_OPTIONS.map(opt => ({ value: parseInt(opt.value, 10), label: opt.label }));
 
 export default function FamilySection({ navigation }: any) {
   const [showMotherOccupationPicker, setShowMotherOccupationPicker] = useState(false);
@@ -25,18 +26,14 @@ export default function FamilySection({ navigation }: any) {
 
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const familyData = formData?.family ?? {
-    fatherOccupationID: '',
-    motherOccupationID: '',
-    familyMembers: 1,
-    familyComposition: [],
-    annualIncome: '',
-  };
+  const familyData = isProfessionalForm(formData) 
+    ? formData.family 
+    : { fatherOccupationID: undefined, motherOccupationID: undefined, familyMembers: 1, familyComposition: [], annualIncome: '' };
 
   const { control, handleSubmit, formState } = useForm<FamilyDetailsFormValues>({
     defaultValues: {
-      fatherOccupationID: familyData.fatherOccupationID,
-      motherOccupationID: familyData.motherOccupationID,
+      fatherOccupationID: familyData.fatherOccupationID ?? undefined,
+      motherOccupationID: familyData.motherOccupationID ?? undefined,
       familyMembers: familyData.familyMembers,
       familyComposition: familyData.familyComposition,
       annualIncome: familyData.annualIncome,

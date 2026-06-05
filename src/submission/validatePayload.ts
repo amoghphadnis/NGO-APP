@@ -1,7 +1,8 @@
 import { FormType } from '@/forms/shared/types';
 import { professionalFormSchema } from '@/validation/professionalSchemas';
 import { pucFormSchema } from '@/validation/pucSchemas';
-import { ProfessionalFormValues, PucFormValues } from '@/types/forms';
+import { semiProfessionalFormSchema } from '@/validation/semiProfessionalSchemas';
+import { ProfessionalFormValues, PucFormValues, SemiProfessionalFormValues } from '@/types/forms';
 
 export interface ValidationResult {
   success: boolean;
@@ -10,10 +11,22 @@ export interface ValidationResult {
 
 export function validatePayload(
   formType: FormType,
-  formData: ProfessionalFormValues | PucFormValues
+  formData: ProfessionalFormValues | PucFormValues | SemiProfessionalFormValues
 ): ValidationResult {
   if (formType === 'professional') {
     const result = professionalFormSchema.safeParse(formData);
+    if (result.success) {
+      return { success: true };
+    }
+
+    return {
+      success: false,
+      errors: result.error.issues.map((issue) => issue.message),
+    };
+  }
+
+  if (formType === 'semiProfessional') {
+    const result = semiProfessionalFormSchema.safeParse(formData);
     if (result.success) {
       return { success: true };
     }

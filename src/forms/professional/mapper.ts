@@ -60,14 +60,17 @@ export function professionalMapper(formData: ProfessionalFormValues): FormData {
     fd.append('ContactNumber', formData.contact.phone);
   }
 
+  if (formData.contact.alternatePhone) {
+    fd.append('AlternateNumber', formData.contact.alternatePhone);
+  }
+
   // Address Information
   if (formData.address.district) {
     fd.append('DistrictID', toString(formData.address.district));
   }
 
-  if (formData.address.otherDistrict) {
-    fd.append('OtherDistrict', formData.address.otherDistrict);
-  }
+  // Always append OtherDistrict as API requires it
+  fd.append('OtherDistrict', formData.address.otherDistrict || '');
 
   if (formData.address.taluk) {
     fd.append('Taluk', formData.address.taluk);
@@ -108,7 +111,7 @@ export function professionalMapper(formData: ProfessionalFormValues): FormData {
   }
 
   if (formData.academic.cetNeetRank) {
-    fd.append('CET_NEET_Rank', toString(formData.academic.cetNeetRank));
+    fd.append('CET_NEET_Rank', formData.academic.cetNeetRank);
   }
 
   if (formData.academic.courseTypeID) {

@@ -1,10 +1,14 @@
 import { FormConfig, FormType } from './types';
 import { professionalFormConfig } from '../professional/config';
 import { pucFormConfig } from '../puc/config';
+import { payanaFormConfig } from '../payana/config';
+import { semiProfessionalFormConfig } from '../semiProfessional/config';
 
 export const formConfigs: Record<FormType, FormConfig> = {
   professional: professionalFormConfig,
   puc: pucFormConfig,
+  payana: payanaFormConfig,
+  semiProfessional: semiProfessionalFormConfig,
 };
 
 export function getFormConfig(type: FormType): FormConfig {

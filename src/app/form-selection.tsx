@@ -1,10 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import { ThemedView } from '@/components/themed-view';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
@@ -12,20 +11,47 @@ import { platform } from '@/theme/platform';
 export default function FormSelectionScreen() {
   const router = useRouter();
 
-  const handleFormSelect = (formType: 'professional' | 'puc') => {
+  const handleFormSelect = (formType: 'professional' | 'puc' | 'payana' | 'semiProfessional') => {
     // Navigate to form-engine route with form type parameter
     (router.push as any)(`/form-engine?formType=${formType}`);
   };
 
+  const handleRenewalPUC = () => {
+    (router.push as any)('/renewal-puc');
+  };
+
+  const handleRenewalProfessional = () => {
+    (router.push as any)('/renewal-professional');
+  };
+
+  const handleRenewalPayana = () => {
+    (router.push as any)('/renewal-payana');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ThemedView style={styles.content}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Select Scholarship Type</Text>
-          <Text style={styles.subtitle}>
-            Choose the scholarship application you want to apply for
-          </Text>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.title}>Select Scholarship Type</Text>
+            <Text style={styles.subtitle}>
+              Choose the scholarship application you want to apply for
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.volunteerLoginButton}
+            onPress={() => (router.push as any)('/login')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="log-in-outline" size={20} color={colors.card} />
+            <Text style={styles.volunteerLoginText}>Login</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Form Options */}
@@ -69,17 +95,111 @@ export default function FormSelectionScreen() {
               <Text style={styles.featureItem}>• Stream-specific benefits</Text>
             </View>
           </TouchableOpacity>
-        </View>
 
-        {/* Volunteer Login */}
-        <TouchableOpacity
-          style={styles.volunteerLoginButton}
-          onPress={() => (router.push as any)('/login')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="log-in-outline" size={20} color={colors.card} />
-          <Text style={styles.volunteerLoginText}>Volunteer Login</Text>
-        </TouchableOpacity>
+          {/* Semi Professional Scholarship */}
+          <TouchableOpacity
+            style={styles.optionCard}
+            onPress={() => handleFormSelect('semiProfessional')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.optionHeader}>
+              <Ionicons name="construct" size={32} color={colors.primary} />
+              <Text style={styles.optionTitle}>Semi Professional Student 2025-26</Text>
+            </View>
+            <Text style={styles.optionDescription}>
+              For students pursuing semi-professional courses like Diploma, ITI, Nursing, Pharmacy, etc.
+            </Text>
+            <View style={styles.featuresList}>
+              <Text style={styles.featureItem}>• Diploma & ITI courses</Text>
+              <Text style={styles.featureItem}>• Need-based scholarship</Text>
+              <Text style={styles.featureItem}>• Document verification required</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Payana Scholarship */}
+          <TouchableOpacity
+            style={styles.optionCard}
+            onPress={() => handleFormSelect('payana')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.optionHeader}>
+              <Ionicons name="star" size={32} color={colors.primary} />
+              <Text style={styles.optionTitle}>Payana New Student 2025-26</Text>
+            </View>
+            <Text style={styles.optionDescription}>
+              For new students applying for Payana financial assistance program
+            </Text>
+            <View style={styles.featuresList}>
+              <Text style={styles.featureItem}>• Financial assistance program</Text>
+              <Text style={styles.featureItem}>• Need-based selection</Text>
+              <Text style={styles.featureItem}>• Complete documentation required</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Renewal PUC */}
+          <TouchableOpacity
+            style={[styles.optionCard, styles.renewalCard]}
+            onPress={handleRenewalPUC}
+            activeOpacity={0.8}
+          >
+            <View style={styles.optionHeader}>
+              <Ionicons name="refresh-circle" size={32} color={colors.success} />
+              <Text style={[styles.optionTitle, styles.renewalTitle]}>Renewal PUC 2025-26</Text>
+            </View>
+            <Text style={styles.optionDescription}>
+              For existing Vidya Poshak scholars renewing their PUC scholarship for 2025-26
+            </Text>
+            <View style={styles.featuresList}>
+              <Text style={styles.featureItem}>• Existing VP scholars only</Text>
+              <Text style={styles.featureItem}>• Use your VP ID to renew</Text>
+              <Text style={styles.featureItem}>• Updated academic results required</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Renewal Professional */}
+          <TouchableOpacity
+            style={[styles.optionCard, styles.renewalCard]}
+            onPress={handleRenewalProfessional}
+            activeOpacity={0.8}
+          >
+            <View style={styles.optionHeader}>
+              <Ionicons name="refresh-circle" size={32} color={colors.success} />
+              <Text style={[styles.optionTitle, styles.renewalTitle]}>
+                Renewal Professional 2025-26
+              </Text>
+            </View>
+            <Text style={styles.optionDescription}>
+              For existing VP scholars in professional courses renewing for 2025-26
+            </Text>
+            <View style={styles.featuresList}>
+              <Text style={styles.featureItem}>• Engineering, Medicine, Architecture etc.</Text>
+              <Text style={styles.featureItem}>• Document uploads required</Text>
+              <Text style={styles.featureItem}>• Use your VP ID to renew</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Renewal Payana */}
+          <TouchableOpacity
+            style={[styles.optionCard, styles.renewalCard]}
+            onPress={handleRenewalPayana}
+            activeOpacity={0.8}
+          >
+            <View style={styles.optionHeader}>
+              <Ionicons name="refresh-circle" size={32} color={colors.success} />
+              <Text style={[styles.optionTitle, styles.renewalTitle]}>
+                Renewal Payana 2025-26
+              </Text>
+            </View>
+            <Text style={styles.optionDescription}>
+              For existing Payana scholars renewing their financial assistance for 2025-26
+            </Text>
+            <View style={styles.featuresList}>
+              <Text style={styles.featureItem}>• Payana scholars only</Text>
+              <Text style={styles.featureItem}>• Use your Payana ID to renew</Text>
+              <Text style={styles.featureItem}>• Document uploads required</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
 
         {/* Help Section */}
         <View style={styles.helpSection}>
@@ -92,7 +212,7 @@ export default function FormSelectionScreen() {
             <Text style={styles.helpButtonText}>Contact Support</Text>
           </TouchableOpacity>
         </View>
-      </ThemedView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -100,30 +220,37 @@ export default function FormSelectionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.darkMode,
+  },
+  scroll: {
+    flex: 1,
   },
   content: {
-    flex: 1,
     padding: spacing.lg,
+    paddingBottom: spacing.xl,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.xl,
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   title: {
     fontSize: platform.normalize.fontSize.h1,
     lineHeight: platform.normalize.lineHeight.h1,
     color: colors.textTitle,
     fontWeight: '700',
-    textAlign: 'center',
+    textAlign: 'left',
     marginBottom: spacing.sm,
   },
   subtitle: {
     fontSize: platform.normalize.fontSize.body,
     lineHeight: platform.normalize.lineHeight.body,
     color: colors.textSubtitle,
-    textAlign: 'center',
-    paddingHorizontal: spacing.lg,
+    textAlign: 'left',
   },
   optionsContainer: {
     gap: spacing.lg,
@@ -180,6 +307,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.primary,
     paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
     borderRadius: 12,
     marginBottom: spacing.lg,
     gap: spacing.sm,
@@ -226,5 +354,12 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '500',
     marginLeft: spacing.sm,
+  },
+  renewalCard: {
+    borderColor: colors.success,
+    borderWidth: 1.5,
+  },
+  renewalTitle: {
+    color: colors.success,
   },
 });

@@ -32,5 +32,12 @@ export interface PUCDocuments extends ProfessionalDocuments {
   houseVideo?: UploadedDocument;
 }
 
+// Semi Professional form documents
+export interface SemiProfessionalDocuments {
+  pucMarksCard?: UploadedDocument;
+  incomeCertificate?: UploadedDocument;
+  aadharCard?: UploadedDocument;
+}
+
 // Union type for all documents
-export type FormDocuments = ProfessionalDocuments | PUCDocuments;
+export type FormDocuments = ProfessionalDocuments | PUCDocuments | SemiProfessionalDocuments;

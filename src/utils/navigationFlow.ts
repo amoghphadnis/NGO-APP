@@ -32,11 +32,39 @@ export const PUC_STEPS: FormStep[] = [
   'success',
 ] as const;
 
+export const PAYANA_STEPS: FormStep[] = [
+  'guidelines',
+  'personal',
+  'contact',
+  'address',
+  'family',
+  'category',
+  'academic',
+  'bank',
+  'documents',
+  'review',
+  'success',
+] as const;
+
+export const SEMI_PROFESSIONAL_STEPS: FormStep[] = [
+  'guidelines',
+  'personal',
+  'address',
+  'family',
+  'academic',
+  'documents',
+  'review',
+  'success',
+] as const;
+
 /**
  * Get the step order for a given form type
  */
 export function getStepOrder(formType: FormType): readonly FormStep[] {
-  return formType === 'professional' ? PROFESSIONAL_STEPS : PUC_STEPS;
+  if (formType === 'professional') return PROFESSIONAL_STEPS;
+  if (formType === 'payana') return PAYANA_STEPS;
+  if (formType === 'semiProfessional') return SEMI_PROFESSIONAL_STEPS;
+  return PUC_STEPS;
 }
 
 /**

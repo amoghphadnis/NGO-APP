@@ -21,6 +21,12 @@ import {
   pucFormSchema,
   pucDocumentDetailsSchema,
 } from '@/validation/pucSchemas';
+import {
+  payanaFormSchema,
+} from '@/validation/payanaSchemas';
+import {
+  semiProfessionalFormSchema,
+} from '@/validation/semiProfessionalSchemas';
 
 // Type exports from Zod schemas (single source of truth)
 export type PersonalDetailsFormValues = z.infer<typeof personalDetailsSchema>;
@@ -39,12 +45,16 @@ export type PucAcademicDetailsFormValues = z.infer<typeof pucAcademicDetailsSche
 export type PucDocumentDetailsFormValues = z.infer<typeof pucDocumentDetailsSchema>;
 export type PucFormValues = z.infer<typeof pucFormSchema>;
 
+export type PayanaFormValues = z.infer<typeof payanaFormSchema>;
+
+export type SemiProfessionalFormValues = z.infer<typeof semiProfessionalFormSchema>;
+
 // Union type for all form types
-export type FormDataUnion = ProfessionalFormValues | PucFormValues;
+export type FormDataUnion = ProfessionalFormValues | PucFormValues | PayanaFormValues | SemiProfessionalFormValues;
 
 // Form engine state interface (using Zod-inferred types)
 export interface FormEngineState {
-  currentFormType: 'professional' | 'puc' | null;
+  currentFormType: 'professional' | 'puc' | 'payana' | 'semiProfessional' | null;
   currentStep: number;
   completedSteps: Record<number, boolean>;
   formData: FormDataUnion;
@@ -84,5 +94,13 @@ export const isProfessionalForm = (data: FormDataUnion): data is ProfessionalFor
 };
 
 export const isPUCForm = (data: FormDataUnion): data is PucFormValues => {
-  return data && 'category' in data && !('bank' in data);
+  return data && 'category' in data && !('bank' in data) && !('studentAchievements' in data);
+};
+
+export const isPayanaForm = (data: FormDataUnion): data is PayanaFormValues => {
+  return data && 'bank' in data && 'category' in data && 'studentAchievements' in data;
+};
+
+export const isSemiProfessionalForm = (data: FormDataUnion): data is SemiProfessionalFormValues => {
+  return data && 'academic' in data && 'personal' in data && 'semiProfessionalCourseID' in (data as any).academic;
 };

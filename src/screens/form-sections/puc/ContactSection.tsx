@@ -8,6 +8,7 @@ import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import VPInputField from '@/components/common/VPInputField';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
+import { isPUCForm } from '@/types/forms';
 import { contactDetailsSchema, ContactDetailsFormValues } from '@/validation/sharedSchemas';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -16,11 +17,9 @@ import { platform } from '@/theme/platform';
 export default function ContactSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const contactData = formData?.contact ?? {
-    email: '',
-    phone: '',
-    alternatePhone: '',
-  };
+  const contactData = isPUCForm(formData) 
+    ? formData.contact 
+    : { email: '', phone: '', alternatePhone: '' };
 
   const { control, handleSubmit, watch, formState } = useForm<ContactDetailsFormValues>({
     defaultValues: {

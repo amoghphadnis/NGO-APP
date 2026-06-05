@@ -27,11 +27,15 @@ export default function ReviewSection({ navigation }: any) {
 
   const isFormComplete = () => {
     // Check if all required sections are filled
+    if (!isProfessionalForm(formData)) {
+      return false;
+    }
+    
     const hasPersonal = formData.personal.name && formData.personal.dateOfBirth;
     const hasContact = formData.contact.email && formData.contact.phone;
     const hasAddress = formData.address.pincode && formData.address.district;
     const hasFamily = formData.family.familyMembers > 0;
-    const hasDocuments = isProfessionalForm(formData) && 
+    const hasDocuments = 
       'marksCard' in formData.documents && 
       'aadhaar' in formData.documents && 
       'incomeCert' in formData.documents &&
@@ -39,13 +43,9 @@ export default function ReviewSection({ navigation }: any) {
       formData.documents.aadhaar && 
       formData.documents.incomeCert;
     
-    if (isProfessionalForm(formData)) {
-      const hasAcademic = formData.academic.courseTypeID && formData.academic.collegeName && formData.academic.collegeFees > 0;
-      const hasHouseVisitLink = formData.documents.houseVisitLink && formData.documents.houseVisitLink.startsWith('https://');
-      return hasPersonal && hasContact && hasAddress && hasFamily && hasDocuments && hasAcademic && hasHouseVisitLink;
-    }
-    
-    return hasPersonal && hasContact && hasAddress && hasFamily && hasDocuments;
+    const hasAcademic = formData.academic.courseTypeID && formData.academic.collegeName && formData.academic.collegeFees > 0;
+    const hasHouseVisitLink = formData.documents.houseVisitLink && formData.documents.houseVisitLink.startsWith('https://');
+    return hasPersonal && hasContact && hasAddress && hasFamily && hasDocuments && hasAcademic && hasHouseVisitLink;
   };
 
   const canSubmit = isFormComplete() && declarationAccepted;
@@ -126,8 +126,8 @@ export default function ReviewSection({ navigation }: any) {
           subtitle="Review all information before submitting"
         />
         
-        {/* Personal Details */}
-        {renderSection(
+        {/* Personal Details (Professional only) */}
+        {isProfessionalForm(formData) && renderSection(
           "Personal Details",
           {
             "Name": formData.personal.name,
@@ -147,15 +147,15 @@ export default function ReviewSection({ navigation }: any) {
             "CET/NEET Rank": formData.academic.cetNeetRank || 'N/A',
             "Course Type": formData.academic.courseTypeID,
             "College Name": formData.academic.collegeName,
-            "College Type": formData.academic.collegeTypeID === '1' ? 'Government' : formData.academic.collegeTypeID === '2' ? 'Aided' : 'Private',
+            "College Type": formData.academic.collegeTypeID === 1 ? 'Government' : formData.academic.collegeTypeID === 2 ? 'Aided' : 'Private',
             "Annual Fees": `₹${formData.academic.collegeFees}`,
           },
           "school",
           () => navigation.navigate('academic')
         )}
 
-        {/* Contact Information */}
-        {renderSection(
+        {/* Contact Information (Professional only) */}
+        {isProfessionalForm(formData) && renderSection(
           "Contact Information",
           {
             "Email": formData.contact.email,
@@ -165,8 +165,8 @@ export default function ReviewSection({ navigation }: any) {
           () => navigation.navigate('contact')
         )}
 
-        {/* Address Details */}
-        {renderSection(
+        {/* Address Details (Professional only) */}
+        {isProfessionalForm(formData) && renderSection(
           "Address Details",
           {
             "Pincode": formData.address.pincode,
@@ -179,8 +179,8 @@ export default function ReviewSection({ navigation }: any) {
           () => navigation.navigate('address')
         )}
 
-        {/* Family Information */}
-        {renderSection(
+        {/* Family Information (Professional only) */}
+        {isProfessionalForm(formData) && renderSection(
           "Family Information",
           {
             "Father's Occupation ID": formData.family.fatherOccupationID || 'N/A',
@@ -220,8 +220,8 @@ export default function ReviewSection({ navigation }: any) {
             </View>
             <View style={styles.documentRow}>
               <Text style={styles.documentLabel}>Income Certificate:</Text>
-              <Text style={formData.documents.incomeCert ? styles.documentUploaded : styles.documentPending}>
-                {formData.documents.incomeCert ? '✓ Uploaded' : 'Not uploaded'}
+              <Text style={isProfessionalForm(formData) && 'incomeCert' in formData.documents && formData.documents.incomeCert ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && 'incomeCert' in formData.documents && formData.documents.incomeCert ? '✓ Uploaded' : 'Not uploaded'}
               </Text>
             </View>
             {isProfessionalForm(formData) && (

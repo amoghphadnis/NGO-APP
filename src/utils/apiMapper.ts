@@ -26,18 +26,18 @@ export interface ProfessionalSubmissionDTO {
     address: string;
   };
   family: {
-    fatherOccupationID?: string;
-    motherOccupationID?: string;
+    fatherOccupationID?: number;
+    motherOccupationID?: number;
     familyMembers: number;
     familyComposition?: string[];
     annualIncome?: string;
   };
   academic: {
     puPercentage: number;
-    cetNeetRank?: number;
+    cetNeetRank?: string;
     courseTypeID: string;
     collegeName: string;
-    collegeTypeID: string;
+    collegeTypeID: number;
     collegeFees: number;
   };
   documents: {
@@ -68,8 +68,8 @@ export interface PUCSubmissionDTO {
     address: string;
   };
   family: {
-    fatherOccupationID?: string;
-    motherOccupationID?: string;
+    fatherOccupationID?: number;
+    motherOccupationID?: number;
     familyMembers: number;
     familyComposition?: string[];
     annualIncome?: string;

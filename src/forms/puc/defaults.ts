@@ -26,8 +26,8 @@ export const PUC_FORM_DEFAULTS = {
     address: '',
   },
   family: {
-    fatherOccupation: '',
-    motherOccupation: '',
+    fatherOccupationID: undefined as number | undefined,
+    motherOccupationID: undefined as number | undefined,
     familyMembers: 1,
     annualIncome: '',
     monthlyRent: '',

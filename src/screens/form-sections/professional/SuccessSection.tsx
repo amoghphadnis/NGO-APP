@@ -6,6 +6,7 @@ import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
+import { isProfessionalForm } from '@/types/forms';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
@@ -14,7 +15,9 @@ export default function SuccessSection({ navigation }: any) {
   const { formData, resetForm, submissionState } = useFormEngineStore();
   
   // Defensive rendering for nested state
-  const personalData = formData?.personal ?? { name: '' };
+  const personalData = isProfessionalForm(formData) 
+    ? formData.personal 
+    : { name: '' };
   const applicationId = submissionState?.applicationId || `VP${new Date().getFullYear()}${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
   const submissionDate = new Date().toLocaleDateString('en-IN', {
     year: 'numeric',

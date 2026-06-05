@@ -13,6 +13,11 @@ export const mapApplicationToApi = (): FormData => {
   // Build FormData manually - NO generic conversion
   const fd = new FormData();
   
+  // Only process if it's a professional form
+  if (!isProfessionalForm(formData)) {
+    return fd;
+  }
+  
   // Required fields - skip undefined/null checks
   if (formData.personal.name) {
     fd.append('StudentName', formData.personal.name);
@@ -29,11 +34,10 @@ export const mapApplicationToApi = (): FormData => {
   if (formData.address.district) {
     fd.append('DistrictID', String(formData.address.district));
   }
-  
-  if (formData.address.pincode) {
-    fd.append('OtherDistrict', formData.address.pincode); // Using pincode as other district for now
-  }
-  
+
+  // Always append OtherDistrict as API requires it
+  fd.append('OtherDistrict', formData.address.otherDistrict || '');
+
   if (formData.address.taluk) {
     fd.append('Taluk', formData.address.taluk);
   }
@@ -62,31 +66,29 @@ export const mapApplicationToApi = (): FormData => {
     fd.append('AnnualIncome', String(formData.family.annualIncome));
   }
   
-  // Professional form specific fields
-  if (isProfessionalForm(formData)) {
-    if (formData.academic.puPercentage) {
-      fd.append('PUPercentage', String(formData.academic.puPercentage));
-    }
-    
-    if (formData.academic.cetNeetRank) {
-      fd.append('CET_NEET_Rank', String(formData.academic.cetNeetRank));
-    }
-    
-    if (formData.academic.courseTypeID) {
-      fd.append('CourseTypeID', String(formData.academic.courseTypeID));
-    }
-    
-    if (formData.academic.collegeName) {
-      fd.append('CollegeName', formData.academic.collegeName);
-    }
-    
-    if (formData.academic.collegeTypeID) {
-      fd.append('CollegeTypeID', String(formData.academic.collegeTypeID));
-    }
-    
-    if (formData.academic.collegeFees) {
-      fd.append('CollegeFees', String(formData.academic.collegeFees));
-    }
+  // Academic fields
+  if (formData.academic.puPercentage) {
+    fd.append('PUPercentage', String(formData.academic.puPercentage));
+  }
+  
+  if (formData.academic.cetNeetRank) {
+    fd.append('CET_NEET_Rank', String(formData.academic.cetNeetRank));
+  }
+  
+  if (formData.academic.courseTypeID) {
+    fd.append('CourseTypeID', String(formData.academic.courseTypeID));
+  }
+  
+  if (formData.academic.collegeName) {
+    fd.append('CollegeName', formData.academic.collegeName);
+  }
+  
+  if (formData.academic.collegeTypeID) {
+    fd.append('CollegeTypeID', String(formData.academic.collegeTypeID));
+  }
+  
+  if (formData.academic.collegeFees) {
+    fd.append('CollegeFees', String(formData.academic.collegeFees));
   }
   
   if (formData.address.place) {
@@ -95,16 +97,16 @@ export const mapApplicationToApi = (): FormData => {
   
   // File uploads - proper format for Expo
   const { documents } = formData;
-  if ('marksCard' in documents && documents.marksCard && isUploadableFile(documents.marksCard)) {
-    fd.append('PUCMarksCard', documents.marksCard as any);
+  if ('marksCard' in documents && documents.marksCard && isUploadableFile(documents.marksCard.file)) {
+    fd.append('PUCMarksCard', documents.marksCard.file as any);
   }
-  
-  if ('incomeCert' in documents && documents.incomeCert && isUploadableFile(documents.incomeCert)) {
-    fd.append('IncomeCertificate', documents.incomeCert as any);
+
+  if ('incomeCert' in documents && documents.incomeCert && isUploadableFile(documents.incomeCert.file)) {
+    fd.append('IncomeCertificate', documents.incomeCert.file as any);
   }
-  
-  if ('aadhaar' in documents && documents.aadhaar && isUploadableFile(documents.aadhaar)) {
-    fd.append('AadharCard', documents.aadhaar as any);
+
+  if ('aadhaar' in documents && documents.aadhaar && isUploadableFile(documents.aadhaar.file)) {
+    fd.append('AadharCard', documents.aadhaar.file as any);
   }
   
   return fd;

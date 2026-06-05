@@ -11,12 +11,10 @@ import { CollegeTypeID } from '@/constants/formOptions';
 export const academicDetailsSchema = z.object({
   puPercentage: z.number().min(0, { message: 'Percentage must be at least 0' })
     .max(100, { message: 'Percentage cannot exceed 100' }),
-  cetNeetRank: z.number().positive({ message: 'Rank must be a positive number' }).optional(),
+  cetNeetRank: z.string().optional(), // Can be "Not Appeared" or rank number
   courseTypeID: z.string().min(1, { message: 'Course type is required' }),
   collegeName: z.string().min(1, { message: 'College name is required' }),
-  collegeTypeID: z.enum(['1', '2', '3'] as const, {
-    error: 'Please select a college type',
-  }),
+  collegeTypeID: z.number().positive({ message: 'College type ID is required' }),
   collegeFees: z.number().positive({ message: 'Fees must be a positive number' }),
 });
 

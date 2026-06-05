@@ -105,7 +105,7 @@ export function pucMapper(formData: PucFormValues): FormData {
   }
 
   if (formData.family.annualIncome) {
-    fd.append('AnnualIncome', formData.family.annualIncome);
+    fd.append('FamilyIncome', formData.family.annualIncome);
   }
 
   if (formData.family.monthlyRent) {
@@ -118,11 +118,11 @@ export function pucMapper(formData: PucFormValues): FormData {
 
   // Category & Housing Information
   if (formData.category.caste) {
-    fd.append('Caste', formData.category.caste);
+    fd.append('CasteCategoryID', toString(formData.category.caste));
   }
 
   if (formData.category.houseType) {
-    fd.append('HouseType', formData.category.houseType);
+    fd.append('HouseTypeID', toString(formData.category.houseType));
   }
 
   if (formData.category.monthlyRent) {
@@ -130,12 +130,18 @@ export function pucMapper(formData: PucFormValues): FormData {
   }
 
   if (formData.category.referenceSource) {
-    fd.append('ReferenceSource', formData.category.referenceSource);
+    fd.append('ReferenceSourceID', toString(formData.category.referenceSource));
+  }
+
+  // ReferenceSourceOther is optional - add if provided
+  const referenceOther = (formData.category as any).referenceSourceOther;
+  if (referenceOther) {
+    fd.append('ReferenceSourceOther', referenceOther);
   }
 
   // Academic Information
   if (formData.academic.course) {
-    fd.append('Course', formData.academic.course);
+    fd.append('CourseID', toString(formData.academic.course));
   }
 
   if (formData.academic.collegeName) {
@@ -143,7 +149,7 @@ export function pucMapper(formData: PucFormValues): FormData {
   }
 
   if (formData.academic.collegeType) {
-    fd.append('CollegeType', formData.academic.collegeType);
+    fd.append('CollegeTypeID', toString(formData.academic.collegeType));
   }
 
   if (formData.academic.expectedFees) {
@@ -151,7 +157,7 @@ export function pucMapper(formData: PucFormValues): FormData {
   }
 
   if (formData.academic.percentage) {
-    fd.append('Percentage', toString(formData.academic.percentage));
+    fd.append('SecuredPercentage', toString(formData.academic.percentage));
   }
 
   if (formData.academic.totalMarks) {

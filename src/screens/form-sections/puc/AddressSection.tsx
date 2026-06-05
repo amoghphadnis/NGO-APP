@@ -10,6 +10,7 @@ import FormCard from '@/components/common/FormCard';
 import VPInputField from '@/components/common/VPInputField';
 
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
+import { isPUCForm } from '@/types/forms';
 import { addressDetailsSchema, AddressDetailsFormValues } from '@/validation/sharedSchemas';
 import { PUC_AREA_OPTIONS } from '@/constants/formOptions';
 import { colors } from '@/theme/colors';
@@ -21,15 +22,9 @@ const areaOptions: Option<string>[] = PUC_AREA_OPTIONS.map(opt => ({ value: opt.
 export default function AddressSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const addressData = formData?.address ?? {
-    pincode: '',
-    district: '',
-    otherDistrict: '',
-    taluk: '',
-    place: '',
-    address: '',
-    area: '',
-  };
+  const addressData = isPUCForm(formData) 
+    ? formData.address 
+    : { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '', area: '' };
 
   const { control, handleSubmit, formState } = useForm<AddressDetailsFormValues>({
     defaultValues: {
