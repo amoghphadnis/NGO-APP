@@ -1,6 +1,7 @@
 /**
  * Professional Form Dropdown Configuration
  * Defines which dropdowns are used and their requirements for Professional form
+ * Based on API GET /professional/dropdowns response
  */
 
 export interface ProfessionalDropdownConfig {
@@ -20,6 +21,15 @@ export interface ProfessionalDropdownConfig {
   places: {
     required: boolean;
   };
+  fatherOcc: {
+    required: boolean;
+  };
+  motherOcc: {
+    required: boolean;
+  };
+  collegeTypes: {
+    required: boolean;
+  };
 }
 
 export const PROFESSIONAL_DROPDOWN_CONFIG: ProfessionalDropdownConfig = {
@@ -37,6 +47,15 @@ export const PROFESSIONAL_DROPDOWN_CONFIG: ProfessionalDropdownConfig = {
     required: true,
   },
   places: {
+    required: true,
+  },
+  fatherOcc: {
+    required: false, // Optional per API
+  },
+  motherOcc: {
+    required: false, // Optional per API
+  },
+  collegeTypes: {
     required: true,
   },
 };

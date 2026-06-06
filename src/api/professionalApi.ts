@@ -9,13 +9,13 @@ import { normalizeProfessionalDropdowns, NormalizedDropdowns } from './transform
 
 /**
  * Creates a new Professional student application
- * POST /api/students/professional/create
+ * POST /professional/create
  */
 export async function createProfessionalStudent(
   formData: FormData
 ): Promise<NormalizedApiResponse<any>> {
   try {
-    const response = await api.post('/students/professional/create', formData, {
+    const response = await api.post('/professional/create', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -29,13 +29,13 @@ export async function createProfessionalStudent(
 
 /**
  * Gets Professional dropdown data
- * GET /api/students/professional/dropdowns
+ * GET /professional/dropdowns
  */
 export async function getProfessionalDropdowns(): Promise<
   NormalizedApiResponse<NormalizedDropdowns>
 > {
   try {
-    const response = await api.get('/students/professional/dropdowns');
+    const response = await api.get('/professional/dropdowns');
     const normalizedDropdowns = normalizeProfessionalDropdowns(response.data.Data);
 
     return {

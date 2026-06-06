@@ -26,6 +26,26 @@ export interface DocumentsMeta {
   [key: string]: DocumentsMetaItem;
 }
 
+// Professional form upload state keys (16 documents)
+const PROFESSIONAL_UPLOAD_KEYS = [
+  'PUCMarksCard',
+  'IncomeCertificate',
+  'Rationcard',
+  'Electricitybill',
+  'CollegeID',
+  'Admissionproof',
+  'FeesReceipts',
+  'Expenditure',
+  'Studentphoto',
+  'Photoinfrontofcollege',
+  'Dwellingunit',
+  'CET',
+  'Studentpass',
+  'Monthsbank',
+  'AadharCard',
+  'Handwritten',
+] as const;
+
 interface FormEngineStore extends FormEngineState {
   // Actions
   initializeForm: (formType: FormType) => void;
@@ -52,23 +72,40 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
   
   // Form data - initialized with safe defaults matching Zod schemas
   formData: {
-    personal: { name: '', dateOfBirth: '', gender: '', caste: '' },
-    contact: { email: '', phone: '' },
-    address: { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '' },
-    family: { fatherOccupationID: undefined, motherOccupationID: undefined, familyMembers: 1, familyComposition: [], annualIncome: '' },
-    academic: { puPercentage: 0, cetNeetRank: undefined, courseTypeID: '', collegeName: '', collegeTypeID: 1, collegeFees: 0 },
-    documents: { marksCard: undefined, aadhaar: undefined, incomeCert: undefined, houseVisitLink: '' },
+    personal: { StudentName: '', DateOfBirth: '', GenderID: 0, CasteCategoryID: 0 },
+    contact: { Email: '', ContactNumber: '' },
+    address: { Pincode: '', DistrictID: 0, OtherDistrict: '', Taluk: '', PlaceID: 0, Address: '' },
+    family: { FatherOccupationID: undefined, MotherOccupationID: undefined, FamilyMembers: 1, AnnualIncome: '' },
+    academic: { PUPercentage: 0, CET_NEET_Rank: undefined, CourseTypeID: 0, CollegeName: '', CollegeTypeID: 0, CollegeFees: 0 },
+    documents: {
+      PUCMarksCard: undefined,
+      IncomeCertificate: undefined,
+      Rationcard: undefined,
+      Electricitybill: undefined,
+      CollegeID: undefined,
+      Admissionproof: undefined,
+      FeesReceipts: undefined,
+      Expenditure: undefined,
+      Studentphoto: undefined,
+      Photoinfrontofcollege: undefined,
+      Dwellingunit: undefined,
+      CET: undefined,
+      Studentpass: undefined,
+      Monthsbank: undefined,
+      AadharCard: undefined,
+      Handwritten: undefined,
+      HouseVisitLink: '',
+    },
   } as ProfessionalFormValues,
   
   // Validation state
   validationState: {},
   
   // Upload state
-  uploadState: {
-    marksCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-    aadhaar: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-    incomeCert: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-  },
+  uploadState: PROFESSIONAL_UPLOAD_KEYS.reduce((acc, key) => ({
+    ...acc,
+    [key]: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+  }), {} as Record<string, DocumentsMetaItem>),
   
   // Submission state
   submissionState: {
@@ -89,18 +126,35 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
     
     if (formType === 'professional') {
       safeFormData = {
-        personal: { name: '', dateOfBirth: '', gender: '', caste: '' },
-        contact: { email: '', phone: '', alternatePhone: undefined },
-        address: { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '', area: undefined },
-        family: { fatherOccupationID: undefined, motherOccupationID: undefined, familyMembers: 1, familyComposition: [], annualIncome: '' },
-        academic: { puPercentage: 0, cetNeetRank: undefined, courseTypeID: '', collegeName: '', collegeTypeID: 1, collegeFees: 0 },
-        documents: { marksCard: undefined, aadhaar: undefined, incomeCert: undefined, houseVisitLink: '' },
+        personal: { StudentName: '', DateOfBirth: '', GenderID: 0, CasteCategoryID: 0 },
+        contact: { Email: '', ContactNumber: '' },
+        address: { Pincode: '', DistrictID: 0, OtherDistrict: '', Taluk: '', PlaceID: 0, Address: '' },
+        family: { FatherOccupationID: undefined, MotherOccupationID: undefined, FamilyMembers: 1, AnnualIncome: '' },
+        academic: { PUPercentage: 0, CET_NEET_Rank: undefined, CourseTypeID: 0, CollegeName: '', CollegeTypeID: 0, CollegeFees: 0 },
+        documents: {
+          PUCMarksCard: undefined,
+          IncomeCertificate: undefined,
+          Rationcard: undefined,
+          Electricitybill: undefined,
+          CollegeID: undefined,
+          Admissionproof: undefined,
+          FeesReceipts: undefined,
+          Expenditure: undefined,
+          Studentphoto: undefined,
+          Photoinfrontofcollege: undefined,
+          Dwellingunit: undefined,
+          CET: undefined,
+          Studentpass: undefined,
+          Monthsbank: undefined,
+          AadharCard: undefined,
+          Handwritten: undefined,
+          HouseVisitLink: '',
+        },
       } as unknown as ProfessionalFormValues;
-      initialUploadState = {
-        marksCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        aadhaar: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        incomeCert: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-      };
+      initialUploadState = PROFESSIONAL_UPLOAD_KEYS.reduce((acc, key) => ({
+        ...acc,
+        [key]: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+      }), {} as Record<string, DocumentsMetaItem>);
     } else if (formType === 'semiProfessional') {
       safeFormData = {
         personal: { studentName: '', email: '', dateOfBirth: '', contactNumber: '', genderID: 0, casteCategoryID: 0 },
@@ -261,19 +315,36 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
     currentStep: 0,
     completedSteps: {},
     formData: {
-      personal: { name: '', dateOfBirth: '', gender: '', caste: '' },
-      contact: { email: '', phone: '' },
-      address: { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '' },
-      family: { fatherOccupationID: undefined, motherOccupationID: undefined, familyMembers: 1, familyComposition: [], annualIncome: '' },
-      academic: { puPercentage: 0, cetNeetRank: undefined, courseTypeID: '', collegeName: '', collegeTypeID: 1, collegeFees: 0 },
-      documents: { marksCard: undefined, aadhaar: undefined, incomeCert: undefined, houseVisitLink: '' },
+      personal: { StudentName: '', DateOfBirth: '', GenderID: 0, CasteCategoryID: 0 },
+      contact: { Email: '', ContactNumber: '' },
+      address: { Pincode: '', DistrictID: 0, OtherDistrict: '', Taluk: '', PlaceID: 0, Address: '' },
+      family: { FatherOccupationID: undefined, MotherOccupationID: undefined, FamilyMembers: 1, AnnualIncome: '' },
+      academic: { PUPercentage: 0, CET_NEET_Rank: undefined, CourseTypeID: 0, CollegeName: '', CollegeTypeID: 0, CollegeFees: 0 },
+      documents: {
+        PUCMarksCard: undefined,
+        IncomeCertificate: undefined,
+        Rationcard: undefined,
+        Electricitybill: undefined,
+        CollegeID: undefined,
+        Admissionproof: undefined,
+        FeesReceipts: undefined,
+        Expenditure: undefined,
+        Studentphoto: undefined,
+        Photoinfrontofcollege: undefined,
+        Dwellingunit: undefined,
+        CET: undefined,
+        Studentpass: undefined,
+        Monthsbank: undefined,
+        AadharCard: undefined,
+        Handwritten: undefined,
+        HouseVisitLink: '',
+      },
     } as unknown as ProfessionalFormValues,
     validationState: {},
-    uploadState: {
-      marksCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-      aadhaar: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-      incomeCert: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-    },
+    uploadState: PROFESSIONAL_UPLOAD_KEYS.reduce((acc, key) => ({
+      ...acc,
+      [key]: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+    }), {} as Record<string, DocumentsMetaItem>),
     submissionState: {
       isSubmitting: false,
       isSubmitted: false,

@@ -31,122 +31,142 @@ function toString(value: string | number | undefined): string {
  */
 export function professionalMapper(formData: ProfessionalFormValues): FormData {
   console.log('[professionalMapper] Input formData:', JSON.stringify(formData, null, 2));
-  
+
   const fd = new FormData();
 
-  // Personal Information
-  if (formData.personal.name) {
-    fd.append('StudentName', formData.personal.name);
+  // Personal Information (PascalCase as per API)
+  if (formData.personal.StudentName) {
+    fd.append('StudentName', formData.personal.StudentName);
   }
 
-  if (formData.personal.dateOfBirth) {
-    fd.append('DateOfBirth', formatDate(formData.personal.dateOfBirth));
+  if (formData.personal.DateOfBirth) {
+    fd.append('DateOfBirth', formatDate(formData.personal.DateOfBirth));
   }
 
-  if (formData.personal.gender) {
-    fd.append('GenderID', toString(formData.personal.gender));
+  if (formData.personal.GenderID) {
+    fd.append('GenderID', toString(formData.personal.GenderID));
   }
 
-  if (formData.personal.caste) {
-    fd.append('CasteCategoryID', toString(formData.personal.caste));
+  if (formData.personal.CasteCategoryID) {
+    fd.append('CasteCategoryID', toString(formData.personal.CasteCategoryID));
   }
 
-  // Contact Information
-  if (formData.contact.email) {
-    fd.append('Email', formData.contact.email);
+  // Contact Information (PascalCase as per API)
+  if (formData.contact.Email) {
+    fd.append('Email', formData.contact.Email);
   }
 
-  if (formData.contact.phone) {
-    fd.append('ContactNumber', formData.contact.phone);
+  if (formData.contact.ContactNumber) {
+    fd.append('ContactNumber', formData.contact.ContactNumber);
   }
 
-  if (formData.contact.alternatePhone) {
-    fd.append('AlternateNumber', formData.contact.alternatePhone);
-  }
-
-  // Address Information
-  if (formData.address.district) {
-    fd.append('DistrictID', toString(formData.address.district));
+  // Address Information (PascalCase as per API)
+  if (formData.address.DistrictID) {
+    fd.append('DistrictID', toString(formData.address.DistrictID));
   }
 
   // Always append OtherDistrict as API requires it
-  fd.append('OtherDistrict', formData.address.otherDistrict || '');
+  fd.append('OtherDistrict', formData.address.OtherDistrict || '');
 
-  if (formData.address.taluk) {
-    fd.append('Taluk', formData.address.taluk);
+  if (formData.address.Taluk) {
+    fd.append('Taluk', formData.address.Taluk);
   }
 
-  if (formData.address.place) {
-    fd.append('PlaceID', toString(formData.address.place));
+  if (formData.address.PlaceID) {
+    fd.append('PlaceID', toString(formData.address.PlaceID));
   }
 
-  if (formData.address.address) {
-    fd.append('Address', formData.address.address);
+  if (formData.address.Address) {
+    fd.append('Address', formData.address.Address);
   }
 
-  if (formData.address.pincode) {
-    fd.append('Pincode', formData.address.pincode);
+  if (formData.address.Pincode) {
+    fd.append('Pincode', formData.address.Pincode);
   }
 
-  // Family Information
-  if (formData.family.fatherOccupationID) {
-    fd.append('FatherOccupationID', toString(formData.family.fatherOccupationID));
+  // Family Information (PascalCase as per API)
+  if (formData.family.FatherOccupationID) {
+    fd.append('FatherOccupationID', toString(formData.family.FatherOccupationID));
   }
 
-  if (formData.family.motherOccupationID) {
-    fd.append('MotherOccupationID', toString(formData.family.motherOccupationID));
+  if (formData.family.MotherOccupationID) {
+    fd.append('MotherOccupationID', toString(formData.family.MotherOccupationID));
   }
 
-  if (formData.family.familyMembers) {
-    fd.append('FamilyMembers', toString(formData.family.familyMembers));
+  if (formData.family.FamilyMembers) {
+    fd.append('FamilyMembers', toString(formData.family.FamilyMembers));
   }
 
-  if (formData.family.annualIncome) {
-    fd.append('AnnualIncome', formData.family.annualIncome);
+  if (formData.family.AnnualIncome) {
+    fd.append('AnnualIncome', formData.family.AnnualIncome);
   }
 
-  // Academic Information
-  if (formData.academic.puPercentage !== undefined && formData.academic.puPercentage !== null) {
-    fd.append('PUPercentage', toString(formData.academic.puPercentage));
+  // Academic Information (PascalCase as per API)
+  if (formData.academic.PUPercentage !== undefined && formData.academic.PUPercentage !== null) {
+    fd.append('PUPercentage', toString(formData.academic.PUPercentage));
   }
 
-  if (formData.academic.cetNeetRank) {
-    fd.append('CET_NEET_Rank', formData.academic.cetNeetRank);
+  if (formData.academic.CET_NEET_Rank) {
+    fd.append('CET_NEET_Rank', formData.academic.CET_NEET_Rank);
   }
 
-  if (formData.academic.courseTypeID) {
-    fd.append('CourseTypeID', toString(formData.academic.courseTypeID));
+  if (formData.academic.CourseTypeID) {
+    fd.append('CourseTypeID', toString(formData.academic.CourseTypeID));
   }
 
-  if (formData.academic.collegeName) {
-    fd.append('CollegeName', formData.academic.collegeName);
+  if (formData.academic.CollegeName) {
+    fd.append('CollegeName', formData.academic.CollegeName);
   }
 
-  // collegeTypeID is already the correct field name
-  if (formData.academic.collegeTypeID) {
-    fd.append('CollegeTypeID', toString(formData.academic.collegeTypeID));
+  if (formData.academic.CollegeTypeID) {
+    fd.append('CollegeTypeID', toString(formData.academic.CollegeTypeID));
   }
 
-  if (formData.academic.collegeFees) {
-    fd.append('CollegeFees', toString(formData.academic.collegeFees));
+  if (formData.academic.CollegeFees) {
+    fd.append('CollegeFees', toString(formData.academic.CollegeFees));
   }
 
-  // House Visit Link
-  if (formData.documents.houseVisitLink) {
-    fd.append('HouseVisitLink', formData.documents.houseVisitLink);
+  // House Visit Link (PascalCase as per API)
+  if (formData.documents.HouseVisitLink) {
+    fd.append('HouseVisitLink', formData.documents.HouseVisitLink);
   }
 
-  // Document Uploads
-  appendFileToFormData(fd, PROFESSIONAL_FILE_KEYS.MARKS_CARD, formData.documents.marksCard);
-  appendFileToFormData(fd, PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE, formData.documents.incomeCert);
-  appendFileToFormData(fd, PROFESSIONAL_FILE_KEYS.AADHAR_CARD, formData.documents.aadhaar);
+  // Document Uploads - All 16 documents
+  appendFileToFormData(fd, 'PUCMarksCard', formData.documents.PUCMarksCard);
+  appendFileToFormData(fd, 'IncomeCertificate', formData.documents.IncomeCertificate);
+  appendFileToFormData(fd, 'Rationcard', formData.documents.Rationcard);
+  appendFileToFormData(fd, 'Electricitybill', formData.documents.Electricitybill);
+  appendFileToFormData(fd, 'CollegeID', formData.documents.CollegeID);
+  appendFileToFormData(fd, 'Admissionproof', formData.documents.Admissionproof);
+  appendFileToFormData(fd, 'FeesReceipts', formData.documents.FeesReceipts);
+  appendFileToFormData(fd, 'Expenditure', formData.documents.Expenditure);
+  appendFileToFormData(fd, 'Studentphoto', formData.documents.Studentphoto);
+  appendFileToFormData(fd, 'Photoinfrontofcollege', formData.documents.Photoinfrontofcollege);
+  appendFileToFormData(fd, 'Dwellingunit', formData.documents.Dwellingunit);
+  appendFileToFormData(fd, 'CET', formData.documents.CET);
+  appendFileToFormData(fd, 'Studentpass', formData.documents.Studentpass);
+  appendFileToFormData(fd, 'Monthsbank', formData.documents.Monthsbank);
+  appendFileToFormData(fd, 'AadharCard', formData.documents.AadharCard);
+  appendFileToFormData(fd, 'Handwritten', formData.documents.Handwritten);
 
-  // Debug: log file keys
-  console.log('[professionalMapper] Professional file keys:', PROFESSIONAL_FILE_KEYS);
+  // Debug: log file attachments
   console.log('[professionalMapper] Documents attached:', {
-    marksCard: !!formData.documents.marksCard,
-    incomeCert: !!formData.documents.incomeCert,
-    aadhaar: !!formData.documents.aadhaar,
+    PUCMarksCard: !!formData.documents.PUCMarksCard,
+    IncomeCertificate: !!formData.documents.IncomeCertificate,
+    Rationcard: !!formData.documents.Rationcard,
+    Electricitybill: !!formData.documents.Electricitybill,
+    CollegeID: !!formData.documents.CollegeID,
+    Admissionproof: !!formData.documents.Admissionproof,
+    FeesReceipts: !!formData.documents.FeesReceipts,
+    Expenditure: !!formData.documents.Expenditure,
+    Studentphoto: !!formData.documents.Studentphoto,
+    Photoinfrontofcollege: !!formData.documents.Photoinfrontofcollege,
+    Dwellingunit: !!formData.documents.Dwellingunit,
+    CET: !!formData.documents.CET,
+    Studentpass: !!formData.documents.Studentpass,
+    Monthsbank: !!formData.documents.Monthsbank,
+    AadharCard: !!formData.documents.AadharCard,
+    Handwritten: !!formData.documents.Handwritten,
   });
 
   return fd;

@@ -6,7 +6,7 @@ export const professionalFormConfig: FormConfig = {
   description: 'Apply for professional course scholarships',
   steps: [
     'guidelines',
-    'personal', 
+    'personal',
     'contact',
     'address',
     'family',
@@ -18,10 +18,10 @@ export const professionalFormConfig: FormConfig = {
   totalSteps: 9,
   validation: {
     guidelines: 'guidelinesSchema',
-    personal: 'personalDetailsSchema',
-    contact: 'contactDetailsSchema',
-    address: 'addressDetailsSchema',
-    family: 'familyDetailsSchema',
+    personal: 'professionalPersonalDetailsSchema',
+    contact: 'professionalContactDetailsSchema',
+    address: 'professionalAddressDetailsSchema',
+    family: 'professionalFamilyDetailsSchema',
     academic: 'academicDetailsSchema',
     documents: 'professionalDocumentDetailsSchema',
     review: null,

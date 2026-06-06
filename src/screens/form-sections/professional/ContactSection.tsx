@@ -9,7 +9,10 @@ import FormCard from '@/components/common/FormCard';
 import VPInputField from '@/components/common/VPInputField';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 import { isProfessionalForm } from '@/types/forms';
-import { contactDetailsSchema, ContactDetailsFormValues } from '@/validation/sharedSchemas';
+import {
+  professionalContactDetailsSchema,
+  ProfessionalContactDetailsFormValues,
+} from '@/validation/professionalSchemas';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
@@ -19,21 +22,21 @@ export default function ContactSection({ navigation }: any) {
 
   const contactData = isProfessionalForm(formData)
     ? formData.contact
-    : { email: '', phone: '' };
+    : { Email: '', ContactNumber: '' };
 
-  const { control, handleSubmit, watch, formState } = useForm<ContactDetailsFormValues>({
+  const { control, handleSubmit, watch, formState } = useForm<ProfessionalContactDetailsFormValues>({
     defaultValues: {
-      email: contactData.email,
-      phone: contactData.phone,
+      Email: contactData.Email || '',
+      ContactNumber: contactData.ContactNumber || '',
     },
-    resolver: zodResolver(contactDetailsSchema),
+    resolver: zodResolver(professionalContactDetailsSchema),
     mode: 'onChange',
   });
 
-  const watchedEmail = watch('email');
-  const emailSuccess = !!watchedEmail && !formState.errors.email;
+  const watchedEmail = watch('Email');
+  const emailSuccess = !!watchedEmail && !formState.errors.Email;
 
-  const onSubmit = (data: ContactDetailsFormValues) => {
+  const onSubmit = (data: ProfessionalContactDetailsFormValues) => {
     updateSectionData('contact', data);
     updateValidationState('contact', { isValid: true, data });
     markStepComplete(2);
@@ -61,7 +64,7 @@ export default function ContactSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="email"
+          name="Email"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Email Address"
@@ -71,7 +74,7 @@ export default function ContactSection({ navigation }: any) {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              error={formState.errors.email?.message}
+              error={formState.errors.Email?.message}
               successText={emailSuccess ? 'Email format looks good' : undefined}
               required
             />
@@ -80,17 +83,17 @@ export default function ContactSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="phone"
+          name="ContactNumber"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Mobile Number"
+              label="WhatsApp Number"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter 10-digit mobile number"
+              placeholder="Enter 10-digit WhatsApp number"
               keyboardType="phone-pad"
               maxLength={10}
-              error={formState.errors.phone?.message}
-              helperText="We'll use this number for important updates"
+              error={formState.errors.ContactNumber?.message}
+              helperText="We'll use this WhatsApp number for important updates"
               required
             />
           )}

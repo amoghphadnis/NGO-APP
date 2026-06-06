@@ -15,9 +15,9 @@ export default function SuccessSection({ navigation }: any) {
   const { formData, resetForm, submissionState } = useFormEngineStore();
   
   // Defensive rendering for nested state
-  const personalData = isProfessionalForm(formData) 
-    ? formData.personal 
-    : { name: '' };
+  const personalData = isProfessionalForm(formData)
+    ? formData.personal
+    : { StudentName: '' };
   const applicationId = submissionState?.applicationId || `VP${new Date().getFullYear()}${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
   const submissionDate = new Date().toLocaleDateString('en-IN', {
     year: 'numeric',
@@ -68,7 +68,7 @@ export default function SuccessSection({ navigation }: any) {
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Student Name:</Text>
-          <Text style={styles.detailValue}>{personalData.name || 'N/A'}</Text>
+          <Text style={styles.detailValue}>{personalData.StudentName || 'N/A'}</Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Submission Date:</Text>

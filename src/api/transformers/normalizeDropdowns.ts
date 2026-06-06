@@ -34,6 +34,9 @@ export interface NormalizedDropdowns {
   castes: NormalizedDropdownOption[];
   courses: NormalizedDropdownOption[];
   places: NormalizedDropdownOption[];
+  fatherOcc?: NormalizedDropdownOption[];
+  motherOcc?: NormalizedDropdownOption[];
+  collegeTypes?: NormalizedDropdownOption[];
 }
 
 /**
@@ -49,6 +52,9 @@ export function normalizeProfessionalDropdowns(apiResponse: any): NormalizedDrop
   const castes = apiResponse.Castes || apiResponse.castes || apiResponse.CasteCategories || apiResponse.casteCategories || [];
   const courses = apiResponse.Courses || apiResponse.courses || apiResponse.CourseTypes || apiResponse.courseTypes || [];
   const places = apiResponse.Places || apiResponse.places || [];
+  const fatherOcc = apiResponse.FatherOcc || apiResponse.fatherOcc || [];
+  const motherOcc = apiResponse.MotherOcc || apiResponse.motherOcc || [];
+  const collegeTypes = apiResponse.CollegeTypes || apiResponse.collegeTypes || [];
 
   const normalized = {
     districts: normalizeDistricts(districts),
@@ -56,6 +62,9 @@ export function normalizeProfessionalDropdowns(apiResponse: any): NormalizedDrop
     castes: normalizeCastes(castes),
     courses: normalizeCourses(courses),
     places: normalizePlaces(places),
+    fatherOcc: normalizeOccupations(fatherOcc),
+    motherOcc: normalizeOccupations(motherOcc),
+    collegeTypes: normalizeCollegeTypes(collegeTypes),
   };
 
   // Debug: log normalized response
@@ -129,5 +138,27 @@ function normalizePlaces(data: any[]): NormalizedDropdownOption[] {
   return data.map((item) => ({
     value: item.PlaceID ?? item.id ?? item.value ?? item.PlaceId,
     label: item.PlaceName ?? item.name ?? item.label ?? item.PlaceName ?? '',
+  }));
+}
+
+function normalizeOccupations(data: any[]): NormalizedDropdownOption[] {
+  if (!Array.isArray(data)) {
+    console.log('[normalizeOccupations] Data is not an array:', data);
+    return [];
+  }
+  return data.map((item) => ({
+    value: item.OccupationID ?? item.id ?? item.value ?? item.OccupationId,
+    label: item.OccupationName ?? item.name ?? item.label ?? '',
+  }));
+}
+
+function normalizeCollegeTypes(data: any[]): NormalizedDropdownOption[] {
+  if (!Array.isArray(data)) {
+    console.log('[normalizeCollegeTypes] Data is not an array:', data);
+    return [];
+  }
+  return data.map((item) => ({
+    value: item.CollegeTypeID ?? item.id ?? item.value ?? item.CollegeTypeId,
+    label: item.CollegeTypeName ?? item.name ?? item.label ?? '',
   }));
 }

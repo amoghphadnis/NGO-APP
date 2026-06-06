@@ -17,9 +17,23 @@ export interface UploadedDocument {
 
 // Professional form documents
 export interface ProfessionalDocuments {
-  marksCard?: UploadedDocument;
-  aadhaar?: UploadedDocument;
-  incomeCert?: UploadedDocument;
+  // Required documents (16 total)
+  PUCMarksCard?: UploadedDocument;
+  IncomeCertificate?: UploadedDocument;
+  Rationcard?: UploadedDocument;
+  Electricitybill?: UploadedDocument;
+  CollegeID?: UploadedDocument;
+  Admissionproof?: UploadedDocument;
+  FeesReceipts?: UploadedDocument;
+  Expenditure?: UploadedDocument;
+  Studentphoto?: UploadedDocument;
+  Photoinfrontofcollege?: UploadedDocument;
+  Dwellingunit?: UploadedDocument;
+  CET?: UploadedDocument;
+  Studentpass?: UploadedDocument;
+  Monthsbank?: UploadedDocument;
+  AadharCard?: UploadedDocument;
+  Handwritten?: UploadedDocument;
 }
 
 // PUC form documents

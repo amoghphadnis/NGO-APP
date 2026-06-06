@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,54 +9,57 @@ import FormCard from '@/components/common/FormCard';
 import VPInputField from '@/components/common/VPInputField';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 import { isProfessionalForm } from '@/types/forms';
-import { addressDetailsSchema, AddressDetailsFormValues } from '@/validation/sharedSchemas';
+import {
+  professionalAddressDetailsSchema,
+  ProfessionalAddressDetailsFormValues,
+} from '@/validation/professionalSchemas';
+import { getProfessionalDropdowns } from '@/api/professionalApi';
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
-import { DropdownField } from '@/components/form/DropdownField';
-
-// Dropdown options matching HTML form
-const districtOptions = [
-  { value: '1', label: 'Dharwad' },
-  { value: '2', label: 'Gadag' },
-  { value: '3', label: 'Belagavi' },
-  { value: '4', label: 'Koppal' },
-  { value: '5', label: 'Bagalkot' },
-  { value: '6', label: 'Vijaypura' },
-  { value: '7', label: 'Uttarakannada' },
-  { value: '8', label: 'Shimogga' },
-  { value: '9', label: 'Davangere' },
-  { value: '10', label: 'Haveri' },
-  { value: '11', label: 'Other' },
-];
-
-const placeOptions = [
-  { value: '1', label: 'Rural' },
-  { value: '2', label: 'Urban' },
-  { value: '3', label: 'Semi_Urban' },
-];
 
 export default function AddressSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
+  const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
+  const [placeOptions, setPlaceOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getProfessionalDropdowns();
+      if (response.success && response.data) {
+        setDistrictOptions(response.data.districts?.map((d: any) => ({ value: d.id, label: d.name })) || []);
+        setPlaceOptions(response.data.places?.map((p: any) => ({ value: p.id, label: p.name })) || []);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
+
   // Defensive rendering: ensure address object exists
   const addressData = isProfessionalForm(formData) 
     ? formData.address 
-    : { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '' };
+    : { Pincode: '', DistrictID: 0, OtherDistrict: '', Taluk: '', PlaceID: 0, Address: '' };
 
-  const { control, handleSubmit, formState } = useForm<AddressDetailsFormValues>({
+  const { control, handleSubmit, watch, formState } = useForm<ProfessionalAddressDetailsFormValues>({
     defaultValues: {
-      pincode: addressData.pincode ?? '',
-      district: addressData.district ?? '',
-      taluk: addressData.taluk ?? '',
-      place: addressData.place ?? '',
-      address: addressData.address ?? '',
+      Pincode: addressData.Pincode ?? '',
+      DistrictID: addressData.DistrictID ?? 0,
+      OtherDistrict: addressData.OtherDistrict ?? '',
+      Taluk: addressData.Taluk ?? '',
+      PlaceID: addressData.PlaceID ?? 0,
+      Address: addressData.Address ?? '',
     },
-    resolver: zodResolver(addressDetailsSchema),
+    resolver: zodResolver(professionalAddressDetailsSchema),
     mode: 'onChange',
   });
 
-  const onSubmit = (data: AddressDetailsFormValues) => {
+  const selectedDistrict = watch('DistrictID');
+  const showOtherDistrict = selectedDistrict === 11; // "Other" district ID
+
+  const onSubmit = (data: ProfessionalAddressDetailsFormValues) => {
     updateSectionData('address', data);
     updateValidationState('address', { isValid: true, data });
     markStepComplete(3);
@@ -80,7 +83,7 @@ export default function AddressSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="pincode"
+          name="Pincode"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Pincode"
@@ -89,52 +92,75 @@ export default function AddressSection({ navigation }: any) {
               placeholder="Enter 6-digit pincode"
               keyboardType="numeric"
               maxLength={6}
-              error={formState.errors.pincode?.message}
+              error={formState.errors.Pincode?.message}
               helperText="Enter the pincode of your residence"
+              required
             />
           )}
         />
 
         <Controller
           control={control}
-          name="district"
+          name="DistrictID"
           render={({ field: { onChange, value } }) => (
-            <DropdownField
+            <ModalSelectField
               label="District"
-              value={value}
-              onValueChange={onChange}
-              options={districtOptions}
               placeholder="Select district"
-              error={formState.errors.district?.message}
+              value={value}
+              onChange={onChange}
+              options={districtOptions}
+              error={formState.errors.DistrictID?.message}
+              required
+              disabled={loadingDropdowns}
             />
           )}
         />
 
+        {showOtherDistrict && (
+          <Controller
+            control={control}
+            name="OtherDistrict"
+            render={({ field: { onChange, value } }) => (
+              <VPInputField
+                label="Other District Name"
+                value={value}
+                onChangeText={onChange}
+                placeholder="Enter district name"
+                error={formState.errors.OtherDistrict?.message}
+                required
+              />
+            )}
+          />
+        )}
+
         <Controller
           control={control}
-          name="taluk"
+          name="Taluk"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Taluk"
               value={value}
               onChangeText={onChange}
               placeholder="Enter taluk name"
-              error={formState.errors.taluk?.message}
+              error={formState.errors.Taluk?.message}
+              required
             />
           )}
         />
 
         <Controller
           control={control}
-          name="place"
+          name="PlaceID"
           render={({ field: { onChange, value } }) => (
-            <DropdownField
+            <ModalSelectField
               label="Place/Village"
-              value={value}
-              onValueChange={onChange}
-              options={placeOptions}
               placeholder="Select place or village"
-              error={formState.errors.place?.message}
+              value={value}
+              onChange={onChange}
+              options={placeOptions}
+              error={formState.errors.PlaceID?.message}
+              required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -150,17 +176,18 @@ export default function AddressSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="address"
+          name="Address"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Street Address"
+              label="Residential Address"
               value={value}
               onChangeText={onChange}
               placeholder="Enter complete street address"
               multiline
               numberOfLines={3}
-              error={formState.errors.address?.message}
+              error={formState.errors.Address?.message}
               helperText="Include house number, street name, and landmarks"
+              required
             />
           )}
         />

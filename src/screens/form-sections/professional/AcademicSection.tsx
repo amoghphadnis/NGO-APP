@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,28 +10,39 @@ import VPInputField from '@/components/common/VPInputField';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 import { isProfessionalForm } from '@/types/forms';
 import { academicDetailsSchema, AcademicDetailsFormValues } from '@/validation/professionalSchemas';
+import { getProfessionalDropdowns } from '@/api/professionalApi';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 
-const collegeType: Option<number>[] = [
-  { value: 1, label: 'Government' },
-  { value: 2, label: 'Aided' },
-  { value: 3, label: 'Private' },
-];
-
 export default function AcademicSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
+  const [courseOptions, setCourseOptions] = useState<Option<number>[]>([]);
+  const [collegeTypeOptions, setCollegeTypeOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getProfessionalDropdowns();
+      if (response.success && response.data) {
+        setCourseOptions(response.data.courses?.map((c: any) => ({ value: c.id, label: c.name })) || []);
+        setCollegeTypeOptions(response.data.collegeTypes?.map((t: any) => ({ value: t.id, label: t.name })) || []);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
+
   const { control, handleSubmit, formState } = useForm<AcademicDetailsFormValues>({
     defaultValues: {
-      puPercentage: isProfessionalForm(formData) ? formData.academic.puPercentage ?? 0 : 0,
-      cetNeetRank: isProfessionalForm(formData) ? formData.academic.cetNeetRank ?? undefined : undefined,
-      courseTypeID: isProfessionalForm(formData) ? formData.academic.courseTypeID ?? '' : '',
-      collegeName: isProfessionalForm(formData) ? formData.academic.collegeName ?? '' : '',
-      collegeTypeID: isProfessionalForm(formData) ? formData.academic.collegeTypeID ?? 1 : 1,
-      collegeFees: isProfessionalForm(formData) ? formData.academic.collegeFees ?? 0 : 0,
+      PUPercentage: isProfessionalForm(formData) ? formData.academic.PUPercentage ?? 0 : 0,
+      CET_NEET_Rank: isProfessionalForm(formData) ? formData.academic.CET_NEET_Rank ?? undefined : undefined,
+      CourseTypeID: isProfessionalForm(formData) ? formData.academic.CourseTypeID ?? 0 : 0,
+      CollegeName: isProfessionalForm(formData) ? formData.academic.CollegeName ?? '' : '',
+      CollegeTypeID: isProfessionalForm(formData) ? formData.academic.CollegeTypeID ?? 0 : 0,
+      CollegeFees: isProfessionalForm(formData) ? formData.academic.CollegeFees ?? 0 : 0,
     },
     resolver: zodResolver(academicDetailsSchema),
     mode: 'onChange',
@@ -44,12 +55,12 @@ export default function AcademicSection({ navigation }: any) {
     navigation.navigate('documents');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
       title="Academic Details"
-      step={7}
+      step={6}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
@@ -65,7 +76,7 @@ export default function AcademicSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="puPercentage"
+          name="PUPercentage"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="PU/12th Percentage"
@@ -74,7 +85,7 @@ export default function AcademicSection({ navigation }: any) {
               placeholder="Enter percentage"
               keyboardType="numeric"
               suffix="%"
-              error={formState.errors.puPercentage?.message}
+              error={formState.errors.PUPercentage?.message}
               helperText="Enter your PU/12th grade percentage"
               required
             />
@@ -83,14 +94,14 @@ export default function AcademicSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="cetNeetRank"
+          name="CET_NEET_Rank"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="CET/NEET Rank"
               value={value ?? ''}
               onChangeText={onChange}
               placeholder="Enter rank or 'Not Appeared'"
-              error={formState.errors.cetNeetRank?.message}
+              error={formState.errors.CET_NEET_Rank?.message}
               helperText="Optional: Enter CET/NEET rank or 'Not Appeared'"
             />
           )}
@@ -108,14 +119,31 @@ export default function AcademicSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="courseTypeID"
+          name="CourseTypeID"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="Course"
+              placeholder="Select course"
+              value={value}
+              onChange={onChange}
+              options={courseOptions}
+              error={formState.errors.CourseTypeID?.message}
+              required
+              disabled={loadingDropdowns}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="CollegeName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Course Type"
+              label="College Name"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter your course type"
-              error={formState.errors.courseTypeID?.message}
+              placeholder="Enter your college name"
+              error={formState.errors.CollegeName?.message}
               required
             />
           )}
@@ -123,53 +151,20 @@ export default function AcademicSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="collegeName"
+          name="CollegeTypeID"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="College Name"
+            <ModalSelectField
+              label="College Type"
+              placeholder="Select college type"
               value={value}
-              onChangeText={onChange}
-              placeholder="Enter your college name"
-              error={formState.errors.collegeName?.message}
+              onChange={onChange}
+              options={collegeTypeOptions}
+              error={formState.errors.CollegeTypeID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
-
-          <Controller
-            control={control}
-            name="collegeTypeID"
-            render={({ field }) => (
-              <ModalSelectField
-                label="College Type"
-                placeholder="Select college type"
-                value={field.value}
-                onChange={field.onChange}
-                options={collegeType}
-                error={
-                  formState.errors.collegeTypeID
-                    ?.message
-                }
-                required
-              />
-            )}
-          />
-          
-        
-        {/* <Controller
-          control={control}
-          name="collegeType"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="College Type"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Select college type"
-              error={formState.errors.collegeType?.message}
-              required
-            />
-          )}
-        /> */}
       </FormCard>
 
       {/* Fee Information */}
@@ -183,7 +178,7 @@ export default function AcademicSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="collegeFees"
+          name="CollegeFees"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Annual College Fees"
@@ -192,7 +187,7 @@ export default function AcademicSection({ navigation }: any) {
               placeholder="Enter annual fees"
               keyboardType="numeric"
               prefix="₹"
-              error={formState.errors.collegeFees?.message}
+              error={formState.errors.CollegeFees?.message}
               helperText="Enter total annual college fees"
               required
             />

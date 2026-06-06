@@ -30,22 +30,35 @@ export default function ReviewSection({ navigation }: any) {
     if (!isProfessionalForm(formData)) {
       return false;
     }
-    
-    const hasPersonal = formData.personal.name && formData.personal.dateOfBirth;
-    const hasContact = formData.contact.email && formData.contact.phone;
-    const hasAddress = formData.address.pincode && formData.address.district;
-    const hasFamily = formData.family.familyMembers > 0;
-    const hasDocuments = 
-      'marksCard' in formData.documents && 
-      'aadhaar' in formData.documents && 
-      'incomeCert' in formData.documents &&
-      formData.documents.marksCard && 
-      formData.documents.aadhaar && 
-      formData.documents.incomeCert;
-    
-    const hasAcademic = formData.academic.courseTypeID && formData.academic.collegeName && formData.academic.collegeFees > 0;
-    const hasHouseVisitLink = formData.documents.houseVisitLink && formData.documents.houseVisitLink.startsWith('https://');
-    return hasPersonal && hasContact && hasAddress && hasFamily && hasDocuments && hasAcademic && hasHouseVisitLink;
+
+    const hasPersonal = formData.personal.StudentName && formData.personal.DateOfBirth;
+    const hasContact = formData.contact.Email && formData.contact.ContactNumber;
+    const hasAddress = formData.address.Pincode && formData.address.DistrictID;
+    const hasFamily = formData.family.FamilyMembers > 0;
+    const hasAcademic = formData.academic.CourseTypeID && formData.academic.CollegeName && formData.academic.CollegeFees > 0;
+    const hasHouseVisitLink = formData.documents.HouseVisitLink && formData.documents.HouseVisitLink.startsWith('https://');
+
+    // Check all 16 required documents
+    const docs = formData.documents;
+    const hasAllDocuments =
+      docs.PUCMarksCard &&
+      docs.IncomeCertificate &&
+      docs.Rationcard &&
+      docs.Electricitybill &&
+      docs.CollegeID &&
+      docs.Admissionproof &&
+      docs.FeesReceipts &&
+      docs.Expenditure &&
+      docs.Studentphoto &&
+      docs.Photoinfrontofcollege &&
+      docs.Dwellingunit &&
+      docs.CET &&
+      docs.Studentpass &&
+      docs.Monthsbank &&
+      docs.AadharCard &&
+      docs.Handwritten;
+
+    return hasPersonal && hasContact && hasAddress && hasFamily && hasAllDocuments && hasAcademic && hasHouseVisitLink;
   };
 
   const canSubmit = isFormComplete() && declarationAccepted;
@@ -130,10 +143,10 @@ export default function ReviewSection({ navigation }: any) {
         {isProfessionalForm(formData) && renderSection(
           "Personal Details",
           {
-            "Name": formData.personal.name,
-            "Date of Birth": formData.personal.dateOfBirth,
-            "Gender": formData.personal.gender,
-            "Caste": formData.personal.caste,
+            "Student Name": formData.personal.StudentName,
+            "Date of Birth": formData.personal.DateOfBirth,
+            "Gender ID": formData.personal.GenderID,
+            "Caste Category ID": formData.personal.CasteCategoryID,
           },
           "person",
           () => navigation.navigate('personal')
@@ -143,12 +156,12 @@ export default function ReviewSection({ navigation }: any) {
         {isProfessionalForm(formData) && renderSection(
           "Academic Details",
           {
-            "PU Percentage": `${formData.academic.puPercentage}%`,
-            "CET/NEET Rank": formData.academic.cetNeetRank || 'N/A',
-            "Course Type": formData.academic.courseTypeID,
-            "College Name": formData.academic.collegeName,
-            "College Type": formData.academic.collegeTypeID === 1 ? 'Government' : formData.academic.collegeTypeID === 2 ? 'Aided' : 'Private',
-            "Annual Fees": `₹${formData.academic.collegeFees}`,
+            "PU Percentage": `${formData.academic.PUPercentage}%`,
+            "CET/NEET Rank": formData.academic.CET_NEET_Rank || 'N/A',
+            "Course Type ID": formData.academic.CourseTypeID,
+            "College Name": formData.academic.CollegeName,
+            "College Type ID": formData.academic.CollegeTypeID,
+            "Annual Fees": `₹${formData.academic.CollegeFees}`,
           },
           "school",
           () => navigation.navigate('academic')
@@ -158,8 +171,8 @@ export default function ReviewSection({ navigation }: any) {
         {isProfessionalForm(formData) && renderSection(
           "Contact Information",
           {
-            "Email": formData.contact.email,
-            "Phone": formData.contact.phone,
+            "Email": formData.contact.Email,
+            "WhatsApp Number": formData.contact.ContactNumber,
           },
           "mail",
           () => navigation.navigate('contact')
@@ -169,11 +182,11 @@ export default function ReviewSection({ navigation }: any) {
         {isProfessionalForm(formData) && renderSection(
           "Address Details",
           {
-            "Pincode": formData.address.pincode,
-            "District": formData.address.district,
-            "Taluk": formData.address.taluk,
-            "Place": formData.address.place,
-            "Address": formData.address.address,
+            "Pincode": formData.address.Pincode,
+            "District ID": formData.address.DistrictID,
+            "Taluk": formData.address.Taluk,
+            "Place ID": formData.address.PlaceID,
+            "Address": formData.address.Address,
           },
           "location",
           () => navigation.navigate('address')
@@ -183,10 +196,10 @@ export default function ReviewSection({ navigation }: any) {
         {isProfessionalForm(formData) && renderSection(
           "Family Information",
           {
-            "Father's Occupation ID": formData.family.fatherOccupationID || 'N/A',
-            "Mother's Occupation ID": formData.family.motherOccupationID || 'N/A',
-            "Family Members": formData.family.familyMembers,
-            "Annual Income": formData.family.annualIncome || 'N/A',
+            "Father's Occupation ID": formData.family.FatherOccupationID || 'N/A',
+            "Mother's Occupation ID": formData.family.MotherOccupationID || 'N/A',
+            "Family Members": formData.family.FamilyMembers,
+            "Annual Income": formData.family.AnnualIncome || 'N/A',
           },
           "people",
           () => navigation.navigate('family')
@@ -197,38 +210,124 @@ export default function ReviewSection({ navigation }: any) {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleContainer}>
               <Ionicons name="attach" size={20} color={colors.primary} style={styles.sectionIcon} />
-              <Text style={styles.sectionTitle}>Documents</Text>
+              <Text style={styles.sectionTitle}>Documents (16 Required)</Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('documents')} style={styles.editButton}>
               <Ionicons name="create" size={16} color={colors.primary} />
               <Text style={styles.editButtonText}>Edit</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.sectionContent}>
+            {/* Documents 1-4 */}
             <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>Marks Card:</Text>
-              <Text style={isProfessionalForm(formData) && 'marksCard' in formData.documents && formData.documents.marksCard ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && 'marksCard' in formData.documents && formData.documents.marksCard ? '✓ Uploaded' : 'Not uploaded'}
+              <Text style={styles.documentLabel}>1. PUC Marks Card:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.PUCMarksCard ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.PUCMarksCard ? '✓' : '○'}
               </Text>
             </View>
             <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>Aadhaar Card:</Text>
-              <Text style={isProfessionalForm(formData) && 'aadhaar' in formData.documents && formData.documents.aadhaar ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && 'aadhaar' in formData.documents && formData.documents.aadhaar ? '✓ Uploaded' : 'Not uploaded'}
+              <Text style={styles.documentLabel}>2. Income Certificate:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.IncomeCertificate ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.IncomeCertificate ? '✓' : '○'}
               </Text>
             </View>
             <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>Income Certificate:</Text>
-              <Text style={isProfessionalForm(formData) && 'incomeCert' in formData.documents && formData.documents.incomeCert ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && 'incomeCert' in formData.documents && formData.documents.incomeCert ? '✓ Uploaded' : 'Not uploaded'}
+              <Text style={styles.documentLabel}>3. Ration Card:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.Rationcard ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.Rationcard ? '✓' : '○'}
               </Text>
             </View>
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>4. Electricity Bill:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.Electricitybill ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.Electricitybill ? '✓' : '○'}
+              </Text>
+            </View>
+
+            {/* Documents 5-8 */}
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>5. College ID:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.CollegeID ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.CollegeID ? '✓' : '○'}
+              </Text>
+            </View>
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>6. Admission Proof:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.Admissionproof ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.Admissionproof ? '✓' : '○'}
+              </Text>
+            </View>
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>7. Fees Receipts:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.FeesReceipts ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.FeesReceipts ? '✓' : '○'}
+              </Text>
+            </View>
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>8. Expenditure Cert:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.Expenditure ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.Expenditure ? '✓' : '○'}
+              </Text>
+            </View>
+
+            {/* Documents 9-12 */}
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>9. Student Photo:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.Studentphoto ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.Studentphoto ? '✓' : '○'}
+              </Text>
+            </View>
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>10. Photo at College:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.Photoinfrontofcollege ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.Photoinfrontofcollege ? '✓' : '○'}
+              </Text>
+            </View>
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>11. Dwelling Unit:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.Dwellingunit ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.Dwellingunit ? '✓' : '○'}
+              </Text>
+            </View>
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>12. CET/NEET Rank:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.CET ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.CET ? '✓' : '○'}
+              </Text>
+            </View>
+
+            {/* Documents 13-16 */}
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>13. Student Passbook:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.Studentpass ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.Studentpass ? '✓' : '○'}
+              </Text>
+            </View>
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>14. 6 Months Bank Stmt:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.Monthsbank ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.Monthsbank ? '✓' : '○'}
+              </Text>
+            </View>
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>15. Aadhar Card:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.AadharCard ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.AadharCard ? '✓' : '○'}
+              </Text>
+            </View>
+            <View style={styles.documentRow}>
+              <Text style={styles.documentLabel}>16. Handwritten Letter:</Text>
+              <Text style={isProfessionalForm(formData) && formData.documents.Handwritten ? styles.documentUploaded : styles.documentPending}>
+                {isProfessionalForm(formData) && formData.documents.Handwritten ? '✓' : '○'}
+              </Text>
+            </View>
+
             {isProfessionalForm(formData) && (
               <View style={styles.documentRow}>
-                <Text style={styles.documentLabel}>House Visit Link:</Text>
-                <Text style={formData.documents.houseVisitLink ? styles.documentUploaded : styles.documentPending}>
-                  {formData.documents.houseVisitLink ? '✓ Provided' : 'Not provided'}
+                <Text style={styles.documentLabel}>Google Location Link:</Text>
+                <Text style={formData.documents.HouseVisitLink ? styles.documentUploaded : styles.documentPending}>
+                  {formData.documents.HouseVisitLink ? '✓ Provided' : 'Not provided'}
                 </Text>
               </View>
             )}

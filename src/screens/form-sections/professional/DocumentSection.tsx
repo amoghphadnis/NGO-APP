@@ -11,41 +11,47 @@ import { useFormEngineStore } from '../../../store/useFormEngineStore';
 import { pickDocument } from '@/utils/filePicker';
 import { PROFESSIONAL_UPLOAD_RULES, validateUpload } from '@/forms/professional/uploads';
 import { PROFESSIONAL_FILE_KEYS } from '@/forms/professional/fileKeys';
-import { UploadedDocument } from '@/types/documents';
 import { isProfessionalForm } from '@/types/forms';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
 
 interface DocumentFormData {
-  marksCard?: UploadedDocument;
-  aadhaar?: UploadedDocument;
-  incomeCert?: UploadedDocument;
-  houseVisitLink: string;
+  HouseVisitLink: string;
 }
 
 export default function DocumentSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData, uploadState, updateUploadState } = useFormEngineStore();
 
   const documentData = (isProfessionalForm(formData) ? formData.documents : null) ?? {
-    marksCard: undefined,
-    aadhaar: undefined,
-    incomeCert: undefined,
-    houseVisitLink: '',
+    PUCMarksCard: undefined,
+    IncomeCertificate: undefined,
+    Rationcard: undefined,
+    Electricitybill: undefined,
+    CollegeID: undefined,
+    Admissionproof: undefined,
+    FeesReceipts: undefined,
+    Expenditure: undefined,
+    Studentphoto: undefined,
+    Photoinfrontofcollege: undefined,
+    Dwellingunit: undefined,
+    CET: undefined,
+    Studentpass: undefined,
+    Monthsbank: undefined,
+    AadharCard: undefined,
+    Handwritten: undefined,
+    HouseVisitLink: '',
   };
 
   const { control, handleSubmit, formState, watch } = useForm<DocumentFormData>({
     defaultValues: {
-      marksCard: 'marksCard' in documentData ? documentData.marksCard : undefined,
-      aadhaar: 'aadhaar' in documentData ? documentData.aadhaar : undefined,
-      incomeCert: 'incomeCert' in documentData ? documentData.incomeCert : undefined,
-      houseVisitLink: documentData.houseVisitLink ?? '',
+      HouseVisitLink: documentData.HouseVisitLink ?? '',
     },
     mode: 'onChange',
   });
 
-  // Watch the houseVisitLink value for live validation
-  const houseVisitLinkValue = watch('houseVisitLink');
+  // Watch the HouseVisitLink value for live validation
+  const houseVisitLinkValue = watch('HouseVisitLink');
 
   const handleFileUpload = async (documentKey: string) => {
     console.log('[DocumentSection] Handling file upload for:', documentKey);
@@ -99,25 +105,32 @@ export default function DocumentSection({ navigation }: any) {
     updateUploadState(documentKey, { isUploading: false, uploaded: false, error: undefined, progress: 0 });
   };
 
+  // Check if all 16 documents are uploaded
   const allDocumentsUploaded = 
-    uploadState[PROFESSIONAL_FILE_KEYS.MARKS_CARD]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.RATION_CARD]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.COLLEGE_ID]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.ADMISSION_PROOF]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.FEES_RECEIPTS]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.EXPENDITURE]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.STUDENT_PHOTO]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.PHOTO_IN_FRONT_OF_COLLEGE]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.DWELLING_UNIT]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.CET_RANK_SHEET]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.STUDENT_PASSBOOK]?.uploaded &&
+    uploadState[PROFESSIONAL_FILE_KEYS.MONTHS_BANK_STATEMENT]?.uploaded &&
     uploadState[PROFESSIONAL_FILE_KEYS.AADHAR_CARD]?.uploaded &&
-    uploadState[PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE]?.uploaded;
+    uploadState[PROFESSIONAL_FILE_KEYS.HANDWRITTEN_DECLARATION]?.uploaded;
 
   const isHouseVisitLinkValid = (link: string): boolean => {
     return link.trim().startsWith('https://');
   };
 
   const onSubmit = (data: DocumentFormData) => {
-    const updatedDocuments = {
-      marksCard: 'marksCard' in documentData ? documentData.marksCard : undefined,
-      aadhaar: 'aadhaar' in documentData ? documentData.aadhaar : undefined,
-      incomeCert: 'incomeCert' in documentData ? documentData.incomeCert : undefined,
-      houseVisitLink: data.houseVisitLink,
-    };
-    
-    updateSectionData('documents', updatedDocuments);
-    updateValidationState('documents', { isValid: allDocumentsUploaded && isHouseVisitLinkValid(data.houseVisitLink), data: updatedDocuments });
+    updateSectionData('documents', { ...documentData, HouseVisitLink: data.HouseVisitLink });
+    updateValidationState('documents', { isValid: allDocumentsUploaded && isHouseVisitLinkValid(data.HouseVisitLink), data: { ...documentData, HouseVisitLink: data.HouseVisitLink } });
     markStepComplete(6);
     navigation.navigate('review');
   };
@@ -127,9 +140,6 @@ export default function DocumentSection({ navigation }: any) {
   // Debug logging
   console.log('[DocumentSection] Debug:', {
     allDocumentsUploaded,
-    marksCardUploaded: uploadState[PROFESSIONAL_FILE_KEYS.MARKS_CARD]?.uploaded,
-    aadhaarUploaded: uploadState[PROFESSIONAL_FILE_KEYS.AADHAR_CARD]?.uploaded,
-    incomeCertUploaded: uploadState[PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE]?.uploaded,
     houseVisitLink: houseVisitLinkValue,
     houseVisitLinkValid: isHouseVisitLinkValid(houseVisitLinkValue || ''),
     isNextDisabled,
@@ -145,36 +155,23 @@ export default function DocumentSection({ navigation }: any) {
       nextLabel="Submit Application"
     >
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Required Documents */}
+        {/* Required Documents - Row 1 */}
         <FormSectionHeader
           icon="attach"
-          title="Required Documents"
-          subtitle="Upload all mandatory documents"
+          title="Required Documents (1-4)"
+          subtitle="Upload all mandatory documents (PDF/JPG/PNG, max 2MB each)"
           showRequired
         />
         
         <FormCard>
           <FileUploadField
-            title="PU Marks Card"
-            subtitle="Upload your PU marks card"
-            file={documentData.marksCard?.file}
-            meta={uploadState[PROFESSIONAL_FILE_KEYS.MARKS_CARD]}
-            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.MARKS_CARD)}
-            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.MARKS_CARD)}
-            maxSize={2 * 1024 * 1024} // 2MB
-            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
-          />
-        </FormCard>
-
-        <FormCard>
-          <FileUploadField
-            title="Aadhaar Card"
-            subtitle="Upload your Aadhaar card (PDF/JPG, max 2MB)"
-            file={documentData.aadhaar?.file}
-            meta={uploadState[PROFESSIONAL_FILE_KEYS.AADHAR_CARD]}
-            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.AADHAR_CARD)}
-            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.AADHAR_CARD)}
-            maxSize={2 * 1024 * 1024} // 2MB
+            title="PUC Marks Card"
+            subtitle="Upload your PUC marks card"
+            file={documentData.PUCMarksCard?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD)}
+            maxSize={2 * 1024 * 1024}
             acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
           />
         </FormCard>
@@ -182,12 +179,218 @@ export default function DocumentSection({ navigation }: any) {
         <FormCard>
           <FileUploadField
             title="Income Certificate"
-            subtitle="Upload family income certificate (PDF/JPG, max 2MB)"
-            file={documentData.incomeCert?.file}
-            meta={uploadState.incomeCert}
+            subtitle="Upload family income certificate"
+            file={documentData.IncomeCertificate?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE]}
             onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE)}
             onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE)}
-            maxSize={2 * 1024 * 1024} // 2MB
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="Ration Card (Both Sides)"
+            subtitle="Upload front and back of ration card"
+            file={documentData.Rationcard?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.RATION_CARD]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.RATION_CARD)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.RATION_CARD)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="Electricity Bill"
+            subtitle="Upload recent electricity bill"
+            file={documentData.Electricitybill?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        {/* Documents Row 2 */}
+        <FormSectionHeader
+          icon="school"
+          title="College Documents (5-8)"
+          subtitle="Upload college-related documents"
+          showRequired
+        />
+
+        <FormCard>
+          <FileUploadField
+            title="College ID"
+            subtitle="Upload your college ID card"
+            file={documentData.CollegeID?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.COLLEGE_ID]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.COLLEGE_ID)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.COLLEGE_ID)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="Admission Proof/Form"
+            subtitle="Upload admission proof or form"
+            file={documentData.Admissionproof?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.ADMISSION_PROOF]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.ADMISSION_PROOF)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.ADMISSION_PROOF)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="Fees Receipts"
+            subtitle="Upload fee payment receipts"
+            file={documentData.FeesReceipts?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.FEES_RECEIPTS]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.FEES_RECEIPTS)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.FEES_RECEIPTS)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="Expenditure Certificate from College"
+            subtitle="Upload expenditure certificate"
+            file={documentData.Expenditure?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.EXPENDITURE]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.EXPENDITURE)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.EXPENDITURE)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        {/* Documents Row 3 */}
+        <FormSectionHeader
+          icon="camera"
+          title="Photo Documents (9-12)"
+          subtitle="Upload required photos"
+          showRequired
+        />
+
+        <FormCard>
+          <FileUploadField
+            title="Student Photo"
+            subtitle="Upload your passport size photo"
+            file={documentData.Studentphoto?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.STUDENT_PHOTO]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.STUDENT_PHOTO)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.STUDENT_PHOTO)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="Photo in Front of College"
+            subtitle="Upload photo standing in front of college"
+            file={documentData.Photoinfrontofcollege?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.PHOTO_IN_FRONT_OF_COLLEGE]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.PHOTO_IN_FRONT_OF_COLLEGE)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.PHOTO_IN_FRONT_OF_COLLEGE)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="Dwelling Unit Photo / Family Photo in Front of House"
+            subtitle="Upload family photo in front of your house"
+            file={documentData.Dwellingunit?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.DWELLING_UNIT]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.DWELLING_UNIT)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.DWELLING_UNIT)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="CET Rank/NEET Rank Sheet"
+            subtitle="Upload entrance exam rank sheet"
+            file={documentData.CET?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.CET_RANK_SHEET]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.CET_RANK_SHEET)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.CET_RANK_SHEET)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        {/* Documents Row 4 */}
+        <FormSectionHeader
+          icon="document"
+          title="Bank & ID Documents (13-16)"
+          subtitle="Upload bank and identification documents"
+          showRequired
+        />
+
+        <FormCard>
+          <FileUploadField
+            title="Student Passbook First Page Photo"
+            subtitle="Upload first page of bank passbook"
+            file={documentData.Studentpass?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.STUDENT_PASSBOOK]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.STUDENT_PASSBOOK)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.STUDENT_PASSBOOK)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="6 Months Bank Statement of Earning Member"
+            subtitle="Upload bank statement of earning family member"
+            file={documentData.Monthsbank?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.MONTHS_BANK_STATEMENT]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.MONTHS_BANK_STATEMENT)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.MONTHS_BANK_STATEMENT)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="Aadhar Card (Both Sides)"
+            subtitle="Upload front and back of Aadhar card"
+            file={documentData.AadharCard?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.AADHAR_CARD]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.AADHAR_CARD)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.AADHAR_CARD)}
+            maxSize={2 * 1024 * 1024}
+            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+          />
+        </FormCard>
+
+        <FormCard>
+          <FileUploadField
+            title="Handwritten Self Declaration Letter"
+            subtitle="Upload handwritten declaration letter"
+            file={documentData.Handwritten?.file}
+            meta={uploadState[PROFESSIONAL_FILE_KEYS.HANDWRITTEN_DECLARATION]}
+            onUpload={() => handleFileUpload(PROFESSIONAL_FILE_KEYS.HANDWRITTEN_DECLARATION)}
+            onDelete={() => handleDeleteFile(PROFESSIONAL_FILE_KEYS.HANDWRITTEN_DECLARATION)}
+            maxSize={2 * 1024 * 1024}
             acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
           />
         </FormCard>
@@ -195,18 +398,18 @@ export default function DocumentSection({ navigation }: any) {
         {/* House Visit Link */}
         <FormSectionHeader
           icon="link"
-          title="House Visit Google Link"
-          subtitle="Paste the Google link for house visit verification"
+          title="Google Location Map Link"
+          subtitle="Paste the Google Maps link for house location verification"
           showRequired
         />
         
         <FormCard>
           <Controller
             control={control}
-            name="houseVisitLink"
+            name="HouseVisitLink"
             render={({ field: { onChange, value } }) => (
               <VPInputField
-                label="House Visit Google Link"
+                label="Google Location Map Link"
                 value={value}
                 onChangeText={onChange}
                 placeholder="https://..."
@@ -215,7 +418,7 @@ export default function DocumentSection({ navigation }: any) {
                 keyboardType="url"
                 multiline
                 numberOfLines={3}
-                error={formState.errors.houseVisitLink?.message}
+                error={formState.errors.HouseVisitLink?.message}
                 helperText="Link must start with https://"
                 required
               />
@@ -235,7 +438,13 @@ export default function DocumentSection({ navigation }: any) {
             <View style={styles.guidelineItem}>
               <Text style={styles.guidelineBullet}>•</Text>
               <Text style={styles.guidelineText}>
-                Documents must be clear and readable
+                All 16 documents are mandatory and must be uploaded
+              </Text>
+            </View>
+            <View style={styles.guidelineItem}>
+              <Text style={styles.guidelineBullet}>•</Text>
+              <Text style={styles.guidelineText}>
+                Documents must be clear, readable, and not blurred
               </Text>
             </View>
             <View style={styles.guidelineItem}>
@@ -247,58 +456,13 @@ export default function DocumentSection({ navigation }: any) {
             <View style={styles.guidelineItem}>
               <Text style={styles.guidelineBullet}>•</Text>
               <Text style={styles.guidelineText}>
-                Supported formats: PDF, JPG, PNG
+                Supported formats: PDF, JPG, PNG only
               </Text>
             </View>
             <View style={styles.guidelineItem}>
               <Text style={styles.guidelineBullet}>•</Text>
               <Text style={styles.guidelineText}>
-                Original documents will be verified during the process
-              </Text>
-            </View>
-            <View style={styles.guidelineItem}>
-              <Text style={styles.guidelineBullet}>•</Text>
-              <Text style={styles.guidelineText}>
-                Ensure all information is visible and not blurred
-              </Text>
-            </View>
-          </View>
-        </FormCard>
-
-        {/* Upload Status */}
-        <FormSectionHeader
-          icon="checkmark-circle"
-          title="Upload Status"
-          subtitle="Current upload progress"
-        />
-        
-        <FormCard>
-          <View style={styles.statusContainer}>
-            <View style={styles.statusItem}>
-              <Text style={styles.statusLabel}>Marks Card:</Text>
-              <Text style={[
-                styles.statusText,
-                uploadState.marksCard?.uploaded ? styles.successText : styles.pendingText
-              ]}>
-                {uploadState.marksCard?.uploaded ? '✓ Uploaded' : 'Pending'}
-              </Text>
-            </View>
-            <View style={styles.statusItem}>
-              <Text style={styles.statusLabel}>Aadhaar Card:</Text>
-              <Text style={[
-                styles.statusText,
-                uploadState.aadhaar?.uploaded ? styles.successText : styles.pendingText
-              ]}>
-                {uploadState.aadhaar?.uploaded ? '✓ Uploaded' : 'Pending'}
-              </Text>
-            </View>
-            <View style={styles.statusItem}>
-              <Text style={styles.statusLabel}>Income Certificate:</Text>
-              <Text style={[
-                styles.statusText,
-                uploadState.incomeCert?.uploaded ? styles.successText : styles.pendingText
-              ]}>
-                {uploadState.incomeCert?.uploaded ? '✓ Uploaded' : 'Pending'}
+                Google Location Map Link is required for verification
               </Text>
             </View>
           </View>

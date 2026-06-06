@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   View,
@@ -20,17 +20,14 @@ import { useFormEngineStore } from "../../../store/useFormEngineStore";
 import { isProfessionalForm } from "@/types/forms";
 
 import {
-  personalDetailsSchema,
-  PersonalDetailsFormValues,
-} from "@/validation/sharedSchemas";
-import { GENDER_OPTIONS, CASTE_OPTIONS } from "@/constants/formOptions";
+  professionalPersonalDetailsSchema,
+  ProfessionalPersonalDetailsFormValues,
+} from "@/validation/professionalSchemas";
+import { getProfessionalDropdowns } from "@/api/professionalApi";
 
 import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/spacing";
 import { platform } from "@/theme/platform";
-
-const genderOptions: Option<string>[] = GENDER_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
-const casteOptions: Option<string>[] = CASTE_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
 
 export default function PersonalSection({ navigation }: any) {
   const {
@@ -40,8 +37,21 @@ export default function PersonalSection({ navigation }: any) {
     formData,
   } = useFormEngineStore();
 
-  // const [showGenderPicker, setShowGenderPicker] = useState(false);
-  // const [showCastePicker, setShowCastePicker] = useState(false);
+  const [genderOptions, setGenderOptions] = useState<Option<number>[]>([]);
+  const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getProfessionalDropdowns();
+      if (response.success && response.data) {
+        setGenderOptions(response.data.genders?.map((g: any) => ({ value: g.id, label: g.name })) || []);
+        setCasteOptions(response.data.castes?.map((c: any) => ({ value: c.id, label: c.name })) || []);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const parseDate = (date: string) => {
     const [year, month, day] = date.split("-").map(Number);
@@ -50,34 +60,31 @@ export default function PersonalSection({ navigation }: any) {
 
   const personalData = isProfessionalForm(formData) 
     ? formData.personal 
-    : { name: "", dateOfBirth: "", gender: "", caste: "" };
+    : { StudentName: "", DateOfBirth: "", GenderID: 0, CasteCategoryID: 0 };
 
   const { control, handleSubmit, watch, formState } =
-    useForm<PersonalDetailsFormValues>({
+    useForm<ProfessionalPersonalDetailsFormValues>({
       defaultValues: {
-        name: personalData.name,
-        dateOfBirth:
-          typeof personalData.dateOfBirth === "string"
-            ? personalData.dateOfBirth
-            : "",
-        gender: personalData.gender,
-        caste: personalData.caste,
+        StudentName: personalData.StudentName || "",
+        DateOfBirth: personalData.DateOfBirth || "",
+        GenderID: personalData.GenderID || 0,
+        CasteCategoryID: personalData.CasteCategoryID || 0,
       },
-      resolver: zodResolver(personalDetailsSchema),
+      resolver: zodResolver(professionalPersonalDetailsSchema),
       mode: "onChange",
     });
 
-  const watchedName = watch("name");
-  const nameSuccess = !!watchedName && !formState.errors.name;
+  const watchedName = watch("StudentName");
+  const nameSuccess = !!watchedName && !formState.errors.StudentName;
 
-  const onSubmit = (data: PersonalDetailsFormValues) => {
+  const onSubmit = (data: ProfessionalPersonalDetailsFormValues) => {
     updateSectionData("personal", data);
     updateValidationState("personal", { isValid: true, data });
     markStepComplete(1);
     navigation.navigate("contact");
   };
 
-  const isNextDisabled = !formState.isValid;
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -98,14 +105,14 @@ export default function PersonalSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="name"
+          name="StudentName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Student Name"
               value={value}
               onChangeText={onChange}
               placeholder="Enter your full name"
-              error={formState.errors.name?.message}
+              error={formState.errors.StudentName?.message}
               successText={nameSuccess ? "Name looks good" : undefined}
               required
             />
@@ -114,7 +121,7 @@ export default function PersonalSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="dateOfBirth"
+          name="DateOfBirth"
           render={({ field: { onChange, value } }) => (
             <VPDatePickerField
               label="Date of Birth"
@@ -135,7 +142,7 @@ export default function PersonalSection({ navigation }: any) {
                 onChange(formatted);
               }}
               helperText="Enter your date of birth as on certificate"
-              error={formState.errors.dateOfBirth?.message}
+              error={formState.errors.DateOfBirth?.message}
               required
             />
           )}
@@ -148,7 +155,7 @@ export default function PersonalSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="gender"
+          name="GenderID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Gender"
@@ -156,18 +163,16 @@ export default function PersonalSection({ navigation }: any) {
               value={value}
               onChange={onChange}
               options={genderOptions}
-              error={
-                formState.errors.gender
-                  ?.message
-              }
+              error={formState.errors.GenderID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
 
         <Controller
           control={control}
-          name="caste"
+          name="CasteCategoryID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Caste"
@@ -175,11 +180,9 @@ export default function PersonalSection({ navigation }: any) {
               value={value}
               onChange={onChange}
               options={casteOptions}
-              error={
-                formState.errors.caste
-                  ?.message
-              }
+              error={formState.errors.CasteCategoryID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />

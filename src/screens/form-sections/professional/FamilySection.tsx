@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import ModalSelectField from '@/components/common/ModalSelectField';
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
@@ -10,50 +10,54 @@ import FormCard from '@/components/common/FormCard';
 import VPInputField from '@/components/common/VPInputField';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 import { isProfessionalForm } from '@/types/forms';
-import { familyDetailsSchema, FamilyDetailsFormValues } from '@/validation/sharedSchemas';
-import { OCCUPATION_OPTIONS } from '@/constants/formOptions';
-import { Option } from '@/components/common/ModalSelectField';
+import {
+  professionalFamilyDetailsSchema,
+  ProfessionalFamilyDetailsFormValues,
+} from '@/validation/professionalSchemas';
+import { getProfessionalDropdowns } from '@/api/professionalApi';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
 
-const fatherOccupationOptions: Option<number>[] = OCCUPATION_OPTIONS.map(opt => ({ value: parseInt(opt.value, 10), label: opt.label }));
-const motherOccupationOptions: Option<number>[] = OCCUPATION_OPTIONS.map(opt => ({ value: parseInt(opt.value, 10), label: opt.label }));
-
 export default function FamilySection({ navigation }: any) {
-  const [showMotherOccupationPicker, setShowMotherOccupationPicker] = useState(false);
-  const [showFatherOccupationPicker, setShowFatherOccupationPicker] = useState(false);
-
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [fatherOccupationOptions, setFatherOccupationOptions] = useState<Option<number>[]>([]);
+  const [motherOccupationOptions, setMotherOccupationOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getProfessionalDropdowns();
+      if (response.success && response.data) {
+        setFatherOccupationOptions(response.data.fatherOcc?.map((o: any) => ({ value: o.id, label: o.name })) || []);
+        setMotherOccupationOptions(response.data.motherOcc?.map((o: any) => ({ value: o.id, label: o.name })) || []);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const familyData = isProfessionalForm(formData) 
     ? formData.family 
-    : { fatherOccupationID: undefined, motherOccupationID: undefined, familyMembers: 1, familyComposition: [], annualIncome: '' };
+    : { FatherOccupationID: undefined, MotherOccupationID: undefined, FamilyMembers: 1, AnnualIncome: '' };
 
-  const { control, handleSubmit, formState } = useForm<FamilyDetailsFormValues>({
+  const { control, handleSubmit, formState } = useForm<ProfessionalFamilyDetailsFormValues>({
     defaultValues: {
-      fatherOccupationID: familyData.fatherOccupationID ?? undefined,
-      motherOccupationID: familyData.motherOccupationID ?? undefined,
-      familyMembers: familyData.familyMembers,
-      familyComposition: familyData.familyComposition,
-      annualIncome: familyData.annualIncome,
+      FatherOccupationID: familyData.FatherOccupationID ?? undefined,
+      MotherOccupationID: familyData.MotherOccupationID ?? undefined,
+      FamilyMembers: familyData.FamilyMembers || 1,
+      AnnualIncome: familyData.AnnualIncome || '',
     },
-    resolver: zodResolver(familyDetailsSchema),
+    resolver: zodResolver(professionalFamilyDetailsSchema),
     mode: 'onChange',
   });
 
-  const onSubmit = (data: FamilyDetailsFormValues) => {
+  const onSubmit = (data: ProfessionalFamilyDetailsFormValues) => {
     updateSectionData('family', data);
     updateValidationState('family', { isValid: true, data });
     markStepComplete(4);
-
-    // Navigate based on form type
-    const currentFormType = useFormEngineStore.getState().currentFormType;
-    if (currentFormType === 'puc') {
-      navigation.navigate('category');
-    } else {
-      navigation.navigate('academic');
-    }
+    navigation.navigate('academic');
   };
 
   return (
@@ -72,39 +76,33 @@ export default function FamilySection({ navigation }: any) {
 
       <FormCard>
         <Controller
-            control={control}
-            name="fatherOccupationID"
-            render={({ field: { onChange, value } }) => (
-              <ModalSelectField
-                label="Father's Occupation"
-                placeholder="Select father's occupation"
-                value={value}
-                onChange={onChange}
-                options={fatherOccupationOptions}
-                error={
-                  formState.errors.fatherOccupationID
-                    ?.message
-                }
-                required
-              />
-            )}
-          />
+          control={control}
+          name="FatherOccupationID"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="Father's Occupation"
+              placeholder="Select father's occupation (Optional)"
+              value={value}
+              onChange={onChange}
+              options={fatherOccupationOptions}
+              error={formState.errors.FatherOccupationID?.message}
+              disabled={loadingDropdowns}
+            />
+          )}
+        />
 
         <Controller
           control={control}
-          name="motherOccupationID"
+          name="MotherOccupationID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Mother's Occupation"
-              placeholder="Select mother's occupation"
+              placeholder="Select mother's occupation (Optional)"
               value={value}
               onChange={onChange}
               options={motherOccupationOptions}
-              error={
-                formState.errors.motherOccupationID
-                  ?.message
-              }
-              required
+              error={formState.errors.MotherOccupationID?.message}
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -120,28 +118,29 @@ export default function FamilySection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="familyMembers"
+          name="FamilyMembers"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Total Family Members"
               value={value?.toString() ?? ''}
               onChangeText={(text) => {
                 const num = parseInt(text.replace(/[^0-9]/g, ''), 10);
-                onChange(isNaN(num) ? '' : num);
+                onChange(isNaN(num) ? 1 : num);
               }}
               placeholder="Enter total family members"
               keyboardType="numeric"
               maxLength={2}
               selectTextOnFocus
-              error={formState.errors.familyMembers?.message}
+              error={formState.errors.FamilyMembers?.message}
               helperText="Include all family members living together"
+              required
             />
           )}
         />
 
         <Controller
           control={control}
-          name="annualIncome"
+          name="AnnualIncome"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Annual Family Income"
@@ -150,8 +149,9 @@ export default function FamilySection({ navigation }: any) {
               placeholder="Enter annual family income"
               keyboardType="numeric"
               prefix="₹"
-              error={formState.errors.annualIncome?.message}
+              error={formState.errors.AnnualIncome?.message}
               helperText="Total annual income from all sources"
+              required
             />
           )}
         />
