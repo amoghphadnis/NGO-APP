@@ -1,7 +1,7 @@
 /**
  * Professional Student List API
  * 
- * Endpoint: GET /api/professionalstudents/studentlist
+ * Endpoint: GET /professionalstudents/studentlist
  * 
  * Features:
  * - Student name search
@@ -10,14 +10,14 @@
  * - Returns house visit status
  */
 
-import api from './client';
 import {
-  ProfessionalStudentListResponse,
-  StudentListQueryParams,
-  StudentListError,
+    ProfessionalStudentListResponse,
+    StudentListError,
+    StudentListQueryParams,
 } from '@/types/studentList';
+import api from './client';
 
-const BASE_URL = '/api/professionalstudents';
+const BASE_URL = '/professionalstudents';
 
 /**
  * Fetch professional student list for volunteers

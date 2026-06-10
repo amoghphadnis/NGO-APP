@@ -5,6 +5,7 @@
  */
 
 import { environment } from '@/config/environment';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ApiResponse {
   data: any;
@@ -71,6 +72,48 @@ async function fetchWithTimeout(
 }
 
 /**
+ * Paths that require Bearer token authentication
+ */
+const BEARER_REQUIRED_PATHS = [
+  '/welcomedashboard',
+  '/pucstudents',
+  '/professionalstudents',
+  '/payanastudents',
+];
+
+/**
+ * Check if a path requires Bearer token
+ */
+function requiresBearerToken(path: string): boolean {
+  return BEARER_REQUIRED_PATHS.some(prefix => path.startsWith(prefix));
+}
+
+/**
+ * Get auth token from AsyncStorage
+ */
+async function getAuthToken(): Promise<string | null> {
+  try {
+    const AUTH_STORAGE_KEY = '@vp_auth_user';
+    const raw = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
+    if (raw) {
+      const user = JSON.parse(raw);
+      return user.Token || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Logout function - clears auth storage
+ */
+async function logout(): Promise<void> {
+  const AUTH_STORAGE_KEY = '@vp_auth_user';
+  await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+/**
  * Core request function
  */
 async function request(
@@ -83,6 +126,14 @@ async function request(
   console.log(`API ${method} ${url}`);
 
   const headers: Record<string, string> = { ...customHeaders };
+
+  // Add Bearer token for protected paths
+  if (requiresBearerToken(path)) {
+    const token = await getAuthToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
 
   // Only set Content-Type for non-FormData bodies
   if (!(body instanceof FormData)) {
@@ -100,6 +151,12 @@ async function request(
   }
 
   const response = await fetchWithTimeout(url, options, environment.API_TIMEOUT);
+
+  // Handle 401 - clear auth and throw error
+  if (response.status === 401) {
+    await logout();
+    throw new ApiError('Session expired. Please login again.', 401, null, 'SESSION_EXPIRED');
+  }
 
   let data: any;
   const contentType = response.headers.get('content-type') || '';

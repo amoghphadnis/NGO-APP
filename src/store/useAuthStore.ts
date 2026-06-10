@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authApi, LoginRequest } from '@/api/authApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from 'zustand';
 
 const AUTH_STORAGE_KEY = '@vp_auth_user';
 
@@ -11,6 +11,9 @@ export interface UserData {
   EmployeeID: number;
   AssignedRole: string;
   District: string;
+  Token: string;
+  DistrictID: string;
+  OtherDistrict: string;
 }
 
 interface AuthStore {
@@ -23,6 +26,7 @@ interface AuthStore {
   login: (credentials: LoginRequest) => Promise<boolean>;
   logout: () => Promise<void>;
   clearError: () => void;
+  getToken: () => Promise<string | null>;
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -58,6 +62,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
           EmployeeID: response.EmployeeID,
           AssignedRole: response.AssignedRole,
           District: response.District,
+          Token: response.Token,
+          DistrictID: response.DistrictID,
+          OtherDistrict: response.OtherDistrict,
         };
         await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
         set({ isLoggedIn: true, user, isLoading: false, error: null });
@@ -77,4 +84,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  getToken: async () => {
+    try {
+      const raw = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
+      if (raw) {
+        const user: UserData = JSON.parse(raw);
+        return user.Token;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
 }));

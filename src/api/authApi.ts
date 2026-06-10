@@ -13,6 +13,9 @@ export interface LoginResponse {
   EmployeeID: number;
   AssignedRole: string;
   District: string;
+  Token: string;
+  DistrictID: string;
+  OtherDistrict: string;
 }
 
 export const authApi = {

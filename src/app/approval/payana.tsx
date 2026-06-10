@@ -1,6 +1,12 @@
-import React from 'react';
-import ApprovalListScreen from '@/screens/approval/ApprovalListScreen';
+// TODO: Create payanaStudentApi.ts - Payana has different API response structure
+// For now, this uses PUC student API as placeholder
+import StudentListScreen from '@/screens/volunteer/StudentListScreen';
 
 export default function ApprovalPayanaScreen() {
-  return <ApprovalListScreen title="Payana Student List for House Visit" />;
+  return (
+    <StudentListScreen
+      studentType="puc"
+      title="Payana Students"
+    />
+  );
 }

@@ -1,7 +1,7 @@
 /**
  * PUC Student List API
  * 
- * Endpoint: GET /api/pucstudents/studentlist
+ * Endpoint: GET /pucstudents/studentlist
  * 
  * Features:
  * - Student name search
@@ -10,14 +10,14 @@
  * - Returns house visit status
  */
 
-import api from './client';
 import {
   PUCStudentListResponse,
-  StudentListQueryParams,
   StudentListError,
+  StudentListQueryParams,
 } from '@/types/studentList';
+import api from './client';
 
-const BASE_URL = '/api/pucstudents';
+const BASE_URL = '/pucstudents';
 
 /**
  * Fetch PUC student list for volunteers

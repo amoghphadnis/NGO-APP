@@ -1,6 +1,10 @@
-import React from 'react';
-import ApprovalListScreen from '@/screens/approval/ApprovalListScreen';
+import StudentListScreen from '@/screens/volunteer/StudentListScreen';
 
 export default function ApprovalProfessionalScreen() {
-  return <ApprovalListScreen title="Professional Student List for House Visit" />;
+  return (
+    <StudentListScreen
+      studentType="professional"
+      title="Professional Students"
+    />
+  );
 }

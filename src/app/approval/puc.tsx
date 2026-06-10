@@ -1,6 +1,10 @@
-import React from 'react';
-import ApprovalListScreen from '@/screens/approval/ApprovalListScreen';
+import StudentListScreen from '@/screens/volunteer/StudentListScreen';
 
 export default function ApprovalPUCScreen() {
-  return <ApprovalListScreen title="PUC Student List for House Visit" />;
+  return (
+    <StudentListScreen
+      studentType="puc"
+      title="PUC Students"
+    />
+  );
 }

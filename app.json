@@ -11,20 +11,16 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
-      "android": {
-        "package": "com.amoghphadnis20.vpapp",
-        "versionCode": 1,
-        "permissions": ["INTERNET"],
-        "predictiveBackGestureEnabled": false,
-        "adaptiveIcon": {
-          "foregroundImage": "./assets/images/android-icon-foreground.png",
-          "backgroundImage": "./assets/images/android-icon-background.png",
-          "monochromeImage": "./assets/images/android-icon-monochrome.png",
-          "backgroundColor": "#E6F4FE"
-        }
-      },
+      "package": "com.vidyaposhak.app",
+      "versionCode": 1,
+      "permissions": ["INTERNET", "VIBRATE", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
       "predictiveBackGestureEnabled": false,
-      "package": "com.amoghphadnis20.VPApp"
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png",
+        "backgroundColor": "#E6F4FE"
+      }
     },
     "web": {
       "output": "static",

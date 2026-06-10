@@ -1,6 +1,11 @@
-import React from 'react';
-import ApprovalListScreen from '@/screens/approval/ApprovalListScreen';
+// TODO: Add 'semi-professional' to StudentType if needed
+import StudentListScreen from '@/screens/volunteer/StudentListScreen';
 
 export default function ApprovalSemiProfessionalScreen() {
-  return <ApprovalListScreen title="Semi Professional Student List for House Visit" />;
+  return (
+    <StudentListScreen
+      studentType="professional"
+      title="Semi-Professional Students"
+    />
+  );
 }
