@@ -1,34 +1,43 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getPayanaDropdowns } from '@/api/payanaApi';
 import FormCard from '@/components/common/FormCard';
-import VPInputField from '@/components/common/VPInputField';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { useFormEngineStore } from '@/store/useFormEngineStore';
-import { payanaFamilySchema, PayanaFamilyFormValues } from '@/validation/payanaSchemas';
+import { PayanaFamilyFormValues, payanaFamilySchema } from '@/validation/payanaSchemas';
 
 interface FamilySectionProps {
   navigation: any;
 }
 
-const occupationOptions: Option<number>[] = [
-  { value: 1, label: 'Farmer' },
-  { value: 2, label: 'Driver' },
-  { value: 3, label: 'Daily Wage' },
-  { value: 4, label: 'Carpenter' },
-  { value: 5, label: 'Coolie' },
-  { value: 6, label: 'Home maker' },
-  { value: 7, label: 'Not working' },
-  { value: 8, label: 'Expired' },
-  { value: 9, label: 'Other' },
-];
-
 export default function FamilySection({ navigation }: FamilySectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [occupationOptions, setOccupationOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getPayanaDropdowns();
+      console.log('[Payana FamilySection] Dropdown response:', response);
+      if (response.success && response.data) {
+        // Father and mother occupations may be same or separate in API
+        setOccupationOptions(response.data.fatherOcc?.map((o: any) => ({
+          value: Number(o.value),
+          label: o.label
+        })) || []);
+        console.log('[Payana FamilySection] Occupation options:', response.data.fatherOcc);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const familyData = (formData as any).family ?? {
     fatherName: '',
@@ -59,7 +68,7 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
       step={5}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
-      nextDisabled={!formState.isValid}
+      nextDisabled={!formState.isValid || loadingDropdowns}
     >
       <FormSectionHeader
         icon="people"
@@ -110,6 +119,7 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
               onChange={onChange}
               placeholder="Select occupation"
               error={formState.errors.fatherOccupationID?.message}
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -125,6 +135,7 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
               onChange={onChange}
               placeholder="Select occupation"
               error={formState.errors.motherOccupationID?.message}
+              disabled={loadingDropdowns}
             />
           )}
         />

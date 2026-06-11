@@ -1,37 +1,48 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getPayanaDropdowns } from '@/api/payanaApi';
 import FormCard from '@/components/common/FormCard';
-import VPInputField from '@/components/common/VPInputField';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { useFormEngineStore } from '@/store/useFormEngineStore';
-import { payanaAcademicSchema, PayanaAcademicFormValues } from '@/validation/payanaSchemas';
+import { PayanaAcademicFormValues, payanaAcademicSchema } from '@/validation/payanaSchemas';
 
 interface AcademicSectionProps {
   navigation: any;
 }
 
-const courseOptions: Option<number>[] = [
-  { value: 1, label: 'BCA' },
-  { value: 2, label: 'B.Com' },
-  { value: 3, label: 'B.Sc' },
-  { value: 4, label: 'BA' },
-  { value: 5, label: 'BE/B.Tech' },
-  { value: 6, label: 'MBBS' },
-  { value: 7, label: 'Other' },
-];
-
-const collegeTypeOptions: Option<number>[] = [
-  { value: 1, label: 'Government' },
-  { value: 2, label: 'Private' },
-];
-
 export default function AcademicSection({ navigation }: AcademicSectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [courseOptions, setCourseOptions] = useState<Option<number>[]>([]);
+  const [collegeTypeOptions, setCollegeTypeOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getPayanaDropdowns();
+      console.log('[Payana AcademicSection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setCourseOptions(response.data.courses?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        setCollegeTypeOptions(response.data.collegeTypes?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        console.log('[Payana AcademicSection] Course options:', response.data.courses);
+        console.log('[Payana AcademicSection] College type options:', response.data.collegeTypes);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const academicData = (formData as any).academic ?? {
     courseID: 0,
@@ -65,7 +76,7 @@ export default function AcademicSection({ navigation }: AcademicSectionProps) {
       step={7}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
-      nextDisabled={!formState.isValid}
+      nextDisabled={!formState.isValid || loadingDropdowns}
     >
       <FormSectionHeader
         icon="school"
@@ -87,6 +98,7 @@ export default function AcademicSection({ navigation }: AcademicSectionProps) {
               placeholder="Select course"
               error={formState.errors.courseID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -118,6 +130,7 @@ export default function AcademicSection({ navigation }: AcademicSectionProps) {
               placeholder="Select college type"
               error={formState.errors.collegeTypeID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />

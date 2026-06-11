@@ -1,37 +1,37 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import {
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import VPInputField from '@/components/common/VPInputField';
-import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
-import VPDatePickerField from '@/components/common/VPDatePickerField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import VPDatePickerField from '@/components/common/VPDatePickerField';
+import VPInputField from '@/components/common/VPInputField';
 import FileUploadField from '@/components/form/FileUploadField';
 
-import { renewalPayanaSchema, RenewalPayanaFormValues } from '@/validation/renewalPayanaSchemas';
 import {
-  getPayanaRenewalDropdowns,
-  submitPayanaRenewal,
-  PayanaRenewalDropdownItem,
+    getPayanaRenewalDropdowns,
+    submitPayanaRenewal,
 } from '@/api/renewalPayanaApi';
-import { pickDocument } from '@/utils/filePicker';
-import { UploadedDocument, DocumentFile } from '@/types/documents';
+import { NormalizedDropdownOption } from '@/api/transformers/normalizeDropdowns';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { DocumentFile, UploadedDocument } from '@/types/documents';
+import { pickDocument } from '@/utils/filePicker';
+import { RenewalPayanaFormValues, renewalPayanaSchema } from '@/validation/renewalPayanaSchemas';
 
 type FileKey = 'marksheetFile' | 'feesReceiptFile' | 'passbookFile' | 'selfieFile' | 'aadhaarFile';
 
@@ -48,8 +48,8 @@ interface Props {
   navigation?: any;
 }
 
-function toOptions(items: PayanaRenewalDropdownItem[]): Option<string>[] {
-  return items.map((i) => ({ value: i.name, label: i.name }));
+function toOptions(items: NormalizedDropdownOption[]): Option<string>[] {
+  return items.map((i) => ({ value: String(i.label), label: i.label }));
 }
 
 export default function RenewalPayanaForm({ navigation }: Props) {
@@ -130,13 +130,15 @@ export default function RenewalPayanaForm({ navigation }: Props) {
   useEffect(() => {
     (async () => {
       try {
-        const data = await getPayanaRenewalDropdowns();
-        setDropdowns({
-          districts: toOptions(data.districts),
-          areaTypes: toOptions(data.areaTypes),
-          casteCategories: toOptions(data.casteCategories),
-          collegeTypes: toOptions(data.collegeTypes),
-        });
+        const response = await getPayanaRenewalDropdowns();
+        if (response.success && response.data) {
+          setDropdowns({
+            districts: toOptions(response.data.districts || []),
+            areaTypes: toOptions(response.data.places || []),
+            casteCategories: toOptions(response.data.castes || []),
+            collegeTypes: toOptions(response.data.collegeTypes || []),
+          });
+        }
       } catch (e) {
         console.error('[RenewalPayanaForm] Dropdown load failed:', e);
       } finally {

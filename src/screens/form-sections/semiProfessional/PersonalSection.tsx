@@ -1,39 +1,48 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
 import FormCard from '@/components/common/FormCard';
-import VPInputField from '@/components/common/VPInputField';
-import VPDatePickerField from '@/components/common/VPDatePickerField';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import VPDatePickerField from '@/components/common/VPDatePickerField';
+import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import { SemiProfPersonalFormValues, semiProfPersonalSchema } from '@/validation/semiProfessionalSchemas';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { semiProfPersonalSchema, SemiProfPersonalFormValues } from '@/validation/semiProfessionalSchemas';
-import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 
 interface PersonalSectionProps {
   navigation: any;
 }
 
-const genderOptions: Option<number>[] = [
-  { value: 1, label: 'Male' },
-  { value: 2, label: 'Female' },
-  { value: 3, label: 'Other' },
-];
-
-const casteOptions: Option<number>[] = [
-  { value: 1, label: 'General' },
-  { value: 2, label: 'OBC' },
-  { value: 3, label: 'SC' },
-  { value: 4, label: 'ST' },
-  { value: 5, label: 'EWS' },
-];
-
 export default function PersonalSection({ navigation }: PersonalSectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [genderOptions, setGenderOptions] = useState<Option<number>[]>([]);
+  const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getSemiProfessionalDropdowns();
+      console.log('[SemiPro PersonalSection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setGenderOptions(response.data.genders?.map((g: any) => ({
+          value: Number(g.value),
+          label: g.label
+        })) || []);
+        setCasteOptions(response.data.casteCategories?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        console.log('[SemiPro PersonalSection] Gender options:', response.data.genders);
+        console.log('[SemiPro PersonalSection] Caste options:', response.data.casteCategories);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const personalData = (formData as any).personal ?? {
     studentName: '',
@@ -67,7 +76,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
     navigation.navigate('address');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -163,6 +172,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
               placeholder="Select gender"
               error={formState.errors.genderID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -179,6 +189,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
               placeholder="Select caste category"
               error={formState.errors.casteCategoryID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />

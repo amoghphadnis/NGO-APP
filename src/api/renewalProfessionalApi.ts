@@ -1,9 +1,9 @@
-import api from './client';
 import { environment } from '@/config/environment';
-import { RenewalProfessionalFormValues } from '@/validation/renewalProfessionalSchemas';
 import { UploadedDocument } from '@/types/documents';
-import { normalizeApiResponse, normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
-import { normalizeProfessionalDropdowns, NormalizedDropdowns } from './transformers/normalizeDropdowns';
+import { RenewalProfessionalFormValues } from '@/validation/renewalProfessionalSchemas';
+import api from './client';
+import { normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
+import { NormalizedDropdowns, normalizeProfessionalDropdowns } from './transformers/normalizeDropdowns';
 
 const API_BASE_URL = environment.API_BASE_URL;
 
@@ -21,7 +21,7 @@ export async function getRenewalProfessionalDropdowns(): Promise<
   NormalizedApiResponse<NormalizedDropdowns>
 > {
   try {
-    const response = await api.get('/professionalrenewal/create');
+    const response = await api.get('/professionalrenewal/dropdowns');
     console.log('[getRenewalProfessionalDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
     
     // Handle both wrapped (data.Data) and unwrapped (data) responses

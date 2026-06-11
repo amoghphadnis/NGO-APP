@@ -1,8 +1,8 @@
-import api from './client';
 import { environment } from '@/config/environment';
 import { RenewalPucFormValues } from '@/validation/renewalPucSchemas';
-import { normalizeApiResponse, normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
-import { normalizePUCDropdowns, NormalizedDropdowns } from './transformers/normalizeDropdowns';
+import api from './client';
+import { normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
+import { NormalizedDropdowns, normalizePUCDropdowns } from './transformers/normalizeDropdowns';
 
 const API_BASE_URL = environment.API_BASE_URL;
 
@@ -20,7 +20,7 @@ export async function getRenewalPucDropdowns(): Promise<
   NormalizedApiResponse<NormalizedDropdowns>
 > {
   try {
-    const response = await api.get('/renewalpuc/create');
+    const response = await api.get('/renewalpuc/dropdowns');
     console.log('[getRenewalPucDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
     
     // Handle both wrapped (data.Data) and unwrapped (data) responses

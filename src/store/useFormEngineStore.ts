@@ -1,11 +1,7 @@
-import { create } from 'zustand';
-import { FormType, FormStep, FormState } from '@/forms/shared/types';
 import { getFormConfig } from '@/forms/shared/registry';
-import { FormEngineState, FormDataUnion, ProfessionalFormValues, PucFormValues, PayanaFormValues, SemiProfessionalFormValues } from '@/types/forms';
-import { professionalFormSchema } from '@/validation/professionalSchemas';
-import { pucFormSchema } from '@/validation/pucSchemas';
-import { payanaFormSchema } from '@/validation/payanaSchemas';
-import { semiProfessionalFormSchema } from '@/validation/semiProfessionalSchemas';
+import { FormType } from '@/forms/shared/types';
+import { FormDataUnion, FormEngineState, PayanaFormValues, ProfessionalFormValues, PucFormValues, SemiProfessionalFormValues } from '@/types/forms';
+import { create } from 'zustand';
 
 // Document interfaces for upload tracking
 export interface DocumentFile {
@@ -74,7 +70,7 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
   formData: {
     personal: { StudentName: '', DateOfBirth: '', GenderID: 0, CasteCategoryID: 0 },
     contact: { Email: '', ContactNumber: '' },
-    address: { Pincode: '', DistrictID: 0, OtherDistrict: '', Taluk: '', PlaceID: 0, Address: '' },
+    address: { DistrictID: 0, OtherDistrict: '', Taluk: '', PlaceID: 0, Address: '' },
     family: { FatherOccupationID: undefined, MotherOccupationID: undefined, FamilyMembers: 1, AnnualIncome: '' },
     academic: { PUPercentage: 0, CET_NEET_Rank: undefined, CourseTypeID: 0, CollegeName: '', CollegeTypeID: 0, CollegeFees: 0 },
     documents: {
@@ -128,7 +124,7 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
       safeFormData = {
         personal: { StudentName: '', DateOfBirth: '', GenderID: 0, CasteCategoryID: 0 },
         contact: { Email: '', ContactNumber: '' },
-        address: { Pincode: '', DistrictID: 0, OtherDistrict: '', Taluk: '', PlaceID: 0, Address: '' },
+        address: { DistrictID: 0, OtherDistrict: '', Taluk: '', PlaceID: 0, Address: '' },
         family: { FatherOccupationID: undefined, MotherOccupationID: undefined, FamilyMembers: 1, AnnualIncome: '' },
         academic: { PUPercentage: 0, CET_NEET_Rank: undefined, CourseTypeID: 0, CollegeName: '', CollegeTypeID: 0, CollegeFees: 0 },
         documents: {

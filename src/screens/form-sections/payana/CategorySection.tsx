@@ -1,33 +1,43 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getPayanaDropdowns } from '@/api/payanaApi';
 import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { useFormEngineStore } from '@/store/useFormEngineStore';
-import { payanaCategorySchema, PayanaCategoryFormValues } from '@/validation/payanaSchemas';
+import { PayanaCategoryFormValues, payanaCategorySchema } from '@/validation/payanaSchemas';
 
 interface CategorySectionProps {
   navigation: any;
 }
 
-const casteOptions: Option<number>[] = [
-  { value: 1, label: 'General' },
-  { value: 2, label: 'OBC' },
-  { value: 3, label: 'SC' },
-  { value: 4, label: 'ST' },
-];
-
-const houseTypeOptions: Option<number>[] = [
-  { value: 1, label: 'Own House' },
-  { value: 2, label: 'Rental House' },
-];
-
 export default function CategorySection({ navigation }: CategorySectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
+  const [houseTypeOptions, setHouseTypeOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getPayanaDropdowns();
+      console.log('[Payana CategorySection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setCasteOptions(response.data.castes?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        // House types may not be in API, fallback to empty
+        console.log('[Payana CategorySection] Caste options:', response.data.castes);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const categoryData = (formData as any).category ?? {
     casteCategoryID: 0,
@@ -53,7 +63,7 @@ export default function CategorySection({ navigation }: CategorySectionProps) {
       step={6}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
-      nextDisabled={!formState.isValid}
+      nextDisabled={!formState.isValid || loadingDropdowns}
     >
       <FormSectionHeader
         icon="pricetag"
@@ -75,6 +85,7 @@ export default function CategorySection({ navigation }: CategorySectionProps) {
               placeholder="Select caste category"
               error={formState.errors.casteCategoryID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -91,6 +102,7 @@ export default function CategorySection({ navigation }: CategorySectionProps) {
               placeholder="Select house type"
               error={formState.errors.houseTypeID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />

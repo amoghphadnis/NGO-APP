@@ -1,25 +1,48 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, Text, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getPUCDropdowns } from '@/api/pucApi';
 import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import VPInputField from '@/components/common/VPInputField';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { pucFamilyDetailsSchema, PucFamilyDetailsFormValues } from '@/validation/pucSchemas';
-import { isPUCForm } from '@/types/forms';
-import { OCCUPATION_OPTIONS } from '@/constants/formOptions';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
-
-const occupationOptions: Option<number>[] = OCCUPATION_OPTIONS.map(opt => ({ value: parseInt(opt.value, 10), label: opt.label }));
+import { spacing } from '@/theme/spacing';
+import { isPUCForm } from '@/types/forms';
+import { PucFamilyDetailsFormValues, pucFamilyDetailsSchema } from '@/validation/pucSchemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function FamilySection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [fatherOccupationOptions, setFatherOccupationOptions] = useState<Option<number>[]>([]);
+  const [motherOccupationOptions, setMotherOccupationOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getPUCDropdowns();
+      console.log('[FamilySection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setFatherOccupationOptions(response.data.fatherOcc?.map((o: any) => ({
+          value: Number(o.value),
+          label: o.label
+        })) || []);
+        setMotherOccupationOptions(response.data.motherOcc?.map((o: any) => ({
+          value: Number(o.value),
+          label: o.label
+        })) || []);
+        console.log('[FamilySection] Father occupation options:', response.data.fatherOcc);
+        console.log('[FamilySection] Mother occupation options:', response.data.motherOcc);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const familyData = isPUCForm(formData) ? formData.family ?? {
     fatherName: '',
@@ -66,7 +89,7 @@ export default function FamilySection({ navigation }: any) {
     navigation.navigate('category');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -148,9 +171,10 @@ export default function FamilySection({ navigation }: any) {
               label="Father Occupation"
               value={value}
               onChange={onChange}
-              options={occupationOptions}
+              options={fatherOccupationOptions}
               placeholder="Select father's occupation"
               error={formState.errors.fatherOccupationID?.message}
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -163,9 +187,10 @@ export default function FamilySection({ navigation }: any) {
               label="Mother Occupation"
               value={value}
               onChange={onChange}
-              options={occupationOptions}
+              options={motherOccupationOptions}
               placeholder="Select mother's occupation"
               error={formState.errors.motherOccupationID?.message}
+              disabled={loadingDropdowns}
             />
           )}
         />

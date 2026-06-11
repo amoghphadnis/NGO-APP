@@ -1,18 +1,17 @@
+import { UploadedDocument } from '@/types/documents';
 import { z } from 'zod';
 import {
-  personalDetailsSchema,
-  contactDetailsSchema,
-  addressDetailsSchema,
-  familyDetailsSchema,
+    addressDetailsSchema,
+    contactDetailsSchema,
+    personalDetailsSchema
 } from './sharedSchemas';
-import { UploadedDocument } from '@/types/documents';
 
 // PUC Category & Housing schema
 export const pucCategoryHousingSchema = z.object({
-  caste: z.string().min(1, { message: 'Caste is required' }),
-  houseType: z.string().min(1, { message: 'House type is required' }),
+  casteCategoryID: z.number().min(1, { message: 'Caste is required' }),
+  houseTypeID: z.number().min(1, { message: 'House type is required' }),
   monthlyRent: z.string().optional(),
-  referenceSource: z.string().min(1, { message: 'Reference source is required' }),
+  referenceSourceID: z.number().min(1, { message: 'Reference source is required' }),
   referenceSourceOther: z.string().optional(),
 });
 
@@ -36,9 +35,9 @@ export const pucFamilyDetailsSchema = z.object({
 
 // PUC Academic schema with new fields
 export const pucAcademicDetailsSchema = z.object({
-  course: z.string().min(1, { message: 'Course is required' }),
+  courseID: z.number().min(1, { message: 'Course is required' }),
   collegeName: z.string().min(1, { message: 'College name is required' }),
-  collegeType: z.string().min(1, { message: 'College type is required' }),
+  collegeTypeID: z.number().min(1, { message: 'College type is required' }),
   expectedFees: z.number().min(0, { message: 'Fees must be at least 0' }),
   percentage: z.number().min(0, { message: 'Percentage must be at least 0' })
     .max(100, { message: 'Percentage cannot exceed 100' }),

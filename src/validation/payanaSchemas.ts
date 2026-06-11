@@ -1,9 +1,4 @@
 import { z } from 'zod';
-import {
-  personalDetailsSchema,
-  contactDetailsSchema,
-  addressDetailsSchema,
-} from './sharedSchemas';
 
 // Payana-specific field validation
 export const payanaGenderSchema = z.number().min(1, { message: 'Gender is required' });
@@ -53,6 +48,7 @@ export const payanaPersonalSchema = z.object({
   studentName: z.string().min(1, { message: 'Student name is required' }),
   dateOfBirth: z.string().optional(),
   genderID: payanaGenderSchema,
+  casteCategoryID: payanaCasteCategorySchema,
 });
 
 // Payana Contact schema

@@ -1,31 +1,29 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-} from "react-native";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Ionicons } from "@expo/vector-icons";
 import ModalSelectField, { Option } from "@/components/common/ModalSelectField";
+import { Ionicons } from "@expo/vector-icons";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import {
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 
-import FormScreenLayout from "@/components/layout/FormScreenLayout";
-import FormSectionHeader from "@/components/common/FormSectionHeader";
+import { getPUCDropdowns } from "@/api/pucApi";
 import FormCard from "@/components/common/FormCard";
-import VPInputField from "@/components/common/VPInputField";
+import FormSectionHeader from "@/components/common/FormSectionHeader";
 import VPDatePickerField from "@/components/common/VPDatePickerField";
-import { useFormEngineStore } from "../../../store/useFormEngineStore";
+import VPInputField from "@/components/common/VPInputField";
+import FormScreenLayout from "@/components/layout/FormScreenLayout";
+import { colors } from "@/theme/colors";
+import { platform } from "@/theme/platform";
+import { spacing } from "@/theme/spacing";
 import { isPUCForm } from "@/types/forms";
 import {
-  personalDetailsSchema,
-  PersonalDetailsFormValues,
+    PersonalDetailsFormValues,
+    personalDetailsSchema,
 } from "@/validation/sharedSchemas";
-import { GENDER_OPTIONS } from "@/constants/formOptions";
-import { colors } from "@/theme/colors";
-import { spacing } from "@/theme/spacing";
-import { platform } from "@/theme/platform";
-
-const genderOptions: Option<string>[] = GENDER_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
+import { useFormEngineStore } from "../../../store/useFormEngineStore";
 
 export default function PersonalSection({ navigation }: any) {
   const {
@@ -35,9 +33,34 @@ export default function PersonalSection({ navigation }: any) {
     formData,
   } = useFormEngineStore();
 
-  const personalData = isPUCForm(formData) 
-    ? formData.personal 
-    : { name: "", dateOfBirth: "", gender: "" };
+  const [genderOptions, setGenderOptions] = useState<Option<number>[]>([]);
+  const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getPUCDropdowns();
+      console.log('[PersonalSection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setGenderOptions(response.data.genders?.map((g: any) => ({
+          value: Number(g.value),
+          label: g.label
+        })) || []);
+        setCasteOptions(response.data.castes?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        console.log('[PersonalSection] Gender options:', response.data.genders);
+        console.log('[PersonalSection] Caste options:', response.data.castes);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
+
+  const personalData = isPUCForm(formData)
+    ? formData.personal
+    : { name: "", dateOfBirth: "", genderID: 0, casteCategoryID: 0 };
 
   const { control, handleSubmit, watch, formState } =
     useForm<PersonalDetailsFormValues>({
@@ -47,7 +70,8 @@ export default function PersonalSection({ navigation }: any) {
           typeof personalData.dateOfBirth === "string"
             ? personalData.dateOfBirth
             : "",
-        gender: personalData.gender,
+        genderID: personalData.genderID || 0,
+        casteCategoryID: personalData.casteCategoryID || 0,
       },
       resolver: zodResolver(personalDetailsSchema),
       mode: "onChange",
@@ -63,7 +87,7 @@ export default function PersonalSection({ navigation }: any) {
     navigation.navigate("contact");
   };
 
-  const isNextDisabled = !formState.isValid;
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -134,7 +158,7 @@ export default function PersonalSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="gender"
+          name="genderID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Gender"
@@ -142,8 +166,26 @@ export default function PersonalSection({ navigation }: any) {
               value={value}
               onChange={onChange}
               options={genderOptions}
-              error={formState.errors.gender?.message}
+              error={formState.errors.genderID?.message}
               required
+              disabled={loadingDropdowns}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="casteCategoryID"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="Caste"
+              placeholder="Select caste"
+              value={value}
+              onChange={onChange}
+              options={casteOptions}
+              error={formState.errors.casteCategoryID?.message}
+              required
+              disabled={loadingDropdowns}
             />
           )}
         />

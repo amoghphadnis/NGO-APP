@@ -1,42 +1,49 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getPayanaDropdowns } from '@/api/payanaApi';
 import FormCard from '@/components/common/FormCard';
-import VPInputField from '@/components/common/VPInputField';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { useFormEngineStore } from '@/store/useFormEngineStore';
-import { payanaAddressSchema, PayanaAddressFormValues } from '@/validation/payanaSchemas';
+import { PayanaAddressFormValues, payanaAddressSchema } from '@/validation/payanaSchemas';
 
 interface AddressSectionProps {
   navigation: any;
 }
 
-// These would typically come from API
-const districtOptions: Option<number>[] = [
-  { value: 1, label: 'Dharwad' },
-  { value: 2, label: 'Gadag' },
-  { value: 3, label: 'Belagavi' },
-  { value: 4, label: 'Koppal' },
-  { value: 5, label: 'Bagalkot' },
-  { value: 6, label: 'Vijaypura' },
-  { value: 7, label: 'Uttarakannada' },
-  { value: 8, label: 'Shimogga' },
-  { value: 9, label: 'Davangere' },
-  { value: 10, label: 'Haveri' },
-  { value: 11, label: 'Other' },
-];
-
-const areaTypeOptions: Option<number>[] = [
-  { value: 1, label: 'Urban' },
-  { value: 2, label: 'Rural' },
-];
-
 export default function AddressSection({ navigation }: AddressSectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
+  const [areaTypeOptions, setAreaTypeOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getPayanaDropdowns();
+      console.log('[Payana AddressSection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setDistrictOptions(response.data.districts?.map((d: any) => ({
+          value: Number(d.value),
+          label: d.label
+        })) || []);
+        // Area types may come from places or a separate endpoint
+        setAreaTypeOptions(response.data.places?.map((p: any) => ({
+          value: Number(p.value),
+          label: p.label
+        })) || []);
+        console.log('[Payana AddressSection] District options:', response.data.districts);
+        console.log('[Payana AddressSection] Area options:', response.data.places);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const addressData = (formData as any).address ?? {
     residentialAddress: '',
@@ -71,7 +78,7 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
       step={4}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
-      nextDisabled={!formState.isValid}
+      nextDisabled={!formState.isValid || loadingDropdowns}
     >
       <FormSectionHeader
         icon="location"

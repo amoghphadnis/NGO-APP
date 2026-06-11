@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { preparePayload, submitApplication } from '@/submission';
-import { isProfessionalForm, isPayanaForm } from '@/types/forms';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { isPayanaForm, isProfessionalForm } from '@/types/forms';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function ReviewSection({ navigation }: any) {
   const {
@@ -30,7 +30,7 @@ export default function ReviewSection({ navigation }: any) {
     if (isProfessionalForm(formData)) {
       const hasPersonal = formData.personal.StudentName && formData.personal.DateOfBirth;
       const hasContact = formData.contact.Email && formData.contact.ContactNumber;
-      const hasAddress = formData.address.Pincode && formData.address.DistrictID;
+      const hasAddress = formData.address.DistrictID && formData.address.Taluk;
       const hasFamily = formData.family.FamilyMembers > 0;
       const hasAcademic = formData.academic.CourseTypeID && formData.academic.CollegeName && formData.academic.CollegeFees > 0;
       const hasHouseVisitLink = formData.documents.HouseVisitLink && formData.documents.HouseVisitLink.startsWith('https://');
@@ -197,7 +197,6 @@ export default function ReviewSection({ navigation }: any) {
         {isProfessionalForm(formData) && renderSection(
           "Address Details",
           {
-            "Pincode": formData.address.Pincode,
             "District ID": formData.address.DistrictID,
             "Taluk": formData.address.Taluk,
             "Place ID": formData.address.PlaceID,

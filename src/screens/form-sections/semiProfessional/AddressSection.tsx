@@ -1,41 +1,43 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
 import FormCard from '@/components/common/FormCard';
-import VPInputField from '@/components/common/VPInputField';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import { SemiProfAddressFormValues, semiProfAddressSchema } from '@/validation/semiProfessionalSchemas';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { semiProfAddressSchema, SemiProfAddressFormValues } from '@/validation/semiProfessionalSchemas';
-import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
-import { platform } from '@/theme/platform';
-
-const districtOptions: Option<number>[] = [
-  { value: 1, label: 'Dharwad' },
-  { value: 2, label: 'Gadag' },
-  { value: 3, label: 'Belagavi' },
-  { value: 4, label: 'Koppal' },
-  { value: 5, label: 'Bagalkot' },
-  { value: 6, label: 'Vijaypura' },
-  { value: 7, label: 'Uttarakannada' },
-  { value: 8, label: 'Shimogga' },
-  { value: 9, label: 'Davangere' },
-  { value: 10, label: 'Haveri' },
-  { value: 11, label: 'Other' },
-];
-
-const placeOptions: Option<number>[] = [
-  { value: 1, label: 'Urban' },
-  { value: 2, label: 'Rural' },
-  { value: 3, label: 'Semi Urban' },
-];
 
 export default function AddressSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
+  const [placeOptions, setPlaceOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getSemiProfessionalDropdowns();
+      console.log('[SemiPro AddressSection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setDistrictOptions(response.data.districts?.map((d: any) => ({
+          value: Number(d.value),
+          label: d.label
+        })) || []);
+        setPlaceOptions(response.data.places?.map((p: any) => ({
+          value: Number(p.value),
+          label: p.label
+        })) || []);
+        console.log('[SemiPro AddressSection] District options:', response.data.districts);
+        console.log('[SemiPro AddressSection] Place options:', response.data.places);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const addressData = (formData as any).address ?? {
     districtID: 0,
@@ -91,6 +93,7 @@ export default function AddressSection({ navigation }: any) {
               label="District"
               value={value}
               options={districtOptions}
+              disabled={loadingDropdowns}
               onChange={onChange}
               placeholder="Select district"
               error={formState.errors.districtID?.message}
@@ -139,6 +142,7 @@ export default function AddressSection({ navigation }: any) {
               label="Place"
               value={value}
               options={placeOptions}
+              disabled={loadingDropdowns}
               onChange={onChange}
               placeholder="Select place"
               error={formState.errors.placeID?.message}

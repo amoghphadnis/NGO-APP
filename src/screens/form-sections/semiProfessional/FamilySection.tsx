@@ -1,32 +1,47 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, Text, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
 import FormCard from '@/components/common/FormCard';
-import VPInputField from '@/components/common/VPInputField';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { semiProfFamilySchema, SemiProfFamilyFormValues } from '@/validation/semiProfessionalSchemas';
-import { OCCUPATION_OPTIONS } from '@/constants/formOptions';
+import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
-
-const fatherOccupationOptions: Option<number>[] = OCCUPATION_OPTIONS.map(opt => ({
-  value: parseInt(opt.value, 10),
-  label: opt.label,
-}));
-
-const motherOccupationOptions: Option<number>[] = OCCUPATION_OPTIONS.map(opt => ({
-  value: parseInt(opt.value, 10),
-  label: opt.label,
-}));
+import { spacing } from '@/theme/spacing';
+import { SemiProfFamilyFormValues, semiProfFamilySchema } from '@/validation/semiProfessionalSchemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function FamilySection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [fatherOccupationOptions, setFatherOccupationOptions] = useState<Option<number>[]>([]);
+  const [motherOccupationOptions, setMotherOccupationOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getSemiProfessionalDropdowns();
+      console.log('[SemiPro FamilySection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setFatherOccupationOptions(response.data.fatherOccupations?.map((o: any) => ({
+          value: Number(o.value),
+          label: o.label
+        })) || []);
+        setMotherOccupationOptions(response.data.motherOccupations?.map((o: any) => ({
+          value: Number(o.value),
+          label: o.label
+        })) || []);
+        console.log('[SemiPro FamilySection] Father occupations:', response.data.fatherOccupations);
+        console.log('[SemiPro FamilySection] Mother occupations:', response.data.motherOccupations);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const familyData = (formData as any).family ?? {
     fatherOccupationID: 0,
@@ -82,6 +97,7 @@ export default function FamilySection({ navigation }: any) {
               options={fatherOccupationOptions}
               error={formState.errors.fatherOccupationID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -98,6 +114,7 @@ export default function FamilySection({ navigation }: any) {
               options={motherOccupationOptions}
               error={formState.errors.motherOccupationID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />

@@ -1,38 +1,60 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, Text, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getPUCDropdowns } from '@/api/pucApi';
 import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import VPInputField from '@/components/common/VPInputField';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { pucAcademicDetailsSchema, PucAcademicDetailsFormValues } from '@/validation/pucSchemas';
-import { PUC_COURSE_OPTIONS, COLLEGE_TYPE_OPTIONS } from '@/constants/formOptions';
-import { isPUCForm } from '@/types/forms';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
-
-const courseOptions: Option<string>[] = PUC_COURSE_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
-const collegeTypeOptions: Option<string>[] = COLLEGE_TYPE_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
+import { spacing } from '@/theme/spacing';
+import { isPUCForm } from '@/types/forms';
+import { PucAcademicDetailsFormValues, pucAcademicDetailsSchema } from '@/validation/pucSchemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function AcademicSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
+  const [courseOptions, setCourseOptions] = useState<Option<number>[]>([]);
+  const [collegeTypeOptions, setCollegeTypeOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getPUCDropdowns();
+      console.log('[AcademicSection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setCourseOptions(response.data.courses?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        setCollegeTypeOptions(response.data.collegeTypes?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        console.log('[AcademicSection] Course options:', response.data.courses);
+        console.log('[AcademicSection] College type options:', response.data.collegeTypes);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
+
   const academicData = isPUCForm(formData) ? formData.academic ?? {
-    course: '',
+    courseID: 0,
     collegeName: '',
-    collegeType: '',
+    collegeTypeID: 0,
     expectedFees: 0,
     percentage: 0,
     totalMarks: 0,
   } : {
-    course: '',
+    courseID: 0,
     collegeName: '',
-    collegeType: '',
+    collegeTypeID: 0,
     expectedFees: 0,
     percentage: 0,
     totalMarks: 0,
@@ -40,9 +62,9 @@ export default function AcademicSection({ navigation }: any) {
 
   const { control, handleSubmit, formState } = useForm<PucAcademicDetailsFormValues>({
     defaultValues: {
-      course: academicData.course,
+      courseID: academicData.courseID || 0,
       collegeName: academicData.collegeName,
-      collegeType: academicData.collegeType,
+      collegeTypeID: academicData.collegeTypeID || 0,
       expectedFees: academicData.expectedFees,
       percentage: academicData.percentage,
       totalMarks: academicData.totalMarks,
@@ -58,7 +80,7 @@ export default function AcademicSection({ navigation }: any) {
     navigation.navigate('documents');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -79,7 +101,7 @@ export default function AcademicSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="course"
+          name="courseID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Course"
@@ -87,8 +109,9 @@ export default function AcademicSection({ navigation }: any) {
               onChange={onChange}
               options={courseOptions}
               placeholder="Select your course"
-              error={formState.errors.course?.message}
+              error={formState.errors.courseID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -110,7 +133,7 @@ export default function AcademicSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="collegeType"
+          name="collegeTypeID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="College Type"
@@ -118,8 +141,9 @@ export default function AcademicSection({ navigation }: any) {
               onChange={onChange}
               options={collegeTypeOptions}
               placeholder="Select college type"
-              error={formState.errors.collegeType?.message}
+              error={formState.errors.collegeTypeID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />

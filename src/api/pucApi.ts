@@ -4,8 +4,8 @@
  */
 
 import api from './client';
-import { normalizeApiResponse, normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
-import { normalizePUCDropdowns, NormalizedDropdowns } from './transformers/normalizeDropdowns';
+import { normalizeApiError, normalizeApiResponse, NormalizedApiResponse } from './transformers/normalizeApiResponse';
+import { NormalizedDropdowns, normalizePUCDropdowns } from './transformers/normalizeDropdowns';
 
 /**
  * Creates a new PUC student application
@@ -36,12 +36,16 @@ export async function getPUCDropdowns(): Promise<
 > {
   try {
     const response = await api.get('/students/students/dropdowns');
-    const normalizedDropdowns = normalizePUCDropdowns(response.data.Data);
+    console.log('[getPUCDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
+
+    // Handle both wrapped (data.Data) and unwrapped (data) responses
+    const dropdownData = response.data.Data || response.data;
+    const normalizedDropdowns = normalizePUCDropdowns(dropdownData);
 
     return {
       success: true,
       data: normalizedDropdowns,
-      message: response.data.Message || 'Success',
+      message: response.data.Message || response.data.message || 'Success',
     };
   } catch (error: any) {
     return normalizeApiError(error);

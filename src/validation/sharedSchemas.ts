@@ -27,8 +27,8 @@ export const personalDetailsSchema = z.object({
     }, {
       message: 'You must be at least 13 years old',
     }),
-  gender: z.string().min(1, { message: 'Gender is required' }),
-  caste: z.string().min(1, { message: 'Please select your caste' }),
+  genderID: z.number().min(1, { message: 'Gender is required' }),
+  casteCategoryID: z.number().min(1, { message: 'Please select your caste' }),
 });
 
 export const contactDetailsSchema = z.object({
@@ -56,12 +56,12 @@ export const addressDetailsSchema = z.object({
     .refine((val) => /^\d{6}$/.test(val), {
       message: 'Pincode must be exactly 6 digits',
     }),
-  district: z.string().min(1, { message: 'District is required' }),
+  districtID: z.number().min(1, { message: 'District is required' }),
   otherDistrict: z.string().optional(),
   taluk: z.string().min(1, { message: 'Taluk is required' }),
-  place: z.string().min(1, { message: 'Place is required' }),
+  placeID: z.number().min(1, { message: 'Place is required' }),
   address: z.string().min(1, { message: 'Address is required' }),
-  area: z.string().optional(), // Same as place, used in PUC form with different label
+  areaID: z.number().optional(),
 });
 
 export const familyDetailsSchema = z.object({

@@ -1,11 +1,5 @@
-import { z } from 'zod';
-import {
-  personalDetailsSchema,
-  contactDetailsSchema,
-  addressDetailsSchema,
-  familyDetailsSchema,
-} from './sharedSchemas';
 import { UploadedDocument } from '@/types/documents';
+import { z } from 'zod';
 
 // Professional Personal Details Schema (PascalCase to match API)
 export const professionalPersonalDetailsSchema = z.object({
@@ -28,7 +22,6 @@ export const professionalAddressDetailsSchema = z.object({
   Taluk: z.string().min(1, { message: 'Taluk is required' }),
   PlaceID: z.number().positive({ message: 'Place is required' }),
   Address: z.string().min(1, { message: 'Address is required' }),
-  Pincode: z.string().min(6).max(6).regex(/^\d{6}$/, 'Pincode must be 6 digits'),
 });
 
 // Professional Family Details Schema (PascalCase to match API, occupations optional)

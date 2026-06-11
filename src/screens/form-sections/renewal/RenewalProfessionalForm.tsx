@@ -1,38 +1,38 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import {
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import VPInputField from '@/components/common/VPInputField';
-import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import VPInputField from '@/components/common/VPInputField';
 import FileUploadField from '@/components/form/FileUploadField';
 
 import {
-  renewalProfessionalSchema,
-  RenewalProfessionalFormValues,
-} from '@/validation/renewalProfessionalSchemas';
-import {
-  getRenewalProfessionalDropdowns,
-  submitRenewalProfessional,
+    getRenewalProfessionalDropdowns,
+    submitRenewalProfessional,
 } from '@/api/renewalProfessionalApi';
-import { pickDocument } from '@/utils/filePicker';
-import { UploadedDocument, DocumentFile } from '@/types/documents';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { DocumentFile, UploadedDocument } from '@/types/documents';
+import { pickDocument } from '@/utils/filePicker';
+import {
+    RenewalProfessionalFormValues,
+    renewalProfessionalSchema,
+} from '@/validation/renewalProfessionalSchemas';
 
 const GENDER_OPTIONS: Option<string>[] = [
   { value: 'Female', label: 'Female' },
@@ -140,18 +140,21 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
   useEffect(() => {
     (async () => {
       try {
-        const data = await getRenewalProfessionalDropdowns();
-        setDistrictOptions(
-          data.districts
-            .map((d) => ({
-              value: d.districtName || d.Name || d.name,
-              label: d.districtName || d.Name || d.name,
+        const response = await getRenewalProfessionalDropdowns();
+        if (response.success && response.data) {
+          setDistrictOptions(
+            (response.data.districts || []).map((d) => ({
+              value: String(d.value),
+              label: d.label,
             }))
-            .filter((d): d is Option<string> => d.value !== undefined && d.label !== undefined)
-        );
-        setCollegeTypeOptions(
-          data.collegeTypes.map((c) => ({ value: c.collegeTypeName, label: c.collegeTypeName }))
-        );
+          );
+          setCollegeTypeOptions(
+            (response.data.collegeTypes || []).map((c) => ({
+              value: c.label,
+              label: c.label,
+            }))
+          );
+        }
       } catch (e) {
         console.error('[RenewalProfessionalForm] Dropdown load failed:', e);
       } finally {

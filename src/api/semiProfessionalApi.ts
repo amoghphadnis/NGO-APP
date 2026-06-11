@@ -35,7 +35,7 @@ export async function getSemiProfessionalDropdowns(): Promise<
   NormalizedApiResponse<NormalizedSemiProfDropdowns>
 > {
   try {
-    const response = await api.get('/semiprofessionalstudent/create');
+    const response = await api.get('/semiprofessionalstudent/dropdowns');
     const normalizedDropdowns = normalizeSemiProfessionalDropdowns(response.data);
 
     return {

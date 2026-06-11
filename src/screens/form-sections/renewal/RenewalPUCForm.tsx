@@ -1,31 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import {
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import VPInputField from '@/components/common/VPInputField';
-import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
-import VPDatePickerField from '@/components/common/VPDatePickerField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import VPDatePickerField from '@/components/common/VPDatePickerField';
+import VPInputField from '@/components/common/VPInputField';
 
-import { renewalPucSchema, RenewalPucFormValues } from '@/validation/renewalPucSchemas';
 import { getRenewalPucDropdowns, submitRenewalPuc } from '@/api/renewalPucApi';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { RenewalPucFormValues, renewalPucSchema } from '@/validation/renewalPucSchemas';
 
 const GENDER_OPTIONS: Option<string>[] = [
   { value: 'Male', label: 'Male' },
@@ -114,15 +113,15 @@ export default function RenewalPUCForm({ navigation }: Props) {
   useEffect(() => {
     (async () => {
       try {
-        const data = await getRenewalPucDropdowns();
-        setDistrictOptions(
-          data.districts
-            .map((d) => ({
-              value: d.districtID || d.Id || d.id,
-              label: d.districtName || d.Name || d.name,
+        const response = await getRenewalPucDropdowns();
+        if (response.success && response.data) {
+          setDistrictOptions(
+            (response.data.districts || []).map((d) => ({
+              value: Number(d.value),
+              label: d.label,
             }))
-            .filter((d): d is Option<number> => d.value !== undefined && d.label !== undefined)
-        );
+          );
+        }
       } catch (e) {
         console.error('[RenewalPUCForm] Failed to load dropdowns:', e);
       } finally {

@@ -1,40 +1,47 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, Text, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
 import FormCard from '@/components/common/FormCard';
-import VPInputField from '@/components/common/VPInputField';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { semiProfAcademicSchema, SemiProfAcademicFormValues } from '@/validation/semiProfessionalSchemas';
+import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
-
-const collegeTypeOptions: Option<number>[] = [
-  { value: 1, label: 'Government' },
-  { value: 2, label: 'Aided' },
-  { value: 3, label: 'Private' },
-];
-
-// Semi Professional courses - will be loaded from API in production
-const semiProfCourseOptions: Option<number>[] = [
-  { value: 1, label: 'Diploma in Computer Science' },
-  { value: 2, label: 'Diploma in Mechanical Engineering' },
-  { value: 3, label: 'Diploma in Civil Engineering' },
-  { value: 4, label: 'Diploma in Electrical Engineering' },
-  { value: 5, label: 'Diploma in Electronics' },
-  { value: 6, label: 'Diploma in Nursing' },
-  { value: 7, label: 'Diploma in Pharmacy' },
-  { value: 8, label: 'ITI' },
-  { value: 9, label: 'Other' },
-];
+import { spacing } from '@/theme/spacing';
+import { SemiProfAcademicFormValues, semiProfAcademicSchema } from '@/validation/semiProfessionalSchemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function AcademicSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [collegeTypeOptions, setCollegeTypeOptions] = useState<Option<number>[]>([]);
+  const [semiProfCourseOptions, setSemiProfCourseOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getSemiProfessionalDropdowns();
+      console.log('[SemiPro AcademicSection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setCollegeTypeOptions(response.data.collegeTypes?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        setSemiProfCourseOptions(response.data.semiProfessionalCourses?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        console.log('[SemiPro AcademicSection] College types:', response.data.collegeTypes);
+        console.log('[SemiPro AcademicSection] Courses:', response.data.semiProfessionalCourses);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const academicData = (formData as any).academic ?? {
     puPercentage: 0,
@@ -63,7 +70,7 @@ export default function AcademicSection({ navigation }: any) {
     navigation.navigate('documents');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -123,6 +130,7 @@ export default function AcademicSection({ navigation }: any) {
               placeholder="Select Course"
               error={formState.errors.semiProfessionalCourseID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -154,6 +162,7 @@ export default function AcademicSection({ navigation }: any) {
               placeholder="Select college type"
               error={formState.errors.collegeTypeID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />

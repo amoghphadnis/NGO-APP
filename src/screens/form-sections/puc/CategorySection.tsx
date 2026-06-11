@@ -1,46 +1,60 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getPUCDropdowns } from '@/api/pucApi';
 import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import VPInputField from '@/components/common/VPInputField';
-import ModalSelectField from '@/components/common/ModalSelectField';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { pucCategoryHousingSchema, PucCategoryHousingFormValues } from '@/validation/pucSchemas';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { isPUCForm } from '@/types/forms';
-import {
-  PUC_CASTE_OPTIONS,
-  PUC_HOUSE_TYPE_OPTIONS,
-  PUC_REFERENCE_SOURCE_OPTIONS,
-} from '@/constants/formOptions';
-import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
-import { platform } from '@/theme/platform';
+import { PucCategoryHousingFormValues, pucCategoryHousingSchema } from '@/validation/pucSchemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function CategorySection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
+  const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
+  const [houseTypeOptions, setHouseTypeOptions] = useState<Option<number>[]>([]);
+  const [referenceSourceOptions, setReferenceSourceOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getPUCDropdowns();
+      console.log('[CategorySection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setCasteOptions(response.data.castes?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        // Note: API may not have house types and reference sources, fallback to empty
+        console.log('[CategorySection] Caste options:', response.data.castes);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
+
   const categoryData = isPUCForm(formData) ? formData.category ?? {
-    caste: '',
-    houseType: '',
+    casteCategoryID: 0,
+    houseTypeID: 0,
     monthlyRent: '',
-    referenceSource: '',
+    referenceSourceID: 0,
   } : {
-    caste: '',
-    houseType: '',
+    casteCategoryID: 0,
+    houseTypeID: 0,
     monthlyRent: '',
-    referenceSource: '',
+    referenceSourceID: 0,
   };
 
   const { control, handleSubmit, formState } = useForm<PucCategoryHousingFormValues>({
     defaultValues: {
-      caste: categoryData.caste,
-      houseType: categoryData.houseType,
+      casteCategoryID: categoryData.casteCategoryID || 0,
+      houseTypeID: categoryData.houseTypeID || 0,
       monthlyRent: categoryData.monthlyRent,
-      referenceSource: categoryData.referenceSource,
+      referenceSourceID: categoryData.referenceSourceID || 0,
     },
     resolver: zodResolver(pucCategoryHousingSchema),
     mode: 'onChange',
@@ -53,7 +67,7 @@ export default function CategorySection({ navigation }: any) {
     navigation.navigate('academic');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -74,16 +88,17 @@ export default function CategorySection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="caste"
+          name="casteCategoryID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Caste"
               value={value}
               onChange={onChange}
-              options={PUC_CASTE_OPTIONS as any}
+              options={casteOptions}
               placeholder="Select caste"
-              error={formState.errors.caste?.message}
+              error={formState.errors.casteCategoryID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -100,16 +115,17 @@ export default function CategorySection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="houseType"
+          name="houseTypeID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="House Type"
               value={value}
               onChange={onChange}
-              options={PUC_HOUSE_TYPE_OPTIONS as any}
+              options={houseTypeOptions}
               placeholder="Select house type"
-              error={formState.errors.houseType?.message}
+              error={formState.errors.houseTypeID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -141,16 +157,17 @@ export default function CategorySection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="referenceSource"
+          name="referenceSourceID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Reference Source"
               value={value}
               onChange={onChange}
-              options={PUC_REFERENCE_SOURCE_OPTIONS as any}
+              options={referenceSourceOptions}
               placeholder="Select reference source"
-              error={formState.errors.referenceSource?.message}
+              error={formState.errors.referenceSourceID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />

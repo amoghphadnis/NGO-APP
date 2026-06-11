@@ -1,40 +1,68 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, Text, View } from 'react-native';
 // Local Components
-import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { isPUCForm } from '@/types/forms';
-import { addressDetailsSchema, AddressDetailsFormValues } from '@/validation/sharedSchemas';
-import { PUC_AREA_OPTIONS } from '@/constants/formOptions';
+import { getPUCDropdowns } from '@/api/pucApi';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
-
-const areaOptions: Option<string>[] = PUC_AREA_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }));
+import { spacing } from '@/theme/spacing';
+import { isPUCForm } from '@/types/forms';
+import { AddressDetailsFormValues, addressDetailsSchema } from '@/validation/sharedSchemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function AddressSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const addressData = isPUCForm(formData) 
-    ? formData.address 
-    : { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '', area: '' };
+  const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
+  const [placeOptions, setPlaceOptions] = useState<Option<number>[]>([]);
+  const [areaOptions, setAreaOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getPUCDropdowns();
+      console.log('[AddressSection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setDistrictOptions(response.data.districts?.map((d: any) => ({
+          value: Number(d.value),
+          label: d.label
+        })) || []);
+        setPlaceOptions(response.data.places?.map((p: any) => ({
+          value: Number(p.value),
+          label: p.label
+        })) || []);
+        setAreaOptions(response.data.places?.map((p: any) => ({
+          value: Number(p.value),
+          label: p.label
+        })) || []);
+        console.log('[AddressSection] District options:', response.data.districts);
+        console.log('[AddressSection] Place options:', response.data.places);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
+
+  const addressData = isPUCForm(formData)
+    ? formData.address
+    : { pincode: '', districtID: 0, otherDistrict: '', taluk: '', placeID: 0, address: '', areaID: 0 };
 
   const { control, handleSubmit, formState } = useForm<AddressDetailsFormValues>({
     defaultValues: {
       pincode: addressData.pincode,
-      district: addressData.district,
+      districtID: addressData.districtID || 0,
       otherDistrict: addressData.otherDistrict,
       taluk: addressData.taluk,
-      place: addressData.place,
+      placeID: addressData.placeID || 0,
       address: addressData.address,
-      area: addressData.area,
+      areaID: addressData.areaID || 0,
     },
     resolver: zodResolver(addressDetailsSchema),
     mode: 'onChange',
@@ -47,7 +75,7 @@ export default function AddressSection({ navigation }: any) {
     navigation.navigate('family');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -85,7 +113,7 @@ export default function AddressSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="area"
+          name="areaID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Area"
@@ -93,22 +121,25 @@ export default function AddressSection({ navigation }: any) {
               onChange={onChange}
               options={areaOptions}
               placeholder="Select area type"
-              error={formState.errors.area?.message}
+              error={formState.errors.areaID?.message}
+              disabled={loadingDropdowns}
             />
           )}
         />
 
         <Controller
           control={control}
-          name="district"
+          name="districtID"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <ModalSelectField
               label="District"
               value={value}
-              onChangeText={onChange}
-              placeholder="Enter district"
-              error={formState.errors.district?.message}
+              onChange={onChange}
+              options={districtOptions}
+              placeholder="Select district"
+              error={formState.errors.districtID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -130,15 +161,17 @@ export default function AddressSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="place"
+          name="placeID"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <ModalSelectField
               label="Place"
               value={value}
-              onChangeText={onChange}
-              placeholder="Enter place/village"
-              error={formState.errors.place?.message}
+              onChange={onChange}
+              options={placeOptions}
+              placeholder="Select place/village"
+              error={formState.errors.placeID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />

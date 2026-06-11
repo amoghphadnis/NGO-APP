@@ -4,10 +4,9 @@
  * Handles multipart/form-data serialization
  */
 
-import dayjs from 'dayjs';
-import { PROFESSIONAL_FILE_KEYS } from './fileKeys';
-import { ProfessionalFormValues } from '@/types/forms';
 import { appendFileToFormData } from '@/submission/attachFiles';
+import { ProfessionalFormValues } from '@/types/forms';
+import dayjs from 'dayjs';
 
 /**
  * Formats date to YYYY-MM-DD for API
@@ -80,17 +79,14 @@ export function professionalMapper(formData: ProfessionalFormValues): FormData {
     fd.append('Address', formData.address.Address);
   }
 
-  if (formData.address.Pincode) {
-    fd.append('Pincode', formData.address.Pincode);
-  }
-
   // Family Information (PascalCase as per API)
-  if (formData.family.FatherOccupationID) {
-    fd.append('FatherOccupationID', toString(formData.family.FatherOccupationID));
+  // Send occupation IDs only when selected (> 0), always as integer strings
+  if (formData.family.FatherOccupationID && formData.family.FatherOccupationID > 0) {
+    fd.append('FatherOccupationID', String(Number(formData.family.FatherOccupationID)));
   }
 
-  if (formData.family.MotherOccupationID) {
-    fd.append('MotherOccupationID', toString(formData.family.MotherOccupationID));
+  if (formData.family.MotherOccupationID && formData.family.MotherOccupationID > 0) {
+    fd.append('MotherOccupationID', String(Number(formData.family.MotherOccupationID)));
   }
 
   if (formData.family.FamilyMembers) {

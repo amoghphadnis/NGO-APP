@@ -219,7 +219,7 @@ export default function RegisterScreen() {
         <View style={styles.hero}>
           <View style={styles.logoCircle}>
             <Image
-              source={require('@/assets/images/icon.png')}
+              source={require('@/assets/icon.png')}
               style={styles.logo}
               resizeMode="contain"
             />

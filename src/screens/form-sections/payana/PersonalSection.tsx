@@ -1,43 +1,63 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
+import { getPayanaDropdowns } from '@/api/payanaApi';
 import FormCard from '@/components/common/FormCard';
-import VPInputField from '@/components/common/VPInputField';
-import VPDatePickerField from '@/components/common/VPDatePickerField';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import VPDatePickerField from '@/components/common/VPDatePickerField';
+import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { useFormEngineStore } from '@/store/useFormEngineStore';
-import { payanaPersonalSchema, PayanaPersonalFormValues } from '@/validation/payanaSchemas';
-import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
+import { PayanaPersonalFormValues, payanaPersonalSchema } from '@/validation/payanaSchemas';
 
 interface PersonalSectionProps {
   navigation: any;
 }
 
-const genderOptions: Option<number>[] = [
-  { value: 1, label: 'Male' },
-  { value: 2, label: 'Female' },
-  { value: 3, label: 'Other' },
-];
-
 export default function PersonalSection({ navigation }: PersonalSectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+
+  const [genderOptions, setGenderOptions] = useState<Option<number>[]>([]);
+  const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getPayanaDropdowns();
+      console.log('[Payana PersonalSection] Dropdown response:', response);
+      if (response.success && response.data) {
+        setGenderOptions(response.data.genders?.map((g: any) => ({
+          value: Number(g.value),
+          label: g.label
+        })) || []);
+        setCasteOptions(response.data.castes?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        console.log('[Payana PersonalSection] Gender options:', response.data.genders);
+        console.log('[Payana PersonalSection] Caste options:', response.data.castes);
+      }
+      setLoadingDropdowns(false);
+    }
+    loadDropdowns();
+  }, []);
 
   const personalData = (formData as any).personal ?? {
     studentName: '',
     dateOfBirth: '',
     genderID: 0,
+    casteCategoryID: 0,
   };
 
   const { control, handleSubmit, formState } = useForm<PayanaPersonalFormValues>({
     defaultValues: {
       studentName: personalData.studentName,
       dateOfBirth: personalData.dateOfBirth,
-      genderID: personalData.genderID,
+      genderID: personalData.genderID || 0,
+      casteCategoryID: personalData.casteCategoryID || 0,
     },
     resolver: zodResolver(payanaPersonalSchema),
     mode: 'onChange',
@@ -50,7 +70,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
     navigation.navigate('contact');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -109,6 +129,24 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
               placeholder="Select gender"
               error={formState.errors.genderID?.message}
               required
+              disabled={loadingDropdowns}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="casteCategoryID"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="Caste"
+              value={value}
+              options={casteOptions}
+              onChange={onChange}
+              placeholder="Select caste"
+              error={formState.errors.casteCategoryID?.message}
+              required
+              disabled={loadingDropdowns}
             />
           )}
         />
