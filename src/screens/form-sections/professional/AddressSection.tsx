@@ -29,9 +29,18 @@ export default function AddressSection({ navigation }: any) {
   useEffect(() => {
     async function loadDropdowns() {
       const response = await getProfessionalDropdowns();
+      console.log('[AddressSection] Dropdown response:', response);
       if (response.success && response.data) {
-        setDistrictOptions(response.data.districts?.map((d: any) => ({ value: d.id, label: d.name })) || []);
-        setPlaceOptions(response.data.places?.map((p: any) => ({ value: p.id, label: p.name })) || []);
+        setDistrictOptions(response.data.districts?.map((d: any) => ({ 
+          value: Number(d.value), 
+          label: d.label 
+        })) || []);
+        setPlaceOptions(response.data.places?.map((p: any) => ({ 
+          value: Number(p.value), 
+          label: p.label 
+        })) || []);
+        console.log('[AddressSection] District options:', response.data.districts);
+        console.log('[AddressSection] Place options:', response.data.places);
       }
       setLoadingDropdowns(false);
     }

@@ -26,9 +26,18 @@ export default function AcademicSection({ navigation }: any) {
   useEffect(() => {
     async function loadDropdowns() {
       const response = await getProfessionalDropdowns();
+      console.log('[AcademicSection] Dropdown response:', response);
       if (response.success && response.data) {
-        setCourseOptions(response.data.courses?.map((c: any) => ({ value: c.id, label: c.name })) || []);
-        setCollegeTypeOptions(response.data.collegeTypes?.map((t: any) => ({ value: t.id, label: t.name })) || []);
+        setCourseOptions(response.data.courses?.map((c: any) => ({ 
+          value: Number(c.value), 
+          label: c.label 
+        })) || []);
+        setCollegeTypeOptions(response.data.collegeTypes?.map((t: any) => ({ 
+          value: Number(t.value), 
+          label: t.label 
+        })) || []);
+        console.log('[AcademicSection] Course options:', response.data.courses);
+        console.log('[AcademicSection] CollegeType options:', response.data.collegeTypes);
       }
       setLoadingDropdowns(false);
     }

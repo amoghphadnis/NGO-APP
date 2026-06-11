@@ -28,6 +28,7 @@ import {
 } from '@/types/studentList';
 import { professionalStudentApi } from '@/api/professionalStudentApi';
 import { pucStudentApi } from '@/api/pucStudentApi';
+import { payanaStudentApi } from '@/api/payanaStudentApi';
 import { houseVisitApi } from '@/api/houseVisitApi';
 
 // ============================================================================
@@ -64,11 +65,13 @@ const SKELETON_KEYS = Array.from({ length: SKELETON_COUNT }, (_, i) => `skeleton
 // Helper Functions
 // ============================================================================
 
-function formatIncome(income: number): string {
+function formatIncome(income: number | undefined | null): string {
+  if (income === undefined || income === null) return '₹0';
   return `₹${income.toLocaleString()}`;
 }
 
-function formatPercentage(percentage: number): string {
+function formatPercentage(percentage: number | undefined | null): string {
+  if (percentage === undefined || percentage === null) return '0.0';
   return percentage.toFixed(1);
 }
 
@@ -77,19 +80,19 @@ function mapToViewModel(
   studentType: StudentType
 ): StudentListViewModel {
   return {
-    id: student.studentID,
-    name: student.studentName,
-    mobile: student.contactNumber,
-    address: student.address,
-    place: student.place,
-    taluka: student.taluka,
-    pinCode: student.pinCode,
-    district: student.districtName,
-    college: student.collegeName,
+    id: student.studentID ?? 0,
+    name: student.studentName ?? 'Unknown',
+    mobile: student.contactNumber ?? '',
+    address: student.address ?? '',
+    place: student.place ?? '',
+    taluka: student.taluka ?? '',
+    pinCode: student.pinCode ?? '',
+    district: student.districtName ?? '',
+    college: student.collegeName ?? '',
     income: formatIncome(student.familyIncome),
     percentage: formatPercentage(student.securedPercentage),
-    isVisited: student.isVisited,
-    houseVisitLink: student.houseVisitLink,
+    isVisited: student.isVisited ?? false,
+    houseVisitLink: student.houseVisitLink ?? '',
     studentType,
   };
 }
@@ -118,25 +121,34 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
     error,
     refetch,
   } = useQuery({
-    queryKey: studentType === 'professional' 
-      ? professionalStudentApi.queryKeys.list(queryParams)
-      : pucStudentApi.queryKeys.list(queryParams),
-    queryFn: () => studentType === 'professional'
-      ? professionalStudentApi.getList(queryParams)
-      : pucStudentApi.getList(queryParams),
+    queryKey:
+      studentType === 'professional'
+        ? professionalStudentApi.queryKeys.list(queryParams)
+        : studentType === 'payana'
+          ? payanaStudentApi.queryKeys.list(queryParams)
+          : pucStudentApi.queryKeys.list(queryParams),
+    queryFn: () => {
+      if (studentType === 'professional') {
+        return professionalStudentApi.getList(queryParams);
+      }
+      if (studentType === 'payana') {
+        return payanaStudentApi.getList(queryParams);
+      }
+      return pucStudentApi.getList(queryParams);
+    },
     staleTime: 1 * 60 * 1000, // 1 minute
     refetchOnWindowFocus: false,
   });
 
-  const students: StudentListViewModel[] = data?.students.map((s) => 
+  const students: StudentListViewModel[] = data?.students?.map((s) =>
     mapToViewModel(s, studentType)
   ) || [];
   
   const districts: District[] = data?.districts || [];
 
   // Handle house visit navigation
-  const handleHouseVisit = useCallback((studentId: number, type: StudentType) => {
-    const link = houseVisitApi.getLink(studentId, type);
+  const handleHouseVisit = useCallback((studentId: number, type: StudentType, studentName: string) => {
+    const link = houseVisitApi.getLink(studentId, type, studentName);
     router.push(link as any);
   }, [router]);
 
@@ -344,7 +356,7 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
                 <FlatList
                   data={students}
                   renderItem={renderStudentRow}
-                  keyExtractor={(item) => item.id.toString()}
+                  keyExtractor={(item, index) => (item.id > 0 ? item.id.toString() : `student-${index}`)}
                   refreshControl={
                     <RefreshControl
                       refreshing={isFetching}

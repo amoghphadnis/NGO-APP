@@ -1,60 +1,41 @@
+import api from './client';
 import { environment } from '@/config/environment';
 import { RenewalPayanaFormValues } from '@/validation/renewalPayanaSchemas';
 import { UploadedDocument } from '@/types/documents';
+import { normalizeApiResponse, normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
+import { normalizePayanaDropdowns, NormalizedDropdowns } from './transformers/normalizeDropdowns';
 
 const API_BASE_URL = environment.API_BASE_URL;
-
-export interface PayanaRenewalDropdownItem {
-  id: number;
-  name: string;
-}
-
-export interface PayanaRenewalDropdowns {
-  districts: PayanaRenewalDropdownItem[];
-  areaTypes: PayanaRenewalDropdownItem[];
-  casteCategories: PayanaRenewalDropdownItem[];
-  collegeTypes: PayanaRenewalDropdownItem[];
-}
 
 export interface PayanaRenewalSubmitResponse {
   success: boolean;
   message: string;
 }
 
-export async function getPayanaRenewalDropdowns(): Promise<PayanaRenewalDropdowns> {
-  // Try to fetch districts from the common endpoint
-  const districtsResponse = await fetch(`${API_BASE_URL}/students/districts`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
+/**
+ * Gets Payana Renewal dropdown data
+ * GET /payanarenewal/payanadropdowns
+ */
+export async function getPayanaRenewalDropdowns(): Promise<
+  NormalizedApiResponse<NormalizedDropdowns>
+> {
+  try {
+    const response = await api.get('/payanarenewal/payanadropdowns');
+    console.log('[getPayanaRenewalDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
+    
+    // Handle both wrapped (data.Data) and unwrapped (data) responses
+    const dropdownData = response.data.Data || response.data;
+    const normalizedDropdowns = normalizePayanaDropdowns(dropdownData);
 
-  let districts: PayanaRenewalDropdownItem[] = [];
-  if (districtsResponse.ok) {
-    const districtData = await districtsResponse.json();
-    districts = (districtData || []).map((d: any) => ({ id: d.Id || d.districtID, name: d.Name || d.districtName }));
+    return {
+      success: true,
+      data: normalizedDropdowns,
+      message: response.data.Message || response.data.message || 'Success',
+    };
+  } catch (error: any) {
+    console.error('[getPayanaRenewalDropdowns] Error:', error);
+    return normalizeApiError(error);
   }
-
-  // Hardcode other dropdowns as fallback since dedicated endpoints may not exist
-  return {
-    districts,
-    areaTypes: [
-      { id: 1, name: 'Urban' },
-      { id: 2, name: 'Rural' },
-      { id: 3, name: 'Semi Urban' },
-    ],
-    casteCategories: [
-      { id: 1, name: 'GM' },
-      { id: 2, name: 'OBC' },
-      { id: 3, name: 'SC' },
-      { id: 4, name: 'ST' },
-      { id: 5, name: 'Minority' },
-    ],
-    collegeTypes: [
-      { id: 1, name: 'Government' },
-      { id: 2, name: 'Aided' },
-      { id: 3, name: 'Private' },
-    ],
-  };
 }
 
 function appendFile(formData: FormData, key: string, doc: UploadedDocument | undefined): void {
@@ -112,7 +93,7 @@ export async function submitPayanaRenewal(
   appendFile(formData, 'SelfieFile', values.selfieFile);
   appendFile(formData, 'AadhaarFile', values.aadhaarFile);
 
-  const response = await fetch(`${API_BASE_URL}/api/payanarenewal/create`, {
+  const response = await fetch(`${API_BASE_URL}/payanarenewal/create`, {
     method: 'POST',
     body: formData,
   });

@@ -31,6 +31,9 @@ export default function RootLayout() {
           <Stack.Screen name="form-selection" />
           <Stack.Screen name="form-engine" />
           <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+          <Stack.Screen name="forgot-password" />
+          <Stack.Screen name="reset-password" />
           <Stack.Screen name="dashboard" />
           <Stack.Screen name="pdashboard" />
         </Stack>

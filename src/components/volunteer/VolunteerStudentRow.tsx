@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TABLE_WIDTH } from '@/components/approval/StudentRowSkeleton';
 import { colors } from '@/theme/colors';
@@ -7,12 +7,20 @@ import { StudentListViewModel, StudentType } from '@/types/studentList';
 
 interface VolunteerStudentRowProps {
   student: StudentListViewModel;
-  onHouseVisit: (studentId: number, studentType: StudentType) => void;
+  onHouseVisit: (studentId: number, studentType: StudentType, studentName: string) => void;
 }
 
 export default function VolunteerStudentRow({ student, onHouseVisit }: VolunteerStudentRowProps) {
   const handleHouseVisit = () => {
-    onHouseVisit(student.id, student.studentType);
+    onHouseVisit(student.id, student.studentType, student.name);
+  };
+
+  const handleOpenMaps = () => {
+    if (student.houseVisitLink) {
+      Linking.openURL(student.houseVisitLink).catch((err) => {
+        console.error('Failed to open maps:', err);
+      });
+    }
   };
 
   return (
@@ -41,6 +49,16 @@ export default function VolunteerStudentRow({ student, onHouseVisit }: Volunteer
       
       {/* House Visit Action */}
       <View style={[styles.actionCell, styles.w140]}>
+        {student.houseVisitLink && !student.isVisited && (
+          <TouchableOpacity
+            style={styles.mapsButton}
+            onPress={handleOpenMaps}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="navigate" size={14} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>Maps</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={[
             styles.actionButton,
@@ -50,10 +68,10 @@ export default function VolunteerStudentRow({ student, onHouseVisit }: Volunteer
           activeOpacity={0.8}
           disabled={student.isVisited}
         >
-          <Ionicons 
-            name={student.isVisited ? "eye" : "home"} 
-            size={14} 
-            color="#FFFFFF" 
+          <Ionicons
+            name={student.isVisited ? "eye" : "home"}
+            size={14}
+            color="#FFFFFF"
           />
           <Text style={styles.actionButtonText}>
             {student.isVisited ? 'View' : 'Visit'}
@@ -123,6 +141,18 @@ const styles = StyleSheet.create({
   visitedButton: {
     backgroundColor: colors.success,
     opacity: 0.8,
+  },
+  mapsButton: {
+    backgroundColor: '#34A853',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    minHeight: 32,
+    marginRight: 6,
   },
   actionButtonText: {
     fontSize: 12,

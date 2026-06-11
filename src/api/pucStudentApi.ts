@@ -53,13 +53,41 @@ export async function getPUCStudentList(
   const url = `${BASE_URL}/studentlist${queryString ? `?${queryString}` : ''}`;
   
   const response = await api.get(url);
-  
+
   if (!response.ok) {
     const errorData = response.data as StudentListError;
     throw new Error(errorData?.message || 'Failed to fetch PUC students');
   }
-  
-  return response.data as PUCStudentListResponse;
+
+  // Transform PascalCase API response to camelCase
+  const data = response.data as any;
+
+  const transformStudent = (s: any) => ({
+    studentID: s.StudentID,
+    studentName: s.StudentName,
+    contactNumber: s.ContactNumber,
+    address: s.Address,
+    place: s.Place,
+    taluka: s.Taluka,
+    pinCode: s.PinCode,
+    houseVisitLink: s.HouseVisitLink,
+    districtName: s.DistrictName,
+    collegeName: s.CollegeName,
+    familyIncome: s.FamilyIncome,
+    securedPercentage: s.SecuredPercentage,
+    isVisited: s.IsVisited,
+    approveStatus: s.ApproveStatus,
+  });
+
+  const transformDistrict = (d: any) => ({
+    districtID: d.DistrictID,
+    districtName: d.DistrictName,
+  });
+
+  return {
+    students: (data.Students || []).map(transformStudent),
+    districts: (data.Districts || []).map(transformDistrict),
+  } as PUCStudentListResponse;
 }
 
 /**

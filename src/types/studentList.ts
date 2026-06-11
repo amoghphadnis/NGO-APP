@@ -44,6 +44,23 @@ export interface PUCStudent {
   approveStatus: string;
 }
 
+export interface PayanaStudent {
+  studentID: number;
+  studentName: string;
+  contactNumber: string;
+  address: string;
+  place: string;
+  taluka: string;
+  pinCode: string;
+  houseVisitLink: string;
+  districtName: string;
+  collegeName: string;
+  familyIncome: number;
+  securedPercentage: number;
+  isVisited: boolean;
+  approveStatus: string;
+}
+
 // ============================================================================
 // District Dropdown
 // ============================================================================
@@ -67,6 +84,11 @@ export interface PUCStudentListResponse {
   districts: District[];
 }
 
+export interface PayanaStudentListResponse {
+  students: PayanaStudent[];
+  districts: District[];
+}
+
 // ============================================================================
 // Query Parameters
 // ============================================================================
@@ -80,7 +102,7 @@ export interface StudentListQueryParams {
 // Component/View Types
 // ============================================================================
 
-export type StudentType = 'professional' | 'puc';
+export type StudentType = 'professional' | 'puc' | 'payana';
 
 export interface StudentListViewModel {
   id: number;

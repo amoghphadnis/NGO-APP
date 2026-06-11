@@ -86,15 +86,24 @@ export function normalizePUCDropdowns(apiResponse: any): NormalizedDropdowns {
   };
 }
 
+/**
+ * Normalizes Payana dropdown response (same structure as Professional)
+ */
+export function normalizePayanaDropdowns(apiResponse: any): NormalizedDropdowns {
+  return normalizeProfessionalDropdowns(apiResponse);
+}
+
 function normalizeDistricts(data: any[]): NormalizedDropdownOption[] {
   if (!Array.isArray(data)) {
     console.log('[normalizeDistricts] Data is not an array:', data);
     return [];
   }
-  return data.map((item) => ({
-    value: item.DistrictID ?? item.id ?? item.value ?? item.DistrictId,
-    label: item.DistrictName ?? item.name ?? item.label ?? item.DistrictName ?? '',
-  }));
+  return data
+    .map((item) => ({
+      value: item.DistrictID ?? item.Id ?? item.id ?? item.value ?? item.DistrictId,
+      label: item.DistrictName ?? item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && !isNaN(Number(item.value)));
 }
 
 function normalizeGenders(data: any[]): NormalizedDropdownOption[] {
@@ -102,10 +111,12 @@ function normalizeGenders(data: any[]): NormalizedDropdownOption[] {
     console.log('[normalizeGenders] Data is not an array:', data);
     return [];
   }
-  return data.map((item) => ({
-    value: item.GenderID ?? item.id ?? item.value ?? item.GenderId,
-    label: item.GenderName ?? item.name ?? item.label ?? item.GenderName ?? '',
-  }));
+  return data
+    .map((item) => ({
+      value: item.GenderID ?? item.Id ?? item.id ?? item.value ?? item.GenderId,
+      label: item.GenderName ?? item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && !isNaN(Number(item.value)));
 }
 
 function normalizeCastes(data: any[]): NormalizedDropdownOption[] {
@@ -113,10 +124,12 @@ function normalizeCastes(data: any[]): NormalizedDropdownOption[] {
     console.log('[normalizeCastes] Data is not an array:', data);
     return [];
   }
-  return data.map((item) => ({
-    value: item.CasteCategoryID ?? item.id ?? item.value ?? item.CasteCategoryId,
-    label: item.CasteCategoryName ?? item.name ?? item.label ?? item.CasteCategoryName ?? '',
-  }));
+  return data
+    .map((item) => ({
+      value: item.CasteCategoryID ?? item.Id ?? item.id ?? item.value ?? item.CasteCategoryId,
+      label: item.CasteCategoryName ?? item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && !isNaN(Number(item.value)));
 }
 
 function normalizeCourses(data: any[]): NormalizedDropdownOption[] {
@@ -124,10 +137,12 @@ function normalizeCourses(data: any[]): NormalizedDropdownOption[] {
     console.log('[normalizeCourses] Data is not an array:', data);
     return [];
   }
-  return data.map((item) => ({
-    value: item.CourseTypeID ?? item.id ?? item.value ?? item.CourseTypeId,
-    label: item.CourseTypeName ?? item.name ?? item.label ?? item.CourseTypeName ?? '',
-  }));
+  return data
+    .map((item) => ({
+      value: item.CourseTypeID ?? item.Id ?? item.id ?? item.value ?? item.CourseTypeId,
+      label: item.CourseTypeName ?? item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && !isNaN(Number(item.value)));
 }
 
 function normalizePlaces(data: any[]): NormalizedDropdownOption[] {
@@ -135,10 +150,12 @@ function normalizePlaces(data: any[]): NormalizedDropdownOption[] {
     console.log('[normalizePlaces] Data is not an array:', data);
     return [];
   }
-  return data.map((item) => ({
-    value: item.PlaceID ?? item.id ?? item.value ?? item.PlaceId,
-    label: item.PlaceName ?? item.name ?? item.label ?? item.PlaceName ?? '',
-  }));
+  return data
+    .map((item) => ({
+      value: item.PlaceID ?? item.Id ?? item.id ?? item.value ?? item.PlaceId,
+      label: item.PlaceName ?? item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && !isNaN(Number(item.value)));
 }
 
 function normalizeOccupations(data: any[]): NormalizedDropdownOption[] {
@@ -146,10 +163,12 @@ function normalizeOccupations(data: any[]): NormalizedDropdownOption[] {
     console.log('[normalizeOccupations] Data is not an array:', data);
     return [];
   }
-  return data.map((item) => ({
-    value: item.OccupationID ?? item.id ?? item.value ?? item.OccupationId,
-    label: item.OccupationName ?? item.name ?? item.label ?? '',
-  }));
+  return data
+    .map((item) => ({
+      value: item.OccupationID ?? item.Id ?? item.id ?? item.value ?? item.OccupationId,
+      label: item.OccupationName ?? item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && !isNaN(Number(item.value)));
 }
 
 function normalizeCollegeTypes(data: any[]): NormalizedDropdownOption[] {
@@ -157,8 +176,10 @@ function normalizeCollegeTypes(data: any[]): NormalizedDropdownOption[] {
     console.log('[normalizeCollegeTypes] Data is not an array:', data);
     return [];
   }
-  return data.map((item) => ({
-    value: item.CollegeTypeID ?? item.id ?? item.value ?? item.CollegeTypeId,
-    label: item.CollegeTypeName ?? item.name ?? item.label ?? '',
-  }));
+  return data
+    .map((item) => ({
+      value: item.CollegeTypeID ?? item.Id ?? item.id ?? item.value ?? item.CollegeTypeId,
+      label: item.CollegeTypeName ?? item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && !isNaN(Number(item.value)));
 }

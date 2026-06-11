@@ -1,11 +1,10 @@
+import api from './client';
 import { environment } from '@/config/environment';
 import { RenewalPucFormValues } from '@/validation/renewalPucSchemas';
+import { normalizeApiResponse, normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
+import { normalizePUCDropdowns, NormalizedDropdowns } from './transformers/normalizeDropdowns';
 
 const API_BASE_URL = environment.API_BASE_URL;
-
-export interface RenewalPucDropdowns {
-  districts: { districtID?: number; Id?: number; id?: number; districtName?: string; Name?: string; name?: string }[];
-}
 
 export interface RenewalPucSubmitResponse {
   success: boolean;
@@ -13,20 +12,30 @@ export interface RenewalPucSubmitResponse {
   renewalId?: number;
 }
 
-export async function getRenewalPucDropdowns(): Promise<RenewalPucDropdowns> {
-  const response = await fetch(`${API_BASE_URL}/students/districts`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
+/**
+ * Gets Renewal PUC dropdown data
+ * GET /renewalpuc/create
+ */
+export async function getRenewalPucDropdowns(): Promise<
+  NormalizedApiResponse<NormalizedDropdowns>
+> {
+  try {
+    const response = await api.get('/renewalpuc/create');
+    console.log('[getRenewalPucDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
+    
+    // Handle both wrapped (data.Data) and unwrapped (data) responses
+    const dropdownData = response.data.Data || response.data;
+    const normalizedDropdowns = normalizePUCDropdowns(dropdownData);
 
-  if (!response.ok) {
-    throw new Error('Failed to load district data');
+    return {
+      success: true,
+      data: normalizedDropdowns,
+      message: response.data.Message || response.data.message || 'Success',
+    };
+  } catch (error: any) {
+    console.error('[getRenewalPucDropdowns] Error:', error);
+    return normalizeApiError(error);
   }
-
-  const data = await response.json();
-  return {
-    districts: data || [],
-  };
 }
 
 export async function submitRenewalPuc(
@@ -73,7 +82,7 @@ export async function submitRenewalPuc(
     renewalPreviousVPID: formData.renewalPreviousVPID || '',
   };
 
-  const response = await fetch(`${API_BASE_URL}/api/renewalpuc/create`, {
+  const response = await fetch(`${API_BASE_URL}/renewalpuc/create`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

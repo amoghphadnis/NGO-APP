@@ -1,13 +1,11 @@
+import api from './client';
 import { environment } from '@/config/environment';
 import { RenewalProfessionalFormValues } from '@/validation/renewalProfessionalSchemas';
 import { UploadedDocument } from '@/types/documents';
+import { normalizeApiResponse, normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
+import { normalizeProfessionalDropdowns, NormalizedDropdowns } from './transformers/normalizeDropdowns';
 
 const API_BASE_URL = environment.API_BASE_URL;
-
-export interface RenewalProfessionalDropdowns {
-  districts: { districtName?: string; Name?: string; name?: string }[];
-  collegeTypes: { collegeTypeName: string }[];
-}
 
 export interface RenewalProfessionalSubmitResponse {
   success: boolean;
@@ -15,25 +13,30 @@ export interface RenewalProfessionalSubmitResponse {
   prId?: number;
 }
 
-export async function getRenewalProfessionalDropdowns(): Promise<RenewalProfessionalDropdowns> {
-  const response = await fetch(`${API_BASE_URL}/students/districts`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
+/**
+ * Gets Professional Renewal dropdown data
+ * GET /professionalrenewal/create
+ */
+export async function getRenewalProfessionalDropdowns(): Promise<
+  NormalizedApiResponse<NormalizedDropdowns>
+> {
+  try {
+    const response = await api.get('/professionalrenewal/create');
+    console.log('[getRenewalProfessionalDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
+    
+    // Handle both wrapped (data.Data) and unwrapped (data) responses
+    const dropdownData = response.data.Data || response.data;
+    const normalizedDropdowns = normalizeProfessionalDropdowns(dropdownData);
 
-  if (!response.ok) {
-    throw new Error('Failed to load dropdown data');
+    return {
+      success: true,
+      data: normalizedDropdowns,
+      message: response.data.Message || response.data.message || 'Success',
+    };
+  } catch (error: any) {
+    console.error('[getRenewalProfessionalDropdowns] Error:', error);
+    return normalizeApiError(error);
   }
-
-  const data = await response.json();
-  return {
-    districts: data || [],
-    collegeTypes: [
-      { collegeTypeName: 'Government' },
-      { collegeTypeName: 'Aided' },
-      { collegeTypeName: 'Private' },
-    ],
-  };
 }
 
 function appendFileToFormData(
@@ -92,7 +95,7 @@ export async function submitRenewalProfessional(
   appendFileToFormData(formData, 'ThankingVideoFile', values.thankingVideoFile);
   appendFileToFormData(formData, 'ParentsPassbookFile', values.parentsPassbookFile);
 
-  const response = await fetch(`${API_BASE_URL}/api/professionalrenewal/create`, {
+  const response = await fetch(`${API_BASE_URL}/professionalrenewal/create`, {
     method: 'POST',
     body: formData,
   });

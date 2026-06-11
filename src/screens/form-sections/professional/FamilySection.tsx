@@ -29,9 +29,18 @@ export default function FamilySection({ navigation }: any) {
   useEffect(() => {
     async function loadDropdowns() {
       const response = await getProfessionalDropdowns();
+      console.log('[FamilySection] Dropdown response:', response);
       if (response.success && response.data) {
-        setFatherOccupationOptions(response.data.fatherOcc?.map((o: any) => ({ value: o.id, label: o.name })) || []);
-        setMotherOccupationOptions(response.data.motherOcc?.map((o: any) => ({ value: o.id, label: o.name })) || []);
+        setFatherOccupationOptions(response.data.fatherOcc?.map((o: any) => ({ 
+          value: Number(o.value), 
+          label: o.label 
+        })) || []);
+        setMotherOccupationOptions(response.data.motherOcc?.map((o: any) => ({ 
+          value: Number(o.value), 
+          label: o.label 
+        })) || []);
+        console.log('[FamilySection] Father occupation options:', response.data.fatherOcc);
+        console.log('[FamilySection] Mother occupation options:', response.data.motherOcc);
       }
       setLoadingDropdowns(false);
     }

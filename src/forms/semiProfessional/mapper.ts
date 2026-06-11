@@ -80,14 +80,10 @@ export function semiProfessionalMapper(formData: SemiProfessionalFormValues): Fo
     fd.append('Address', formData.address.address);
   }
 
-  // Family Information
-  if (formData.family.fatherOccupationID) {
-    fd.append('FatherOccupationID', toString(formData.family.fatherOccupationID));
-  }
-
-  if (formData.family.motherOccupationID) {
-    fd.append('MotherOccupationID', toString(formData.family.motherOccupationID));
-  }
+  // Family Information (FatherOccupationID and MotherOccupationID are REQUIRED per API contract)
+  fd.append('FatherOccupationID', toString(formData.family.fatherOccupationID));
+  fd.append('MotherOccupationID', toString(formData.family.motherOccupationID));
+  console.log(`[semiProfessionalMapper] Family - FatherOccupationID: ${formData.family.fatherOccupationID}, MotherOccupationID: ${formData.family.motherOccupationID}`);
 
   if (formData.family.familyMembers) {
     fd.append('FamilyMembers', toString(formData.family.familyMembers));

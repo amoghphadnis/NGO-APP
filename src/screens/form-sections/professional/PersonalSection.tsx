@@ -44,9 +44,19 @@ export default function PersonalSection({ navigation }: any) {
   useEffect(() => {
     async function loadDropdowns() {
       const response = await getProfessionalDropdowns();
+      console.log('[PersonalSection] Dropdown response:', response);
       if (response.success && response.data) {
-        setGenderOptions(response.data.genders?.map((g: any) => ({ value: g.id, label: g.name })) || []);
-        setCasteOptions(response.data.castes?.map((c: any) => ({ value: c.id, label: c.name })) || []);
+        // Map normalized dropdowns to Option<number> format
+        setGenderOptions(response.data.genders?.map((g: any) => ({ 
+          value: Number(g.value), 
+          label: g.label 
+        })) || []);
+        setCasteOptions(response.data.castes?.map((c: any) => ({ 
+          value: Number(c.value), 
+          label: c.label 
+        })) || []);
+        console.log('[PersonalSection] Gender options:', response.data.genders);
+        console.log('[PersonalSection] Caste options:', response.data.castes);
       }
       setLoadingDropdowns(false);
     }

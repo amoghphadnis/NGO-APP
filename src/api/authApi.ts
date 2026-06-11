@@ -38,7 +38,12 @@ export const authApi = {
           throw new Error('Invalid credentials');
         }
         if (error.response?.status === 400) {
-          const message = error.response?.data || 'Account inactive';
+          const data = error.response?.data;
+          const message =
+            (typeof data === 'object' && data?.Message) ||
+            (typeof data === 'string' && data) ||
+            error.message ||
+            'Account inactive.';
           throw new Error(message);
         }
         throw new Error(error.message || 'Login failed');

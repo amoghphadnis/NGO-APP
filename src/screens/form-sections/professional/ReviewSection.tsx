@@ -7,7 +7,7 @@ import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 import { preparePayload, submitApplication } from '@/submission';
-import { isProfessionalForm } from '@/types/forms';
+import { isProfessionalForm, isPayanaForm } from '@/types/forms';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
@@ -26,39 +26,54 @@ export default function ReviewSection({ navigation }: any) {
   const [declarationAccepted, setDeclarationAccepted] = useState(false);
 
   const isFormComplete = () => {
-    // Check if all required sections are filled
-    if (!isProfessionalForm(formData)) {
-      return false;
+    // Check Professional form completeness
+    if (isProfessionalForm(formData)) {
+      const hasPersonal = formData.personal.StudentName && formData.personal.DateOfBirth;
+      const hasContact = formData.contact.Email && formData.contact.ContactNumber;
+      const hasAddress = formData.address.Pincode && formData.address.DistrictID;
+      const hasFamily = formData.family.FamilyMembers > 0;
+      const hasAcademic = formData.academic.CourseTypeID && formData.academic.CollegeName && formData.academic.CollegeFees > 0;
+      const hasHouseVisitLink = formData.documents.HouseVisitLink && formData.documents.HouseVisitLink.startsWith('https://');
+
+      // Check all 16 required documents
+      const docs = formData.documents;
+      const hasAllDocuments =
+        docs.PUCMarksCard &&
+        docs.IncomeCertificate &&
+        docs.Rationcard &&
+        docs.Electricitybill &&
+        docs.CollegeID &&
+        docs.Admissionproof &&
+        docs.FeesReceipts &&
+        docs.Expenditure &&
+        docs.Studentphoto &&
+        docs.Photoinfrontofcollege &&
+        docs.Dwellingunit &&
+        docs.CET &&
+        docs.Studentpass &&
+        docs.Monthsbank &&
+        docs.AadharCard &&
+        docs.Handwritten;
+
+      return hasPersonal && hasContact && hasAddress && hasFamily && hasAllDocuments && hasAcademic && hasHouseVisitLink;
+    }
+    
+    // Check Payana form completeness
+    if (isPayanaForm(formData)) {
+      const hasPersonal = formData.personal.studentName && formData.personal.dateOfBirth;
+      const hasContact = formData.contact.email && formData.contact.contactNumber;
+      const hasAddress = formData.address.districtID && formData.address.taluka;
+      const hasFamily = formData.family.fatherName && formData.family.motherName;
+      const hasAcademic = formData.academic.courseID && formData.academic.collegeName;
+      const hasBank = formData.bank.accountHolderName && formData.bank.bankAccountNo && formData.bank.ifscCode;
+      const hasAgreement = formData.agreement.isAgreed;
+      
+      // Payana has optional document uploads (not required for form completion)
+      return hasPersonal && hasContact && hasAddress && hasFamily && hasAcademic && hasBank && hasAgreement;
     }
 
-    const hasPersonal = formData.personal.StudentName && formData.personal.DateOfBirth;
-    const hasContact = formData.contact.Email && formData.contact.ContactNumber;
-    const hasAddress = formData.address.Pincode && formData.address.DistrictID;
-    const hasFamily = formData.family.FamilyMembers > 0;
-    const hasAcademic = formData.academic.CourseTypeID && formData.academic.CollegeName && formData.academic.CollegeFees > 0;
-    const hasHouseVisitLink = formData.documents.HouseVisitLink && formData.documents.HouseVisitLink.startsWith('https://');
-
-    // Check all 16 required documents
-    const docs = formData.documents;
-    const hasAllDocuments =
-      docs.PUCMarksCard &&
-      docs.IncomeCertificate &&
-      docs.Rationcard &&
-      docs.Electricitybill &&
-      docs.CollegeID &&
-      docs.Admissionproof &&
-      docs.FeesReceipts &&
-      docs.Expenditure &&
-      docs.Studentphoto &&
-      docs.Photoinfrontofcollege &&
-      docs.Dwellingunit &&
-      docs.CET &&
-      docs.Studentpass &&
-      docs.Monthsbank &&
-      docs.AadharCard &&
-      docs.Handwritten;
-
-    return hasPersonal && hasContact && hasAddress && hasFamily && hasAllDocuments && hasAcademic && hasHouseVisitLink;
+    // For other form types, assume complete (they have their own validation)
+    return true;
   };
 
   const canSubmit = isFormComplete() && declarationAccepted;
@@ -333,6 +348,61 @@ export default function ReviewSection({ navigation }: any) {
             )}
           </View>
         </FormCard>
+
+        {/* Payana Documents Section */}
+        {isPayanaForm(formData) && (
+          <FormCard>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleContainer}>
+                <Ionicons name="attach" size={20} color={colors.primary} style={styles.sectionIcon} />
+                <Text style={styles.sectionTitle}>Documents (Optional)</Text>
+              </View>
+              <TouchableOpacity onPress={() => navigation.navigate('documents')} style={styles.editButton}>
+                <Ionicons name="create" size={16} color={colors.primary} />
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.sectionContent}>
+              <View style={styles.documentRow}>
+                <Text style={styles.documentLabel}>1. Latest Marks Card:</Text>
+                <Text style={formData.documents?.latestMarksCard?.file ? styles.documentUploaded : styles.documentPending}>
+                  {formData.documents?.latestMarksCard?.file ? '✓' : '○'}
+                </Text>
+              </View>
+              <View style={styles.documentRow}>
+                <Text style={styles.documentLabel}>2. Bank Passbook:</Text>
+                <Text style={formData.documents?.studentPassbookFP?.file ? styles.documentUploaded : styles.documentPending}>
+                  {formData.documents?.studentPassbookFP?.file ? '✓' : '○'}
+                </Text>
+              </View>
+              <View style={styles.documentRow}>
+                <Text style={styles.documentLabel}>3. Student Photo:</Text>
+                <Text style={formData.documents?.studentPhoto?.file ? styles.documentUploaded : styles.documentPending}>
+                  {formData.documents?.studentPhoto?.file ? '✓' : '○'}
+                </Text>
+              </View>
+              <View style={styles.documentRow}>
+                <Text style={styles.documentLabel}>4. Dwelling Unit Photo:</Text>
+                <Text style={formData.documents?.dwellingUnit?.file ? styles.documentUploaded : styles.documentPending}>
+                  {formData.documents?.dwellingUnit?.file ? '✓' : '○'}
+                </Text>
+              </View>
+              <View style={styles.documentRow}>
+                <Text style={styles.documentLabel}>5. Aadhaar Card:</Text>
+                <Text style={formData.documents?.aadhaarCard?.file ? styles.documentUploaded : styles.documentPending}>
+                  {formData.documents?.aadhaarCard?.file ? '✓' : '○'}
+                </Text>
+              </View>
+              <View style={styles.documentRow}>
+                <Text style={styles.documentLabel}>House Visit Link:</Text>
+                <Text style={formData.documents?.houseVisitLink ? styles.documentUploaded : styles.documentPending}>
+                  {formData.documents?.houseVisitLink ? '✓ Provided' : 'Not provided'}
+                </Text>
+              </View>
+            </View>
+          </FormCard>
+        )}
 
         {/* Declaration */}
         <FormSectionHeader
