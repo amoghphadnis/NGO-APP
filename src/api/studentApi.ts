@@ -4,11 +4,7 @@ import { StandardApiResponse, StudentSubmissionPayload } from '@/types/api';
 export const studentApi = {
   submitProfessionalStudent: async (formData: FormData): Promise<StandardApiResponse<any>> => {
     try {
-      const response = await api.post('/students/professional', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await api.post('/students/professional', formData);
       return response.data;
     } catch (error) {
       console.error('Student submission failed:', error);

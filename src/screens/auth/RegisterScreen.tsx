@@ -219,13 +219,13 @@ export default function RegisterScreen() {
         <View style={styles.hero}>
           <View style={styles.logoCircle}>
             <Image
-              source={require('@/assets/icon.png')}
+              source={require('@/assets/Logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
           </View>
-          <Text style={styles.orgName}>VIDYA POSHAK</Text>
-          <Text style={styles.heroSubtitle}>Create your account</Text>
+          {/* <Text style={styles.orgName}>VIDYA POSHAK</Text>
+          <Text style={styles.heroSubtitle}>Create your account</Text> */}
         </View>
 
         {/* Form Card */}
@@ -395,20 +395,20 @@ export default function RegisterScreen() {
           </View>
 
           {/* Divider */}
-          <View style={styles.divider}>
+          {/* <View style={styles.divider}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>OR</Text>
             <View style={styles.dividerLine} />
-          </View>
+          </View> */}
 
           {/* Google Button */}
-          <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin} activeOpacity={0.8}>
+          {/* <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin} activeOpacity={0.8}>
             <Image
               source={{ uri: 'https://developers.google.com/identity/images/g-logo.png' }}
               style={styles.googleLogo}
             />
             <Text style={styles.googleButtonText}>Continue with Google</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Footer */}
           <Text style={styles.footer}>© Vidya Poshak 2026</Text>
@@ -450,8 +450,8 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   logo: {
-    width: 78,
-    height: 78,
+    width: 150,
+    height: 150,
   },
   orgName: {
     fontSize: 20,

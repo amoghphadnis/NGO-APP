@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
@@ -9,10 +11,20 @@ import { useFormEngineStore } from '@/store/useFormEngineStore';
 import { pickDocument } from '@/utils/filePicker';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
+import VPInputField from '@/components/common/VPInputField';
+import { z } from 'zod';
 
 interface DocumentSectionProps {
   navigation: any;
 }
+
+// Schema for house visit link validation
+const houseVisitSchema = z.object({
+  houseVisitLink: z.string().min(1, { message: 'House visit link is required' })
+    .refine((val) => val.startsWith('http'), {
+      message: 'Please enter a valid URL starting with http:// or https://',
+    }),
+});
 
 const PAYANA_FILE_KEYS = [
   'latestMarksCard',
@@ -89,7 +101,24 @@ export default function DocumentSection({ navigation }: DocumentSectionProps) {
     updateUploadState(documentKey, { isUploading: false, uploaded: false, error: undefined, progress: 0 });
   };
 
+  const handleHouseVisitLinkChange = (value: string) => {
+    const updatedDocuments = {
+      ...documentData,
+      houseVisitLink: value,
+    };
+    updateSectionData('documents', updatedDocuments);
+  };
+
   const onSubmit = () => {
+    // Validate house visit link
+    if (!documentData.houseVisitLink || !documentData.houseVisitLink.startsWith('http')) {
+      updateValidationState('documents', { 
+        isValid: false, 
+        data: documentData,
+        errors: { houseVisitLink: 'Please enter a valid Google Maps link' }
+      });
+      return;
+    }
     updateValidationState('documents', { isValid: true, data: documentData });
     markStepComplete(8);
     navigation.navigate('review');
@@ -140,6 +169,28 @@ export default function DocumentSection({ navigation }: DocumentSectionProps) {
             </FormCard>
           </React.Fragment>
         ))}
+
+        {/* House Visit Link */}
+        <FormSectionHeader
+          icon="location"
+          title="House Location"
+          subtitle="Google Maps link for house visit"
+          showRequired
+        />
+        <FormCard>
+          <VPInputField
+            label="House Visit Link (Google Maps)"
+            value={documentData.houseVisitLink || ''}
+            onChangeText={handleHouseVisitLinkChange}
+            placeholder="https://maps.google.com/..."
+            multiline
+            numberOfLines={3}
+            required
+          />
+          <Text style={styles.helperText}>
+            Paste the Google Maps link to your house location
+          </Text>
+        </FormCard>
       </ScrollView>
     </FormScreenLayout>
   );
@@ -148,6 +199,12 @@ export default function DocumentSection({ navigation }: DocumentSectionProps) {
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
+  },
+  helperText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    fontStyle: 'italic',
   },
   guidelineContainer: {
     paddingVertical: spacing.sm,

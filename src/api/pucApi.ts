@@ -15,11 +15,7 @@ export async function createPUCStudent(
   formData: FormData
 ): Promise<NormalizedApiResponse<any>> {
   try {
-    const response = await api.post('/students/students/create', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await api.post('/students/students/create', formData);
 
     return normalizeApiResponse(response.data);
   } catch (error: any) {

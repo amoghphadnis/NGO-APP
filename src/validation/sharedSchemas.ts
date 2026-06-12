@@ -59,7 +59,6 @@ export const addressDetailsSchema = z.object({
   districtID: z.number().min(1, { message: 'District is required' }),
   otherDistrict: z.string().optional(),
   taluk: z.string().min(1, { message: 'Taluk is required' }),
-  placeID: z.number().min(1, { message: 'Place is required' }),
   address: z.string().min(1, { message: 'Address is required' }),
   areaID: z.number().optional(),
 });

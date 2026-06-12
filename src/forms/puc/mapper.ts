@@ -41,13 +41,11 @@ export function pucMapper(formData: PucFormValues): FormData {
     fd.append('DateOfBirth', formatDate(formData.personal.dateOfBirth));
   }
 
-  if (formData.personal.gender) {
-    fd.append('GenderID', toString(formData.personal.gender));
-  }
+  // GenderID is required - always send it (default to 0 if not selected)
+  fd.append('GenderID', toString(formData.personal.genderID || 0));
 
-  if (formData.personal.caste) {
-    fd.append('CasteCategoryID', toString(formData.personal.caste));
-  }
+  // CasteCategoryID is required - always send it (default to 0 if not selected)
+  fd.append('CasteCategoryID', toString(formData.personal.casteCategoryID || 0));
 
   // Contact Information
   if (formData.contact.email) {
@@ -59,24 +57,19 @@ export function pucMapper(formData: PucFormValues): FormData {
   }
 
   if (formData.contact.alternatePhone) {
-    fd.append('AlternatePhone', formData.contact.alternatePhone);
+    fd.append('AlternateNumber', formData.contact.alternatePhone);
   }
 
   // Address Information
-  if (formData.address.district) {
-    fd.append('DistrictID', toString(formData.address.district));
-  }
+  // DistrictID is required - always send it
+  fd.append('DistrictID', toString(formData.address.districtID || 0));
 
   if (formData.address.otherDistrict) {
     fd.append('OtherDistrict', formData.address.otherDistrict);
   }
 
   if (formData.address.taluk) {
-    fd.append('Taluk', formData.address.taluk);
-  }
-
-  if (formData.address.place) {
-    fd.append('PlaceID', toString(formData.address.place));
+    fd.append('Taluka', formData.address.taluk);
   }
 
   if (formData.address.address) {
@@ -87,8 +80,9 @@ export function pucMapper(formData: PucFormValues): FormData {
     fd.append('Pincode', formData.address.pincode);
   }
 
-  if (formData.address.area) {
-    fd.append('Area', formData.address.area);
+  // AreaTypeID is optional
+  if (formData.address.areaID) {
+    fd.append('AreaTypeID', toString(formData.address.areaID));
   }
 
   // Family Information
@@ -99,6 +93,12 @@ export function pucMapper(formData: PucFormValues): FormData {
   if (formData.family.motherName) {
     fd.append('MotherName', formData.family.motherName);
   }
+
+  // FatherOccupationID is required - always send it
+  fd.append('FatherOccupationID', toString((formData.family as any).fatherOccupationID || 0));
+
+  // MotherOccupationID is required - always send it
+  fd.append('MotherOccupationID', toString((formData.family as any).motherOccupationID || 0));
 
   if (formData.family.familyMembers) {
     fd.append('FamilyMembers', toString(formData.family.familyMembers));
@@ -117,40 +117,32 @@ export function pucMapper(formData: PucFormValues): FormData {
   }
 
   // Category & Housing Information
-  if (formData.category.caste) {
-    fd.append('CasteCategoryID', toString(formData.category.caste));
-  }
+  // Note: CasteCategoryID already sent in Personal section
 
-  if (formData.category.houseType) {
-    fd.append('HouseTypeID', toString(formData.category.houseType));
-  }
+  // HouseTypeID is required - always send it
+  fd.append('HouseTypeID', toString(formData.category.houseTypeID || 0));
 
   if (formData.category.monthlyRent) {
     fd.append('MonthlyRent', formData.category.monthlyRent);
   }
 
-  if (formData.category.referenceSource) {
-    fd.append('ReferenceSourceID', toString(formData.category.referenceSource));
-  }
+  // ReferenceSourceID is required - always send it
+  fd.append('ReferenceSourceID', toString(formData.category.referenceSourceID || 0));
 
-  // ReferenceSourceOther is optional - add if provided
-  const referenceOther = (formData.category as any).referenceSourceOther;
-  if (referenceOther) {
-    fd.append('ReferenceSourceOther', referenceOther);
-  }
+  // ReferenceSourceOther is required by backend - always send it
+  const referenceOther = (formData.category as any).referenceSourceOther || '';
+  fd.append('ReferenceSourceOther', referenceOther);
 
   // Academic Information
-  if (formData.academic.course) {
-    fd.append('CourseID', toString(formData.academic.course));
-  }
+  // CourseID is required - always send it
+  fd.append('CourseID', toString(formData.academic.courseID || 0));
 
   if (formData.academic.collegeName) {
     fd.append('CollegeName', formData.academic.collegeName);
   }
 
-  if (formData.academic.collegeType) {
-    fd.append('CollegeTypeID', toString(formData.academic.collegeType));
-  }
+  // CollegeTypeID is required - always send it
+  fd.append('CollegeTypeID', toString(formData.academic.collegeTypeID || 0));
 
   if (formData.academic.expectedFees) {
     fd.append('ExpectedFees', toString(formData.academic.expectedFees));
@@ -164,14 +156,14 @@ export function pucMapper(formData: PucFormValues): FormData {
     fd.append('TotalMarks', toString(formData.academic.totalMarks));
   }
 
-  // Document Uploads
-  appendFileToFormData(fd, PUC_FILE_KEYS.SSLC_MARKS_CARD, formData.documents.sslcMarksCard);
-  appendFileToFormData(fd, PUC_FILE_KEYS.STUDENT_PHOTO, formData.documents.studentPhoto);
-  appendFileToFormData(fd, PUC_FILE_KEYS.ELECTRICITY_BILL, formData.documents.electricityBill);
-  appendFileToFormData(fd, PUC_FILE_KEYS.RATION_CARD, formData.documents.rationCard);
-  appendFileToFormData(fd, PUC_FILE_KEYS.INCOME_CERTIFICATE, formData.documents.incomeCert);
-  appendFileToFormData(fd, PUC_FILE_KEYS.FAMILY_PHOTO, formData.documents.familyPhoto);
-  appendFileToFormData(fd, PUC_FILE_KEYS.HOUSE_VIDEO, formData.documents.houseVideo);
+  // Document Uploads - pass the nested file object
+  appendFileToFormData(fd, PUC_FILE_KEYS.SSLC_MARKS_CARD, formData.documents.sslcMarksCard?.file);
+  appendFileToFormData(fd, PUC_FILE_KEYS.STUDENT_PHOTO, formData.documents.studentPhoto?.file);
+  appendFileToFormData(fd, PUC_FILE_KEYS.ELECTRICITY_BILL, formData.documents.electricityBill?.file);
+  appendFileToFormData(fd, PUC_FILE_KEYS.RATION_CARD, formData.documents.rationCard?.file);
+  appendFileToFormData(fd, PUC_FILE_KEYS.INCOME_CERTIFICATE, formData.documents.incomeCert?.file);
+  appendFileToFormData(fd, PUC_FILE_KEYS.FAMILY_PHOTO, formData.documents.familyPhoto?.file);
+  appendFileToFormData(fd, PUC_FILE_KEYS.HOUSE_VIDEO, formData.documents.houseVideo?.file);
 
   if (formData.documents.houseVisitLink) {
     fd.append('HouseVisitLink', formData.documents.houseVisitLink);

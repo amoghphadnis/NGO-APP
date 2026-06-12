@@ -79,6 +79,7 @@ const BEARER_REQUIRED_PATHS = [
   '/pucstudents',
   '/professionalstudents',
   '/payanastudents',
+  '/semiprofessionalstudent',
 ];
 
 /**

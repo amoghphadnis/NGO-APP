@@ -16,6 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/useAuthStore';
 import { dashboardApi } from '@/api/dashboardApi';
+import { pucStudentApi } from '@/api/pucStudentApi';
+import { payanaStudentApi } from '@/api/payanaStudentApi';
+import { professionalStudentApi } from '@/api/professionalStudentApi';
 import { PDashboardResponseDto, DashboardError, DashboardErrorCode } from '@/types/dashboard';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
@@ -34,10 +37,6 @@ const STAT_CARDS: StatCardConfig[] = [
   { label: 'Pending PUC',          field: 'PendingPUC',          icon: 'school-outline',         route: '/approval/puc' },
   { label: 'Pending Payana',       field: 'PendingPayana',        icon: 'bicycle-outline',        route: '/approval/payana' },
   { label: 'Pending Professional', field: 'PendingProfessional',  icon: 'briefcase-outline',      route: '/approval/professional' },
-  { label: 'Pending House PUC',    field: 'PendingHousePUC',      icon: 'home-outline',           route: '/approval/puc' },
-  { label: 'Pending House Payana', field: 'PendingHousePayana',   icon: 'home-outline',           route: '/approval/payana' },
-  { label: 'PUC Renewal',          field: 'PendingPUCRenewal',    icon: 'refresh-circle-outline', route: '/approval/puc' },
-  { label: 'Payana Renewal',       field: 'PendingPayanaRenewal', icon: 'refresh-circle-outline', route: '/approval/payana' },
 ];
 
 interface DrawerNavItem {
@@ -59,6 +58,12 @@ function SkeletonCard() {
   return <View style={styles.skeletonCard} />;
 }
 
+interface RealTimeCounts {
+  pendingPUC: number;
+  pendingPayana: number;
+  pendingProfessional: number;
+}
+
 interface DrawerProps {
   open: boolean;
   slideAnim: Animated.Value;
@@ -68,6 +73,7 @@ interface DrawerProps {
   onLogout: () => void;
   user: { UserName: string; Role: string; District: string } | null;
   dashboard: PDashboardResponseDto | null;
+  realTimeCounts: RealTimeCounts;
 }
 
 function DrawerSidebar({
@@ -79,37 +85,26 @@ function DrawerSidebar({
   onLogout,
   user,
   dashboard,
+  realTimeCounts,
 }: DrawerProps) {
   const navItems: DrawerNavItem[] = [
     {
       icon: 'school-outline',
-      label: 'PUC Students',
-      badge: dashboard?.PendingPUC ?? 0,
+      label: 'Pending PUC',
+      badge: realTimeCounts.pendingPUC,
       route: '/approval/puc',
     },
     {
       icon: 'bicycle-outline',
-      label: 'Payana Students',
-      badge: dashboard?.PendingPayana ?? 0,
+      label: 'Pending Payana',
+      badge: realTimeCounts.pendingPayana,
       route: '/approval/payana',
     },
     {
       icon: 'briefcase-outline',
-      label: 'Professional',
-      badge: dashboard?.PendingProfessional ?? 0,
+      label: 'Pending Professional',
+      badge: realTimeCounts.pendingProfessional,
       route: '/approval/professional',
-    },
-    {
-      icon: 'home-outline',
-      label: 'House Visits',
-      badge: (dashboard?.PendingHousePUC ?? 0) + (dashboard?.PendingHousePayana ?? 0),
-      route: '/approval/puc',
-    },
-    {
-      icon: 'refresh-circle-outline',
-      label: 'Renewals',
-      badge: (dashboard?.PendingPUCRenewal ?? 0) + (dashboard?.PendingPayanaRenewal ?? 0),
-      route: '/approval/puc',
     },
   ];
 
@@ -174,6 +169,11 @@ export default function PDashboardScreen() {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dashboard, setDashboard] = useState<PDashboardResponseDto | null>(null);
+  const [realTimeCounts, setRealTimeCounts] = useState<RealTimeCounts>({
+    pendingPUC: 0,
+    pendingPayana: 0,
+    pendingProfessional: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -212,11 +212,49 @@ export default function PDashboardScreen() {
     }, 260);
   }, [closeDrawer, logout, router]);
 
+  const fetchRealTimeCounts = useCallback(async () => {
+    try {
+      console.log('[PDashboard] Fetching real-time student counts...');
+      
+      const [pucResult, payanaResult, professionalResult] = await Promise.allSettled([
+        pucStudentApi.getList(),
+        payanaStudentApi.getList(),
+        professionalStudentApi.getList(),
+      ]);
+
+      const counts: RealTimeCounts = {
+        pendingPUC: 0,
+        pendingPayana: 0,
+        pendingProfessional: 0,
+      };
+
+      if (pucResult.status === 'fulfilled') {
+        counts.pendingPUC = pucResult.value.students?.length || 0;
+        console.log('[PDashboard] PUC students count:', counts.pendingPUC);
+      }
+
+      if (payanaResult.status === 'fulfilled') {
+        counts.pendingPayana = payanaResult.value.students?.length || 0;
+        console.log('[PDashboard] Payana students count:', counts.pendingPayana);
+      }
+
+      if (professionalResult.status === 'fulfilled') {
+        counts.pendingProfessional = professionalResult.value.students?.length || 0;
+        console.log('[PDashboard] Professional students count:', counts.pendingProfessional);
+      }
+
+      setRealTimeCounts(counts);
+    } catch (err) {
+      console.error('[PDashboard] Error fetching real-time counts:', err);
+    }
+  }, []);
+
   const fetchDashboard = useCallback(async () => {
     try {
       setError(null);
       const data = await dashboardApi.getPDashboard();
       setDashboard(data);
+      await fetchRealTimeCounts();
     } catch (e) {
       if (e instanceof DashboardError) {
         if (
@@ -235,7 +273,7 @@ export default function PDashboardScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [logout, router]);
+  }, [logout, router, fetchRealTimeCounts]);
 
   useEffect(() => {
     fetchDashboard();
@@ -246,6 +284,19 @@ export default function PDashboardScreen() {
     fetchDashboard();
   }, [fetchDashboard]);
 
+  const getCountForCard = (field: StatCardConfig['field']): number => {
+    switch (field) {
+      case 'PendingPUC':
+        return realTimeCounts.pendingPUC;
+      case 'PendingPayana':
+        return realTimeCounts.pendingPayana;
+      case 'PendingProfessional':
+        return realTimeCounts.pendingProfessional;
+      default:
+        return dashboard?.[field] ?? 0;
+    }
+  };
+
   const renderStatCard = ({ item }: { item: StatCardConfig }) => (
     <TouchableOpacity
       style={styles.statCard}
@@ -254,7 +305,7 @@ export default function PDashboardScreen() {
     >
       <Ionicons name={item.icon} size={24} color={colors.primary} style={styles.statIcon} />
       <Text style={styles.statCount}>
-        {dashboard ? String(dashboard[item.field]) : '—'}
+        {loading ? '—' : String(getCountForCard(item.field))}
       </Text>
       <Text style={styles.statLabel}>{item.label}</Text>
       <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} style={styles.statChevron} />
@@ -297,7 +348,7 @@ export default function PDashboardScreen() {
   );
 
   const renderFooter = () => (
-    <View style={styles.footerNote}>
+    <View style={styles.footerContainer}>
       <Text style={styles.footerCopyright}>Copyright © Vidya Poshak 2026</Text>
     </View>
   );
@@ -320,25 +371,30 @@ export default function PDashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={!loading && !error ? STAT_CARDS : []}
-        keyExtractor={(item) => item.field}
-        renderItem={renderStatCard}
-        numColumns={2}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-      />
+      <View style={styles.mainContent}>
+        <FlatList
+          data={!loading && !error ? STAT_CARDS : []}
+          keyExtractor={(item) => item.field}
+          renderItem={renderStatCard}
+          numColumns={2}
+          ListHeaderComponent={renderHeader}
+          columnWrapperStyle={styles.columnWrapper}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+            />
+          }
+          style={styles.flatList}
+        />
+        
+        {/* Sticky Footer */}
+        {renderFooter()}
+      </View>
 
       <DrawerSidebar
         open={drawerOpen}
@@ -349,6 +405,7 @@ export default function PDashboardScreen() {
         onLogout={handleDrawerLogout}
         user={user}
         dashboard={dashboard}
+        realTimeCounts={realTimeCounts}
       />
     </SafeAreaView>
   );
@@ -486,7 +543,19 @@ const styles = StyleSheet.create({
     fontSize: platform.normalize.fontSize.caption,
     fontWeight: '600',
   },
-  footerNote: { alignItems: 'center', paddingTop: spacing.lg },
+  mainContent: {
+    flex: 1,
+  },
+  flatList: {
+    flex: 1,
+  },
+  footerContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
   footerCopyright: {
     fontSize: platform.normalize.fontSize.small,
     lineHeight: platform.normalize.lineHeight.small,

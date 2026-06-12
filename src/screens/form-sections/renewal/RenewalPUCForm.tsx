@@ -102,7 +102,6 @@ export default function RenewalPUCForm({ navigation }: Props) {
       bankName: '',
       branchName: '',
       parentBankBalance: 0,
-      houseVisitLink: '',
       renewalPreviousVPID: '',
     },
   });
@@ -785,21 +784,6 @@ export default function RenewalPUCForm({ navigation }: Props) {
           <FormSectionHeader icon="link" title="Additional Information" />
 
           <FormCard>
-            <Controller
-              control={control}
-              name="houseVisitLink"
-              render={({ field: { onChange, value } }) => (
-                <VPInputField
-                  label="House Visit Google Link"
-                  value={value ?? ''}
-                  onChangeText={onChange}
-                  placeholder="Paste Google Maps link"
-                  keyboardType="url"
-                  autoCapitalize="none"
-                  error={formState.errors.houseVisitLink?.message}
-                />
-              )}
-            />
             <Controller
               control={control}
               name="renewalPreviousVPID"

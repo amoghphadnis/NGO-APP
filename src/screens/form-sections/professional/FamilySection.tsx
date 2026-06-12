@@ -131,10 +131,11 @@ export default function FamilySection({ navigation }: any) {
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Total Family Members"
-              value={value?.toString() ?? ''}
+              value={value === undefined || value === null ? '' : String(value)}
               onChangeText={(text) => {
-                const num = parseInt(text.replace(/[^0-9]/g, ''), 10);
-                onChange(isNaN(num) ? 1 : num);
+                const cleanText = text.replace(/[^0-9]/g, '');
+                const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
+                onChange(num);
               }}
               placeholder="Enter total family members"
               keyboardType="numeric"

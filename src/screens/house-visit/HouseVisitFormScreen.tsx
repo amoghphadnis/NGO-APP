@@ -23,6 +23,91 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { houseVisitApi } from '@/api/houseVisitApi';
+import { pickDocument } from '@/utils/filePicker';
+
+// ============================================================================
+// Reusable Form Components (defined outside main component to prevent re-renders)
+// ============================================================================
+
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  multiline?: boolean;
+}
+
+const InputField = React.memo(function InputField({ label, value, onChange, placeholder, multiline }: InputFieldProps) {
+  return (
+    <View style={styles.formGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={[styles.input, multiline && styles.inputMultiline]}
+        value={value}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        multiline={multiline}
+        numberOfLines={multiline ? 3 : 1}
+      />
+    </View>
+  );
+});
+
+interface CheckboxGroupProps {
+  label: string;
+  options: string[];
+  values: string[];
+  onToggle: (value: string) => void;
+}
+
+const CheckboxGroup = React.memo(function CheckboxGroup({ label, options, values, onToggle }: CheckboxGroupProps) {
+  return (
+    <View style={styles.formGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.checkboxRow}>
+        {options.map((opt) => (
+          <TouchableOpacity
+            key={opt}
+            style={[styles.checkbox, values.includes(opt) && styles.checkboxSelected]}
+            onPress={() => onToggle(opt)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.checkboxText, values.includes(opt) && styles.checkboxTextSelected]}>
+              {opt}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+});
+
+interface RadioGroupProps {
+  label: string;
+  options: string[];
+  value: string;
+  onSelect: (value: string) => void;
+}
+
+const RadioGroup = React.memo(function RadioGroup({ label, options, value, onSelect }: RadioGroupProps) {
+  return (
+    <View style={styles.formGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.checkboxRow}>
+        {options.map((opt) => (
+          <TouchableOpacity
+            key={opt}
+            style={[styles.checkbox, value === opt && styles.checkboxSelected]}
+            onPress={() => onSelect(opt)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.checkboxText, value === opt && styles.checkboxTextSelected]}>{opt}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+});
 
 export default function HouseVisitFormScreen() {
   const router = useRouter();
@@ -43,7 +128,7 @@ export default function HouseVisitFormScreen() {
     studentName: initialStudentName,
     courseInstitution: '',
     address: '',
-    visitDate: new Date().toISOString().slice(0, 16),
+    visitDate: new Date().toISOString(), // Store as ISO string
     fieldSupervisor: '',
     personsInteracted: '',
 
@@ -113,7 +198,7 @@ export default function HouseVisitFormScreen() {
     // Section L: Declaration
     declaration: '',
     declarationDate: new Date().toISOString().split('T')[0],
-    uploadedFiles: [] as any[],
+    uploadedFiles: [] as { uri: string; name: string; type: string; size: number }[],
   });
 
   const updateField = (field: string, value: any) => {
@@ -142,6 +227,24 @@ export default function HouseVisitFormScreen() {
     setFormData((prev) => ({
       ...prev,
       familyMembers: [...prev.familyMembers, { name: '', relation: '', age: '', education: '', occupation: '', income: '' }],
+    }));
+  };
+
+  const handleFilePick = async () => {
+    const file = await pickDocument();
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        uploadedFiles: [...prev.uploadedFiles, file],
+      }));
+      Alert.alert('Success', `File "${file.name}" selected successfully`);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      uploadedFiles: prev.uploadedFiles.filter((_, i) => i !== index),
     }));
   };
 
@@ -215,7 +318,11 @@ export default function HouseVisitFormScreen() {
         DeclarationDate: formData.declarationDate,
       };
 
+      console.log('[HouseVisit] Submitting payload:', JSON.stringify(payload, null, 2));
+      
       const response = await houseVisitApi.create(payload);
+
+      console.log('[HouseVisit] API response:', JSON.stringify(response, null, 2));
 
       if (response.success) {
         Alert.alert(
@@ -226,62 +333,16 @@ export default function HouseVisitFormScreen() {
       } else {
         Alert.alert('Error', response.message || 'Failed to submit form');
       }
-    } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+    } catch (error: any) {
+      console.error('[HouseVisit] Submit error:', error);
+      Alert.alert(
+        'Error',
+        error?.message || 'An unexpected error occurred. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const CheckboxGroup = ({ label, options, values, field }: { label: string; options: string[]; values: string[]; field: string }) => (
-    <View style={styles.formGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.checkboxRow}>
-        {options.map((opt) => (
-          <TouchableOpacity
-            key={opt}
-            style={[styles.checkbox, values.includes(opt) && styles.checkboxSelected]}
-            onPress={() => toggleArrayValue(field, opt)}
-          >
-            <Text style={[styles.checkboxText, values.includes(opt) && styles.checkboxTextSelected]}>
-              {opt}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-
-  const RadioGroup = ({ label, options, value, field }: { label: string; options: string[]; value: string; field: string }) => (
-    <View style={styles.formGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.checkboxRow}>
-        {options.map((opt) => (
-          <TouchableOpacity
-            key={opt}
-            style={[styles.checkbox, value === opt && styles.checkboxSelected]}
-            onPress={() => updateField(field, opt)}
-          >
-            <Text style={[styles.checkboxText, value === opt && styles.checkboxTextSelected]}>{opt}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-
-  const InputField = ({ label, value, onChange, placeholder, multiline }: any) => (
-    <View style={styles.formGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        style={[styles.input, multiline && styles.inputMultiline]}
-        value={value}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        multiline={multiline}
-        numberOfLines={multiline ? 3 : 1}
-      />
-    </View>
-  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -309,27 +370,23 @@ export default function HouseVisitFormScreen() {
           {/* Date & Time Picker */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Date & Time of Visit *</Text>
-            <TouchableOpacity style={styles.dateTimeButton} onPress={() => setShowDatePicker(true)}>
+            <TouchableOpacity 
+              style={styles.dateTimeButton} 
+              onPress={() => {
+                if (Platform.OS === 'android') {
+                  // Android opens native dialog automatically
+                  setShowDatePicker(true);
+                } else {
+                  setShowDatePicker(!showDatePicker);
+                }
+              }}
+            >
               <Ionicons name="calendar" size={20} color={colors.primary} />
               <Text style={styles.dateTimeText}>
-                {formData.visitDate ? new Date(formData.visitDate).toLocaleString() : 'Select Date & Time'}
+                {formData.visitDate ? new Date(formData.visitDate).toLocaleString() : 'Tap to select Date & Time'}
               </Text>
             </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={formData.visitDate ? new Date(formData.visitDate) : new Date()}
-                mode="datetime"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={(event, selectedDate) => {
-                  if (Platform.OS === 'android') {
-                    setShowDatePicker(false);
-                  }
-                  if (selectedDate) {
-                    updateField('visitDate', selectedDate.toISOString().slice(0, 16));
-                  }
-                }}
-              />
-            )}
+            {/* iOS Date Picker shown as overlay outside ScrollView */}
           </View>
 
           <InputField label="Field Supervisor Name" value={formData.fieldSupervisor} onChange={(v: string) => updateField('fieldSupervisor', v)} placeholder="Enter supervisor name" />
@@ -339,14 +396,14 @@ export default function HouseVisitFormScreen() {
         {/* Section B: Housing & Living Conditions */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>B. Housing & Living Conditions</Text>
-          <CheckboxGroup label="Type of House" options={['Kutcha', 'Semi-Pucca', 'Pucca']} values={formData.houseType} field="houseType" />
-          <CheckboxGroup label="Ownership" options={['Own', 'Rented', "Relative's", 'Government Housing']} values={formData.ownership} field="ownership" />
-          <CheckboxGroup label="Rooms" options={['1', '2', 'More than 3']} values={formData.rooms} field="rooms" />
-          <CheckboxGroup label="Floor" options={['Ground', '1', '2', '3+']} values={formData.floor} field="floor" />
+          <CheckboxGroup label="Type of House" options={['Kutcha', 'Semi-Pucca', 'Pucca']} values={formData.houseType} onToggle={(v) => toggleArrayValue('houseType', v)} />
+          <CheckboxGroup label="Ownership" options={['Own', 'Rented', "Relative's", 'Government Housing']} values={formData.ownership} onToggle={(v) => toggleArrayValue('ownership', v)} />
+          <CheckboxGroup label="Rooms" options={['1', '2', 'More than 3']} values={formData.rooms} onToggle={(v) => toggleArrayValue('rooms', v)} />
+          <CheckboxGroup label="Floor" options={['Ground', '1', '2', '3+']} values={formData.floor} onToggle={(v) => toggleArrayValue('floor', v)} />
           <Text style={styles.sectionTitle}>Social Data</Text>
-          <RadioGroup label="Ration Card Type" options={['BPL', 'PHH', 'NPHH', 'APL']} value={formData.rationCard} field="rationCard" />
-          <RadioGroup label="Digital & Learning Access" options={['Smartphone', 'Keypad', 'iPhone', 'Laptop / Tablet']} value={formData.digitalAccess} field="digitalAccess" />
-          <CheckboxGroup label="General Living Condition" options={['Poor', 'Average', 'Satisfactory']} values={formData.livingCondition} field="livingCondition" />
+          <RadioGroup label="Ration Card Type" options={['BPL', 'PHH', 'NPHH', 'APL']} value={formData.rationCard} onSelect={(v) => updateField('rationCard', v)} />
+          <RadioGroup label="Digital & Learning Access" options={['Smartphone', 'Keypad', 'iPhone', 'Laptop / Tablet']} value={formData.digitalAccess} onSelect={(v) => updateField('digitalAccess', v)} />
+          <CheckboxGroup label="General Living Condition" options={['Poor', 'Average', 'Satisfactory']} values={formData.livingCondition} onToggle={(v) => toggleArrayValue('livingCondition', v)} />
           <InputField label="Latest Electricity Bill Amount" value={formData.latestElecBill} onChange={(v: string) => updateField('latestElecBill', v)} placeholder="Enter amount" />
           <InputField label="Electricity Units Consumed" value={formData.elecUnitsCons} onChange={(v: string) => updateField('elecUnitsCons', v)} placeholder="Enter units" />
           <InputField label="Internet Bill Charges" value={formData.internetBillCharges} onChange={(v: string) => updateField('internetBillCharges', v)} placeholder="Enter amount" />
@@ -377,19 +434,19 @@ export default function HouseVisitFormScreen() {
         {/* Section D: Income & Livelihood */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>D. Income Stability & Livelihood</Text>
-          <CheckboxGroup label="Primary Income Source" options={['Daily Wage', 'Agriculture', 'Private Job', 'Self-Employed', 'Pension']} values={formData.primaryIncome} field="primaryIncome" />
-          <CheckboxGroup label="Nature of Income" options={['Regular', 'Irregular', 'Seasonal']} values={formData.natureOfIncome} field="natureOfIncome" />
+          <CheckboxGroup label="Primary Income Source" options={['Daily Wage', 'Agriculture', 'Private Job', 'Self-Employed', 'Pension']} values={formData.primaryIncome} onToggle={(v) => toggleArrayValue('primaryIncome', v)} />
+          <CheckboxGroup label="Nature of Income" options={['Regular', 'Irregular', 'Seasonal']} values={formData.natureOfIncome} onToggle={(v) => toggleArrayValue('natureOfIncome', v)} />
           <InputField label="Primary Earning Person" value={formData.primaryEarningPerson} onChange={(v: string) => updateField('primaryEarningPerson', v)} placeholder="Enter name of primary earner" />
           <InputField label="Average Monthly Income" value={formData.averageIncome} onChange={(v: string) => updateField('averageIncome', v)} placeholder="Enter average income" />
-          <CheckboxGroup label="Income Shocks Experienced" options={['Job Loss', 'Crop Failure', 'Health Emergency']} values={formData.incomeShocks} field="incomeShocks" />
+          <CheckboxGroup label="Income Shocks Experienced" options={['Job Loss', 'Crop Failure', 'Health Emergency']} values={formData.incomeShocks} onToggle={(v) => toggleArrayValue('incomeShocks', v)} />
         </View>
 
         {/* Section E: Land Holdings */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>E. Land & Other Holdings</Text>
-          <CheckboxGroup label="Agricultural Land" options={['Dry Land', 'Irrigated Land', 'Farm']} values={formData.agriculturalLand} field="agriculturalLand" />
-          <CheckboxGroup label="Water Source" options={['Rainwater', 'Borewell', 'Canal', 'Other']} values={formData.waterSource} field="waterSource" />
-          <CheckboxGroup label="Crop Pattern" options={['Rabi', 'Kharif', 'Summer']} values={formData.cropPattern} field="cropPattern" />
+          <CheckboxGroup label="Agricultural Land" options={['Dry Land', 'Irrigated Land', 'Farm']} values={formData.agriculturalLand} onToggle={(v) => toggleArrayValue('agriculturalLand', v)} />
+          <CheckboxGroup label="Water Source" options={['Rainwater', 'Borewell', 'Canal', 'Other']} values={formData.waterSource} onToggle={(v) => toggleArrayValue('waterSource', v)} />
+          <CheckboxGroup label="Crop Pattern" options={['Rabi', 'Kharif', 'Summer']} values={formData.cropPattern} onToggle={(v) => toggleArrayValue('cropPattern', v)} />
           <InputField label="Other Land Holdings" value={formData.otherLandHoldings} onChange={(v: string) => updateField('otherLandHoldings', v)} placeholder="Enter other land holdings" />
         </View>
 
@@ -398,7 +455,7 @@ export default function HouseVisitFormScreen() {
           <Text style={styles.sectionTitle}>F. Educational Expenses</Text>
           <InputField label="Total Children Studying" value={formData.totalChildrenStudying} onChange={(v: string) => updateField('totalChildrenStudying', v)} placeholder="Enter number of children" />
           <InputField label="Annual Education Expense" value={formData.annualEducationExpense} onChange={(v: string) => updateField('annualEducationExpense', v)} placeholder="Enter annual expense" />
-          <RadioGroup label="Scholarship Support" options={['Yes', 'No']} value={formData.scholarshipSupport} field="scholarshipSupport" />
+          <RadioGroup label="Scholarship Support" options={['Yes', 'No']} value={formData.scholarshipSupport} onSelect={(v) => updateField('scholarshipSupport', v)} />
           <InputField label="Government Schemes" value={formData.governmentSchemes} onChange={(v: string) => updateField('governmentSchemes', v)} placeholder="Enter government schemes if any" />
         </View>
 
@@ -406,7 +463,7 @@ export default function HouseVisitFormScreen() {
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>G. Debt & Financial Stress</Text>
           <InputField label="Educational Loan Amount" value={formData.educationalLoanAmount} onChange={(v: string) => updateField('educationalLoanAmount', v)} placeholder="Enter loan amount" />
-          <CheckboxGroup label="Any Outstanding Loans" options={['Bank', 'SHG', 'Private', 'Moneylender']} values={formData.outstandingLoans} field="outstandingLoans" />
+          <CheckboxGroup label="Any Outstanding Loans" options={['Bank', 'SHG', 'Private', 'Moneylender']} values={formData.outstandingLoans} onToggle={(v) => toggleArrayValue('outstandingLoans', v)} />
           <InputField label="Outstanding Loan Amount" value={formData.outstandingLoanAmount} onChange={(v: string) => updateField('outstandingLoanAmount', v)} placeholder="Enter outstanding amount" />
           <InputField label="Monthly EMI" value={formData.monthlyEMI} onChange={(v: string) => updateField('monthlyEMI', v)} placeholder="Enter monthly EMI" />
         </View>
@@ -414,31 +471,31 @@ export default function HouseVisitFormScreen() {
         {/* Section H: Health Vulnerability */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>H. Health & Social Vulnerability</Text>
-          <RadioGroup label="Vulnerability Type" options={['Chronic Illness', 'Disability', 'Single Parent', 'Orphan/Guardian', 'Elderly Dependents']} value={formData.vulnerability} field="vulnerability" />
+          <RadioGroup label="Vulnerability Type" options={['Chronic Illness', 'Disability', 'Single Parent', 'Orphan/Guardian', 'Elderly Dependents']} value={formData.vulnerability} onSelect={(v) => updateField('vulnerability', v)} />
           <InputField label="Remarks" value={formData.healthRemarks} onChange={(v: string) => updateField('healthRemarks', v)} placeholder="Enter remarks on health vulnerability" multiline />
         </View>
 
         {/* Section I: Assets & Digital Learning */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>I. Assets & Digital Learning Access</Text>
-          <CheckboxGroup label="Assets" options={['Tractor', 'Car', 'Livestock', 'Two-wheeler', 'Other']} values={formData.assets} field="assets" />
+          <CheckboxGroup label="Assets" options={['Tractor', 'Car', 'Livestock', 'Two-wheeler', 'Other']} values={formData.assets} onToggle={(v) => toggleArrayValue('assets', v)} />
         </View>
 
         {/* Section J: Student Development */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>J. Student Development & Participation</Text>
-          <CheckboxGroup label="Extracurricular" options={['Sports', 'NSS', 'NMMS Exam', 'Dance', 'Debate', 'Music', 'Other', 'No Participation']} values={formData.extracurricular} field="extracurricular" />
+          <CheckboxGroup label="Extracurricular" options={['Sports', 'NSS', 'NMMS Exam', 'Dance', 'Debate', 'Music', 'Other', 'No Participation']} values={formData.extracurricular} onToggle={(v) => toggleArrayValue('extracurricular', v)} />
           <InputField label="Student Aspiration" value={formData.studentAspiration} onChange={(v: string) => updateField('studentAspiration', v)} placeholder="Enter student aspirations" />
-          <RadioGroup label="Consent for Participation" options={['Yes', 'No']} value={formData.consentParticipation} field="consentParticipation" />
+          <RadioGroup label="Consent for Participation" options={['Yes', 'No']} value={formData.consentParticipation} onSelect={(v) => updateField('consentParticipation', v)} />
           <InputField label="Remarks" value={formData.studentDevRemarks} onChange={(v: string) => updateField('studentDevRemarks', v)} placeholder="Enter remarks" multiline />
         </View>
 
         {/* Section K: Supervisor Assessment */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>K. Supervisor's Assessment</Text>
-          <CheckboxGroup label="Household Vulnerability Level" options={['High', 'Moderate', 'Low']} values={formData.vulnerabilityLevel} field="vulnerabilityLevel" />
-          <RadioGroup label="Student Motivation" options={['High', 'Average', 'Needs Support']} value={formData.studentMotivation} field="studentMotivation" />
-          <CheckboxGroup label="Recommendation" options={['Strongly Recommended', 'Recommended', 'Not Recommended']} values={formData.recommendation} field="recommendation" />
+          <CheckboxGroup label="Household Vulnerability Level" options={['High', 'Moderate', 'Low']} values={formData.vulnerabilityLevel} onToggle={(v) => toggleArrayValue('vulnerabilityLevel', v)} />
+          <RadioGroup label="Student Motivation" options={['High', 'Average', 'Needs Support']} value={formData.studentMotivation} onSelect={(v) => updateField('studentMotivation', v)} />
+          <CheckboxGroup label="Recommendation" options={['Strongly Recommended', 'Recommended', 'Not Recommended']} values={formData.recommendation} onToggle={(v) => toggleArrayValue('recommendation', v)} />
           <InputField label="Justification" value={formData.justification} onChange={(v: string) => updateField('justification', v)} placeholder="Enter justification for recommendation" multiline />
         </View>
 
@@ -474,11 +531,29 @@ export default function HouseVisitFormScreen() {
           </View>
           <View style={styles.uploadSection}>
             <Text style={styles.label}>Upload Documents / Photos</Text>
-            <TouchableOpacity style={styles.uploadButton} onPress={() => Alert.alert('Upload', 'Document picker would open here')}>
+            <TouchableOpacity style={styles.uploadButton} onPress={handleFilePick}>
               <Ionicons name="camera" size={20} color="#FFFFFF" />
               <Text style={styles.uploadButtonText}>Select Files</Text>
             </TouchableOpacity>
             <Text style={styles.uploadHint}>Upload house visit photos, documents, or supporting evidence</Text>
+            
+            {/* Display selected files */}
+            {formData.uploadedFiles.length > 0 && (
+              <View style={styles.selectedFilesContainer}>
+                <Text style={styles.selectedFilesTitle}>Selected Files:</Text>
+                {formData.uploadedFiles.map((file, index) => (
+                  <React.Fragment key={`file-${index}`}>
+                    <View style={styles.fileItem}>
+                      <Ionicons name="document-outline" size={16} color={colors.primary} />
+                      <Text style={styles.fileName} numberOfLines={1}>{file.name}</Text>
+                      <TouchableOpacity onPress={() => removeFile(index)} style={styles.removeFileButton}>
+                        <Ionicons name="close-circle" size={20} color={colors.error} />
+                      </TouchableOpacity>
+                    </View>
+                  </React.Fragment>
+                ))}
+              </View>
+            )}
           </View>
         </View>
 
@@ -489,12 +564,39 @@ export default function HouseVisitFormScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* iOS DateTimePicker Overlay - Outside ScrollView */}
+      {showDatePicker && Platform.OS === 'ios' && (
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerBackdrop} />
+          <View style={styles.pickerSheet}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Date & Time</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Text style={styles.pickerDone}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <DateTimePicker
+              value={formData.visitDate ? new Date(formData.visitDate) : new Date()}
+              mode="datetime"
+              display="spinner"
+              style={styles.datePicker}
+              textColor="#000000"
+              onChange={(event, selectedDate) => {
+                if (selectedDate) {
+                  updateField('visitDate', selectedDate.toISOString());
+                }
+              }}
+            />
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.background, position: 'relative' },
   header: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   backButton: { padding: spacing.xs, marginRight: spacing.sm },
   headerTitle: { flex: 1, fontSize: 18, fontWeight: '600', color: '#FFFFFF' },
@@ -523,7 +625,71 @@ const styles = StyleSheet.create({
   uploadButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, padding: spacing.sm, borderRadius: 8, gap: spacing.xs, marginTop: spacing.sm },
   uploadButtonText: { color: '#FFFFFF', fontWeight: '500' },
   uploadHint: { fontSize: 12, color: colors.textSecondary, marginTop: spacing.sm, textAlign: 'center' },
-  dateTimeButton: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: spacing.sm, backgroundColor: '#F9FAFB' },
-  dateTimeText: { fontSize: 14, color: '#111827', fontWeight: '500' },
+  selectedFilesContainer: { marginTop: spacing.md },
+  selectedFilesTitle: { fontSize: 14, fontWeight: '600', color: colors.textPrimary, marginBottom: spacing.xs },
+  fileItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: spacing.sm, borderRadius: 6, marginBottom: spacing.xs, borderWidth: 1, borderColor: colors.border },
+  fileName: { flex: 1, fontSize: 13, color: colors.textPrimary, marginLeft: spacing.xs, marginRight: spacing.xs },
+  removeFileButton: { padding: 2 },
+  dateTimeButton: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: spacing.sm, 
+    borderWidth: 1.5, 
+    borderColor: '#9CA3AF', 
+    borderRadius: 8, 
+    padding: spacing.sm, 
+    backgroundColor: '#FFFFFF',
+    minHeight: 44,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  dateTimeText: { fontSize: 14, color: colors.textPrimary, fontWeight: '500' },
   dateTimePlaceholder: { fontSize: 14, color: colors.textSecondary },
+  datePicker: {
+    height: 200,
+  },
+  pickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'flex-end',
+    zIndex: 999,
+  },
+  pickerBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  pickerSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 30,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  pickerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  pickerDone: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+  },
 });

@@ -69,7 +69,7 @@ export async function submitRenewalPuc(
     attendedCamp: formData.attendedCamp,
     campCount: formData.campCount ?? 0,
     campPlace: formData.campPlace || '',
-    campDate: formData.campDate || '',
+    campDate: formData.campDate || '1900-01-01',
     vdssAttended: formData.vdssAttended || '',
     vdss_Topics: formData.vdss_Topics || '',
     accountHolderName: formData.accountHolderName,
@@ -78,31 +78,30 @@ export async function submitRenewalPuc(
     bankName: formData.bankName,
     branchName: formData.branchName,
     parentBankBalance: formData.parentBankBalance ?? 0,
-    houseVisitLink: formData.houseVisitLink || '',
     renewalPreviousVPID: formData.renewalPreviousVPID || '',
   };
 
-  const response = await fetch(`${API_BASE_URL}/renewalpuc/create`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const response = await api.post('/renewalpuc/create', payload);
+    
+    const data = response.data;
+    
+    if (!data.Success && !data.success) {
+      throw new Error(data.Message || data.message || 'Submission failed');
+    }
 
-  if (response.status === 400) {
-    const data = await response.json();
-    throw new Error(data.message || 'This email already exists.');
+    return {
+      success: true,
+      message: data.Message || data.message || 'Renewal submitted successfully',
+      renewalId: data.RenewalId ?? data.renewalId,
+    };
+  } catch (error: any) {
+    console.error('[submitRenewalPuc] Error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      payload: payload,
+    });
+    throw error;
   }
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({ message: 'Server error' }));
-    throw new Error(data.message || `Submission failed: ${response.statusText}`);
-  }
-
-  const data: RenewalPucSubmitResponse = await response.json();
-
-  if (!data.success) {
-    throw new Error(data.message || 'Submission failed');
-  }
-
-  return data;
 }

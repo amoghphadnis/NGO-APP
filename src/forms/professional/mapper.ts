@@ -71,9 +71,8 @@ export function professionalMapper(formData: ProfessionalFormValues): FormData {
     fd.append('Taluk', formData.address.Taluk);
   }
 
-  if (formData.address.PlaceID) {
-    fd.append('PlaceID', toString(formData.address.PlaceID));
-  }
+  // Always send PlaceID - backend requires it as mandatory field
+  fd.append('PlaceID', toString(formData.address.PlaceID || 0));
 
   if (formData.address.Address) {
     fd.append('Address', formData.address.Address);
@@ -128,22 +127,23 @@ export function professionalMapper(formData: ProfessionalFormValues): FormData {
   }
 
   // Document Uploads - All 16 documents
-  appendFileToFormData(fd, 'PUCMarksCard', formData.documents.PUCMarksCard);
-  appendFileToFormData(fd, 'IncomeCertificate', formData.documents.IncomeCertificate);
-  appendFileToFormData(fd, 'Rationcard', formData.documents.Rationcard);
-  appendFileToFormData(fd, 'Electricitybill', formData.documents.Electricitybill);
-  appendFileToFormData(fd, 'CollegeID', formData.documents.CollegeID);
-  appendFileToFormData(fd, 'Admissionproof', formData.documents.Admissionproof);
-  appendFileToFormData(fd, 'FeesReceipts', formData.documents.FeesReceipts);
-  appendFileToFormData(fd, 'Expenditure', formData.documents.Expenditure);
-  appendFileToFormData(fd, 'Studentphoto', formData.documents.Studentphoto);
-  appendFileToFormData(fd, 'Photoinfrontofcollege', formData.documents.Photoinfrontofcollege);
-  appendFileToFormData(fd, 'Dwellingunit', formData.documents.Dwellingunit);
-  appendFileToFormData(fd, 'CET', formData.documents.CET);
-  appendFileToFormData(fd, 'Studentpass', formData.documents.Studentpass);
-  appendFileToFormData(fd, 'Monthsbank', formData.documents.Monthsbank);
-  appendFileToFormData(fd, 'AadharCard', formData.documents.AadharCard);
-  appendFileToFormData(fd, 'Handwritten', formData.documents.Handwritten);
+  // Pass the nested file object, not the wrapper { file, uploadedAt }
+  appendFileToFormData(fd, 'PUCMarksCard', formData.documents.PUCMarksCard?.file);
+  appendFileToFormData(fd, 'IncomeCertificate', formData.documents.IncomeCertificate?.file);
+  appendFileToFormData(fd, 'Rationcard', formData.documents.Rationcard?.file);
+  appendFileToFormData(fd, 'Electricitybill', formData.documents.Electricitybill?.file);
+  appendFileToFormData(fd, 'CollegeID', formData.documents.CollegeID?.file);
+  appendFileToFormData(fd, 'Admissionproof', formData.documents.Admissionproof?.file);
+  appendFileToFormData(fd, 'FeesReceipts', formData.documents.FeesReceipts?.file);
+  appendFileToFormData(fd, 'Expenditure', formData.documents.Expenditure?.file);
+  appendFileToFormData(fd, 'Studentphoto', formData.documents.Studentphoto?.file);
+  appendFileToFormData(fd, 'Photoinfrontofcollege', formData.documents.Photoinfrontofcollege?.file);
+  appendFileToFormData(fd, 'Dwellingunit', formData.documents.Dwellingunit?.file);
+  appendFileToFormData(fd, 'CET', formData.documents.CET?.file);
+  appendFileToFormData(fd, 'Studentpass', formData.documents.Studentpass?.file);
+  appendFileToFormData(fd, 'Monthsbank', formData.documents.Monthsbank?.file);
+  appendFileToFormData(fd, 'AadharCard', formData.documents.AadharCard?.file);
+  appendFileToFormData(fd, 'Handwritten', formData.documents.Handwritten?.file);
 
   // Debug: log file attachments
   console.log('[professionalMapper] Documents attached:', {

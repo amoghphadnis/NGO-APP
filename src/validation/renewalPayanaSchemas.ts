@@ -49,9 +49,6 @@ export const renewalPayanaSchema = z.object({
   bankName: z.string().min(1, { message: 'Bank name is required' }),
   branch: z.string().min(1, { message: 'Branch name is required' }),
 
-  // Additional
-  houseVisitLink: z.string().optional().or(z.literal('')),
-
   // Documents
   marksheetFile: z.custom<UploadedDocument>().optional(),
   feesReceiptFile: z.custom<UploadedDocument>().optional(),

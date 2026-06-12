@@ -17,6 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import StudentRowSkeleton, { TABLE_WIDTH } from '@/components/approval/StudentRowSkeleton';
 import VolunteerStudentRow from '@/components/volunteer/VolunteerStudentRow';
+import StudentDetailModal from '@/components/student/StudentDetailModal';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
@@ -106,6 +107,8 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
   const [searchText, setSearchText] = useState('');
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | undefined>();
   const [showDistrictDropdown, setShowDistrictDropdown] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<StudentListViewModel | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   // Build query params
   const queryParams: StudentListQueryParams = {
@@ -152,6 +155,18 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
     router.push(link as any);
   }, [router]);
 
+  // Handle view student details
+  const handleViewStudent = useCallback((student: StudentListViewModel) => {
+    setSelectedStudent(student);
+    setModalVisible(true);
+  }, []);
+
+  // Close modal
+  const handleCloseModal = useCallback(() => {
+    setModalVisible(false);
+    setSelectedStudent(null);
+  }, []);
+
   // Handle search
   const handleSearch = () => {
     // Search is debounced automatically via useQuery
@@ -185,6 +200,7 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
     <VolunteerStudentRow
       student={item}
       onHouseVisit={handleHouseVisit}
+      onView={handleViewStudent}
     />
   );
 
@@ -249,6 +265,13 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
       </View>
 
       <View style={styles.body}>
+        {/* Student Detail Modal */}
+        <StudentDetailModal
+          visible={modalVisible}
+          student={selectedStudent}
+          onClose={handleCloseModal}
+        />
+
         {/* Page heading */}
         <Text style={styles.pageHeading}>{title}</Text>
 

@@ -4,6 +4,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet } from 'react-native';
 
 import { getPayanaDropdowns } from '@/api/payanaApi';
+import { getPUCDropdowns } from '@/api/pucApi';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
@@ -25,20 +26,28 @@ export default function AcademicSection({ navigation }: AcademicSectionProps) {
 
   useEffect(() => {
     async function loadDropdowns() {
-      const response = await getPayanaDropdowns();
-      console.log('[Payana AcademicSection] Dropdown response:', response);
-      if (response.success && response.data) {
-        setCourseOptions(response.data.courses?.map((c: any) => ({
+      // Load college types from Payana dropdowns
+      const payanaResponse = await getPayanaDropdowns();
+      console.log('[Payana AcademicSection] Payana dropdown response:', payanaResponse);
+      if (payanaResponse.success && payanaResponse.data) {
+        setCollegeTypeOptions(payanaResponse.data.collegeTypes?.map((c: any) => ({
           value: Number(c.value),
           label: c.label
         })) || []);
-        setCollegeTypeOptions(response.data.collegeTypes?.map((c: any) => ({
-          value: Number(c.value),
-          label: c.label
-        })) || []);
-        console.log('[Payana AcademicSection] Course options:', response.data.courses);
-        console.log('[Payana AcademicSection] College type options:', response.data.collegeTypes);
+        console.log('[Payana AcademicSection] College type options:', payanaResponse.data.collegeTypes);
       }
+
+      // Load courses from general student dropdowns (Payana endpoint doesn't have courses)
+      const pucResponse = await getPUCDropdowns();
+      console.log('[Payana AcademicSection] PUC dropdown response:', pucResponse);
+      if (pucResponse.success && pucResponse.data) {
+        setCourseOptions(pucResponse.data.courses?.map((c: any) => ({
+          value: Number(c.value),
+          label: c.label
+        })) || []);
+        console.log('[Payana AcademicSection] Course options:', pucResponse.data.courses);
+      }
+
       setLoadingDropdowns(false);
     }
     loadDropdowns();

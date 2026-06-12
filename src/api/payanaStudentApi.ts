@@ -61,6 +61,8 @@ export async function getPayanaStudentList(
   // Transform PascalCase API response to camelCase
   const data = response.data as any;
 
+  console.log('[PayanaStudentApi] Raw response data:', JSON.stringify(data, null, 2));
+
   const transformStudent = (s: any) => ({
     studentID: s.StudentID,
     studentName: s.StudentName,
@@ -83,9 +85,15 @@ export async function getPayanaStudentList(
     districtName: d.DistrictName,
   });
 
+  // API returns data in "Data" field, not "Students"
+  const studentsArray = data.Data || data.Students || [];
+  const districtsArray = data.Districts || [];
+
+  console.log('[PayanaStudentApi] Parsed students count:', studentsArray.length);
+
   return {
-    students: (data.Students || []).map(transformStudent),
-    districts: (data.Districts || []).map(transformDistrict),
+    students: studentsArray.map(transformStudent),
+    districts: districtsArray.map(transformDistrict),
   } as PayanaStudentListResponse;
 }
 

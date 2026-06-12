@@ -37,6 +37,9 @@ export interface NormalizedDropdowns {
   fatherOcc?: NormalizedDropdownOption[];
   motherOcc?: NormalizedDropdownOption[];
   collegeTypes?: NormalizedDropdownOption[];
+  areaTypes?: NormalizedDropdownOption[];
+  houseTypes?: NormalizedDropdownOption[];
+  referenceSources?: NormalizedDropdownOption[];
 }
 
 /**
@@ -46,15 +49,17 @@ export function normalizeProfessionalDropdowns(apiResponse: any): NormalizedDrop
   // Debug: log raw response
   console.log('[normalizeDropdowns] Raw API response:', JSON.stringify(apiResponse, null, 2));
 
-  // Handle both capitalized and lowercase keys from backend
-  const districts = apiResponse.Districts || apiResponse.districts || [];
-  const genders = apiResponse.Genders || apiResponse.genders || [];
-  const castes = apiResponse.Castes || apiResponse.castes || apiResponse.CasteCategories || apiResponse.casteCategories || [];
-  const courses = apiResponse.Courses || apiResponse.courses || apiResponse.CourseTypes || apiResponse.courseTypes || [];
-  const places = apiResponse.Places || apiResponse.places || [];
-  const fatherOcc = apiResponse.FatherOcc || apiResponse.fatherOcc || [];
-  const motherOcc = apiResponse.MotherOcc || apiResponse.motherOcc || [];
-  const collegeTypes = apiResponse.CollegeTypes || apiResponse.collegeTypes || [];
+  // Handle both capitalized, lowercase, and *List suffix keys from backend
+  const districts = apiResponse.DistrictList || apiResponse.Districts || apiResponse.districts || [];
+  const genders = apiResponse.GenderList || apiResponse.Genders || apiResponse.genders || [];
+  const castes = apiResponse.CasteList || apiResponse.CasteCategories || apiResponse.Castes || apiResponse.castes || apiResponse.casteCategories || [];
+  const courses = apiResponse.CourseList || apiResponse.CourseTypes || apiResponse.Courses || apiResponse.courses || apiResponse.courseTypes || [];
+  const places = apiResponse.PlaceList || apiResponse.Places || apiResponse.places || [];
+  const fatherOcc = apiResponse.FatherOccupationList || apiResponse.FatherOcc || apiResponse.fatherOcc || apiResponse.FatherOccupations || apiResponse.fatherOccupations || [];
+  const motherOcc = apiResponse.MotherOccupationList || apiResponse.MotherOcc || apiResponse.motherOcc || apiResponse.MotherOccupations || apiResponse.motherOccupations || [];
+  const collegeTypes = apiResponse.CollegeTypeList || apiResponse.CollegeTypes || apiResponse.collegeTypes || [];
+  const areaTypes = apiResponse.AreaList || apiResponse.AreaTypes || apiResponse.areaTypes || [];
+  const houseTypes = apiResponse.HouseList || apiResponse.HouseTypes || apiResponse.houseTypes || apiResponse.Houses || apiResponse.houses || [];
 
   const normalized = {
     districts: normalizeDistricts(districts),
@@ -65,6 +70,8 @@ export function normalizeProfessionalDropdowns(apiResponse: any): NormalizedDrop
     fatherOcc: normalizeOccupations(fatherOcc),
     motherOcc: normalizeOccupations(motherOcc),
     collegeTypes: normalizeCollegeTypes(collegeTypes),
+    areaTypes: areaTypes.length > 0 ? normalizeAreaTypes(areaTypes) : undefined,
+    houseTypes: houseTypes.length > 0 ? normalizeHouseTypes(houseTypes) : undefined,
   };
 
   // Debug: log normalized response
@@ -76,15 +83,21 @@ export function normalizeProfessionalDropdowns(apiResponse: any): NormalizedDrop
 /**
  * Normalizes PUC dropdown response
  * Handles both lowercase and capitalized keys from API
+ * Backend returns *List format: GenderList, CasteList, DistrictList, etc.
  */
 export function normalizePUCDropdowns(apiResponse: any): NormalizedDropdowns {
-  // Handle both capitalized (API) and lowercase keys
-  const districts = apiResponse.Districts || apiResponse.districts;
-  const genders = apiResponse.Genders || apiResponse.genders;
-  const castes = apiResponse.Castes || apiResponse.castes;
-  const courses = apiResponse.Courses || apiResponse.courses;
-  const places = apiResponse.Places || apiResponse.places;
-  const collegeTypes = apiResponse.CollegeTypes || apiResponse.collegeTypes;
+  // Handle both *List (API) and lowercase/capitalized keys
+  const districts = apiResponse.DistrictList || apiResponse.Districts || apiResponse.districts || [];
+  const genders = apiResponse.GenderList || apiResponse.Genders || apiResponse.genders || [];
+  const castes = apiResponse.CasteList || apiResponse.CasteCategories || apiResponse.castes || apiResponse.Castes || [];
+  const courses = apiResponse.CourseList || apiResponse.Courses || apiResponse.courses || [];
+  const places = apiResponse.Places || apiResponse.places || [];
+  const collegeTypes = apiResponse.CollegeTypeList || apiResponse.CollegeTypes || apiResponse.collegeTypes || [];
+  const areaTypes = apiResponse.AreaList || apiResponse.AreaTypes || apiResponse.areaTypes || apiResponse.areas || [];
+  const fatherOcc = apiResponse.FatherOccupationList || apiResponse.FatherOccupations || apiResponse.fatherOccupations || apiResponse.FatherOcc || apiResponse.fatherOcc || [];
+  const motherOcc = apiResponse.MotherOccupationList || apiResponse.MotherOccupations || apiResponse.motherOccupations || apiResponse.MotherOcc || apiResponse.motherOcc || [];
+  const houseTypes = apiResponse.HouseList || apiResponse.HouseTypes || apiResponse.houseTypes || apiResponse.Houses || apiResponse.houses || [];
+  const referenceSources = apiResponse.ReferenceList || apiResponse.ReferenceSources || apiResponse.referenceSources || apiResponse.References || apiResponse.references || [];
 
   return {
     districts: normalizeDistricts(districts),
@@ -92,7 +105,12 @@ export function normalizePUCDropdowns(apiResponse: any): NormalizedDropdowns {
     castes: normalizeCastes(castes),
     courses: normalizeCourses(courses),
     places: normalizePlaces(places),
-    collegeTypes: collegeTypes ? normalizeCollegeTypes(collegeTypes) : undefined,
+    collegeTypes: collegeTypes.length > 0 ? normalizeCollegeTypes(collegeTypes) : undefined,
+    areaTypes: areaTypes.length > 0 ? normalizeAreaTypes(areaTypes) : undefined,
+    fatherOcc: fatherOcc.length > 0 ? normalizeOccupations(fatherOcc) : undefined,
+    motherOcc: motherOcc.length > 0 ? normalizeOccupations(motherOcc) : undefined,
+    houseTypes: houseTypes.length > 0 ? normalizeHouseTypes(houseTypes) : undefined,
+    referenceSources: referenceSources.length > 0 ? normalizeReferenceSources(referenceSources) : undefined,
   };
 }
 
@@ -190,6 +208,45 @@ function normalizeCollegeTypes(data: any[]): NormalizedDropdownOption[] {
     .map((item) => ({
       value: item.CollegeTypeID ?? item.Id ?? item.id ?? item.value ?? item.CollegeTypeId,
       label: item.CollegeTypeName ?? item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
+}
+
+function normalizeAreaTypes(data: any[]): NormalizedDropdownOption[] {
+  if (!Array.isArray(data)) {
+    console.log('[normalizeAreaTypes] Data is not an array:', data);
+    return [];
+  }
+  return data
+    .map((item) => ({
+      value: item.AreaTypeID ?? item.Id ?? item.id ?? item.value ?? item.AreaTypeId,
+      label: item.AreaTypeName ?? item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
+}
+
+function normalizeHouseTypes(data: any[]): NormalizedDropdownOption[] {
+  if (!Array.isArray(data)) {
+    console.log('[normalizeHouseTypes] Data is not an array:', data);
+    return [];
+  }
+  return data
+    .map((item) => ({
+      value: item.HouseTypeID ?? item.HouseTypeId ?? item.Id ?? item.id ?? item.value,
+      label: item.HouseTypeName ?? item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
+}
+
+function normalizeReferenceSources(data: any[]): NormalizedDropdownOption[] {
+  if (!Array.isArray(data)) {
+    console.log('[normalizeReferenceSources] Data is not an array:', data);
+    return [];
+  }
+  return data
+    .map((item) => ({
+      value: item.ReferenceSourceID ?? item.ReferenceSourceId ?? item.Id ?? item.id ?? item.value,
+      label: item.SourceName ?? item.ReferenceSourceName ?? item.Name ?? item.name ?? item.label ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }

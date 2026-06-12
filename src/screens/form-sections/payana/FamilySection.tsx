@@ -19,7 +19,8 @@ interface FamilySectionProps {
 export default function FamilySection({ navigation }: FamilySectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const [occupationOptions, setOccupationOptions] = useState<Option<number>[]>([]);
+  const [fatherOccOptions, setFatherOccOptions] = useState<Option<number>[]>([]);
+  const [motherOccOptions, setMotherOccOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
@@ -27,12 +28,16 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
       const response = await getPayanaDropdowns();
       console.log('[Payana FamilySection] Dropdown response:', response);
       if (response.success && response.data) {
-        // Father and mother occupations may be same or separate in API
-        setOccupationOptions(response.data.fatherOcc?.map((o: any) => ({
+        setFatherOccOptions(response.data.fatherOcc?.map((o: any) => ({
           value: Number(o.value),
           label: o.label
         })) || []);
-        console.log('[Payana FamilySection] Occupation options:', response.data.fatherOcc);
+        setMotherOccOptions(response.data.motherOcc?.map((o: any) => ({
+          value: Number(o.value),
+          label: o.label
+        })) || []);
+        console.log('[Payana FamilySection] Father occupation options:', response.data.fatherOcc);
+        console.log('[Payana FamilySection] Mother occupation options:', response.data.motherOcc);
       }
       setLoadingDropdowns(false);
     }
@@ -115,9 +120,9 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
             <ModalSelectField
               label="Father Occupation"
               value={value}
-              options={occupationOptions}
+              options={fatherOccOptions}
               onChange={onChange}
-              placeholder="Select occupation"
+              placeholder="Select father's occupation"
               error={formState.errors.fatherOccupationID?.message}
               disabled={loadingDropdowns}
             />
@@ -131,9 +136,9 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
             <ModalSelectField
               label="Mother Occupation"
               value={value}
-              options={occupationOptions}
+              options={motherOccOptions}
               onChange={onChange}
-              placeholder="Select occupation"
+              placeholder="Select mother's occupation"
               error={formState.errors.motherOccupationID?.message}
               disabled={loadingDropdowns}
             />

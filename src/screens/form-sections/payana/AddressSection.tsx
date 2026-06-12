@@ -20,7 +20,7 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
-  const [areaTypeOptions, setAreaTypeOptions] = useState<Option<number>[]>([]);
+  const [placeOptions, setPlaceOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
@@ -32,13 +32,13 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
           value: Number(d.value),
           label: d.label
         })) || []);
-        // Area types may come from places or a separate endpoint
-        setAreaTypeOptions(response.data.places?.map((p: any) => ({
-          value: Number(p.value),
-          label: p.label
+        // Place dropdown uses AreaTypes from API
+        setPlaceOptions(response.data.areaTypes?.map((a: any) => ({
+          value: Number(a.value),
+          label: a.label
         })) || []);
         console.log('[Payana AddressSection] District options:', response.data.districts);
-        console.log('[Payana AddressSection] Area options:', response.data.places);
+        console.log('[Payana AddressSection] AreaTypes for Place:', response.data.areaTypes);
       }
       setLoadingDropdowns(false);
     }
@@ -48,12 +48,11 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
   const addressData = (formData as any).address ?? {
     residentialAddress: '',
     currentAddress: '',
-    place: '',
     taluka: '',
     districtID: 0,
     otherDistrict: '',
     pincode: '',
-    areaTypeID: 0,
+    placeID: 0,
   };
 
   const { control, handleSubmit, watch, formState } = useForm<PayanaAddressFormValues>({
@@ -118,20 +117,6 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
               numberOfLines={3}
               error={formState.errors.currentAddress?.message}
               required
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="place"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Place"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter place name"
-              error={formState.errors.place?.message}
             />
           )}
         />
@@ -203,16 +188,17 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
 
         <Controller
           control={control}
-          name="areaTypeID"
+          name="placeID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Area Type"
+              label="Place"
               value={value}
-              options={areaTypeOptions}
+              options={placeOptions}
               onChange={onChange}
-              placeholder="Select area type"
-              error={formState.errors.areaTypeID?.message}
+              placeholder="Select place"
+              error={formState.errors.placeID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />

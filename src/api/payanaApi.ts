@@ -10,18 +10,18 @@ import { normalizePayanaDropdowns, NormalizedDropdowns } from './transformers/no
 /**
  * Creates a new Payana Student application
  * POST /api/payanastudents/create
+ * Note: This endpoint expects JSON, not FormData
  */
 export async function createPayanaStudent(
-  formData: FormData
+  payload: Record<string, any>
 ): Promise<NormalizedApiResponse<any>> {
-  console.log(`[createPayanaStudent] Sending request to /api/payanastudents/create`);
-  const entries = Array.from((formData as any).entries()) as [string, any][];
-  console.log(`[createPayanaStudent] FormData entries:`, entries.map(([k]) => k));
+  console.log(`[createPayanaStudent] Sending JSON request to /api/payanastudents/create`);
+  console.log(`[createPayanaStudent] Payload keys:`, Object.keys(payload));
 
   try {
-    const response = await api.post('/payanastudents/create', formData, {
+    const response = await api.post('/payanastudents/create', payload, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/json',
       },
     });
 

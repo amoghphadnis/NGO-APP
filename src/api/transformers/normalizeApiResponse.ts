@@ -25,11 +25,15 @@ export type NormalizedApiResponse<T> = NormalizedApiSuccess<T> | NormalizedApiEr
 
 /**
  * Normalizes standard API response to consistent format
+ * Handles cases where backend returns Status: false but message indicates success
  */
 export function normalizeApiResponse<T>(
   response: StandardApiResponse<T>
 ): NormalizedApiResponse<T> {
-  if (response.Status) {
+  const isSuccessMessage = response.Message?.toLowerCase().includes('success') ||
+                           response.Message?.toLowerCase().includes('saved');
+
+  if (response.Status || isSuccessMessage) {
     return {
       success: true,
       data: response.Data,

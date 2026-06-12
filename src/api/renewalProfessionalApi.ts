@@ -95,30 +95,27 @@ export async function submitRenewalProfessional(
   appendFileToFormData(formData, 'ThankingVideoFile', values.thankingVideoFile);
   appendFileToFormData(formData, 'ParentsPassbookFile', values.parentsPassbookFile);
 
-  const response = await fetch(`${API_BASE_URL}/professionalrenewal/create`, {
-    method: 'POST',
-    body: formData,
-  });
+  try {
+    const response = await api.post('/professionalrenewal/create', formData);
+    
+    const data = response.data;
 
-  if (response.status === 400) {
-    const data = await response.json().catch(() => ({ message: 'Validation failed' }));
-    throw new Error(data.message || 'Validation failed');
+    if (!data.Success && !data.success) {
+      throw new Error(data.Message || data.message || 'Submission failed');
+    }
+
+    return {
+      success: true,
+      message: data.Message || data.message || 'Submitted successfully',
+      prId: data.PRId ?? data.prId,
+    };
+  } catch (error: any) {
+    console.error('[submitRenewalProfessional] Error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      payload: Object.fromEntries(formData.entries()),
+    });
+    throw error;
   }
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({ message: 'Server error' }));
-    throw new Error(data.message || `Submission failed: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-
-  if (!data.Success && !data.success) {
-    throw new Error(data.Message || data.message || 'Submission failed');
-  }
-
-  return {
-    success: true,
-    message: data.Message || data.message || 'Submitted successfully',
-    prId: data.PRId ?? data.prId,
-  };
 }

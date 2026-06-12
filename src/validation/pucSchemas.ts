@@ -19,14 +19,14 @@ export const pucCategoryHousingSchema = z.object({
 export const pucFamilyDetailsSchema = z.object({
   fatherName: z.string().min(1, { message: 'Father name is required' }),
   motherName: z.string().min(1, { message: 'Mother name is required' }),
-  fatherOccupationID: z.number().optional(),
-  motherOccupationID: z.number().optional(),
+  fatherOccupationID: z.number().min(1, { message: "Father's occupation is required" }),
+  motherOccupationID: z.number().min(1, { message: "Mother's occupation is required" }),
   familyMembers: z.number().min(1, { message: 'At least 1 family member' }),
   familyComposition: z.array(z.string()).optional(),
   annualIncome: z
     .string()
-    .optional()
-    .refine((val) => !val || /^\d+(\.\d{1,2})?$/.test(val), {
+    .min(1, { message: 'Annual income is required' })
+    .refine((val) => /^\d+(\.\d{1,2})?$/.test(val), {
       message: 'Enter a valid amount',
     }),
   monthlyRent: z.string().optional(),

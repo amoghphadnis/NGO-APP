@@ -21,7 +21,6 @@ export default function AddressSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
-  const [placeOptions, setPlaceOptions] = useState<Option<number>[]>([]);
   const [areaOptions, setAreaOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
@@ -34,16 +33,12 @@ export default function AddressSection({ navigation }: any) {
           value: Number(d.value),
           label: d.label
         })) || []);
-        setPlaceOptions(response.data.places?.map((p: any) => ({
-          value: Number(p.value),
-          label: p.label
-        })) || []);
-        setAreaOptions(response.data.places?.map((p: any) => ({
-          value: Number(p.value),
-          label: p.label
+        setAreaOptions(response.data.areaTypes?.map((a: any) => ({
+          value: Number(a.value),
+          label: a.label
         })) || []);
         console.log('[AddressSection] District options:', response.data.districts);
-        console.log('[AddressSection] Place options:', response.data.places);
+        console.log('[AddressSection] Area options:', response.data.areaTypes);
       }
       setLoadingDropdowns(false);
     }
@@ -52,7 +47,7 @@ export default function AddressSection({ navigation }: any) {
 
   const addressData = isPUCForm(formData)
     ? formData.address
-    : { pincode: '', districtID: 0, otherDistrict: '', taluk: '', placeID: 0, address: '', areaID: 0 };
+    : { pincode: '', districtID: 0, otherDistrict: '', taluk: '', address: '', areaID: 0 };
 
   const { control, handleSubmit, formState } = useForm<AddressDetailsFormValues>({
     defaultValues: {
@@ -60,7 +55,6 @@ export default function AddressSection({ navigation }: any) {
       districtID: addressData.districtID || 0,
       otherDistrict: addressData.otherDistrict,
       taluk: addressData.taluk,
-      placeID: addressData.placeID || 0,
       address: addressData.address,
       areaID: addressData.areaID || 0,
     },
@@ -155,23 +149,6 @@ export default function AddressSection({ navigation }: any) {
               placeholder="Enter taluka"
               error={formState.errors.taluk?.message}
               required
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="placeID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Place"
-              value={value}
-              onChange={onChange}
-              options={placeOptions}
-              placeholder="Select place/village"
-              error={formState.errors.placeID?.message}
-              required
-              disabled={loadingDropdowns}
             />
           )}
         />

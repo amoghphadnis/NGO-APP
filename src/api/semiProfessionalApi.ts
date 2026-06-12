@@ -15,11 +15,7 @@ export async function createSemiProfessionalStudent(
   formData: FormData
 ): Promise<NormalizedApiResponse<any>> {
   try {
-    const response = await api.post('/semiprofessionalstudent/create', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await api.post('/semiprofessionalstudent/create', formData);
 
     return normalizeApiResponse(response.data);
   } catch (error: any) {
@@ -36,12 +32,14 @@ export async function getSemiProfessionalDropdowns(): Promise<
 > {
   try {
     const response = await api.get('/semiprofessionalstudent/dropdowns');
-    const normalizedDropdowns = normalizeSemiProfessionalDropdowns(response.data);
+    // Handle both wrapped (data.Data) and unwrapped (data) responses
+    const dropdownData = response.data.Data || response.data;
+    const normalizedDropdowns = normalizeSemiProfessionalDropdowns(dropdownData);
 
     return {
       success: true,
       data: normalizedDropdowns,
-      message: response.data.Message || 'Success',
+      message: response.data.Message || response.data.message || 'Success',
     };
   } catch (error: any) {
     return normalizeApiError(error);

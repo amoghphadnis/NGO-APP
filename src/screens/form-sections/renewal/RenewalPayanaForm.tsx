@@ -25,6 +25,7 @@ import {
     getPayanaRenewalDropdowns,
     submitPayanaRenewal,
 } from '@/api/renewalPayanaApi';
+import { getPUCDropdowns } from '@/api/pucApi';
 import { NormalizedDropdownOption } from '@/api/transformers/normalizeDropdowns';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
@@ -58,6 +59,8 @@ export default function RenewalPayanaForm({ navigation }: Props) {
     areaTypes: [] as Option<string>[],
     casteCategories: [] as Option<string>[],
     collegeTypes: [] as Option<string>[],
+    fatherOccupations: [] as Option<string>[],
+    motherOccupations: [] as Option<string>[],
   });
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -110,7 +113,6 @@ export default function RenewalPayanaForm({ navigation }: Props) {
         ifsc: '',
         bankName: '',
         branch: '',
-        houseVisitLink: '',
         marksheetFile: undefined,
         feesReceiptFile: undefined,
         passbookFile: undefined,
@@ -130,13 +132,19 @@ export default function RenewalPayanaForm({ navigation }: Props) {
   useEffect(() => {
     (async () => {
       try {
-        const response = await getPayanaRenewalDropdowns();
-        if (response.success && response.data) {
+        // Fetch Payana renewal dropdowns
+        const payanaResponse = await getPayanaRenewalDropdowns();
+        // Fetch PUC dropdowns for occupations
+        const pucResponse = await getPUCDropdowns();
+
+        if (payanaResponse.success && payanaResponse.data) {
           setDropdowns({
-            districts: toOptions(response.data.districts || []),
-            areaTypes: toOptions(response.data.places || []),
-            casteCategories: toOptions(response.data.castes || []),
-            collegeTypes: toOptions(response.data.collegeTypes || []),
+            districts: toOptions(payanaResponse.data.districts || []),
+            areaTypes: toOptions(payanaResponse.data.areaTypes || payanaResponse.data.places || []),
+            casteCategories: toOptions(payanaResponse.data.castes || []),
+            collegeTypes: toOptions(payanaResponse.data.collegeTypes || []),
+            fatherOccupations: toOptions((pucResponse.success && pucResponse.data?.fatherOcc) || []),
+            motherOccupations: toOptions((pucResponse.success && pucResponse.data?.motherOcc) || []),
           });
         }
       } catch (e) {
@@ -470,13 +478,15 @@ export default function RenewalPayanaForm({ navigation }: Props) {
               control={control}
               name="fatherOccupation"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <ModalSelectField
                   label="Father's Occupation"
                   value={value ?? ''}
-                  onChangeText={onChange}
-                  placeholder="e.g. Farmer, Teacher"
+                  options={dropdowns.fatherOccupations}
+                  onChange={onChange}
+                  placeholder="Select father's occupation"
                   error={formState.errors.fatherOccupation?.message}
                   required
+                  disabled={loadingDropdowns}
                 />
               )}
             />
@@ -484,13 +494,15 @@ export default function RenewalPayanaForm({ navigation }: Props) {
               control={control}
               name="motherOccupation"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <ModalSelectField
                   label="Mother's Occupation"
                   value={value ?? ''}
-                  onChangeText={onChange}
-                  placeholder="e.g. Housewife, Teacher"
+                  options={dropdowns.motherOccupations}
+                  onChange={onChange}
+                  placeholder="Select mother's occupation"
                   error={formState.errors.motherOccupation?.message}
                   required
+                  disabled={loadingDropdowns}
                 />
               )}
             />
@@ -859,23 +871,6 @@ export default function RenewalPayanaForm({ navigation }: Props) {
               onUpload={() => handlePickFile('aadhaarFile')}
               onDelete={() => handleDeleteFile('aadhaarFile')}
               acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
-            />
-
-            <Controller
-              control={control}
-              name="houseVisitLink"
-              render={({ field: { onChange, value } }) => (
-                <VPInputField
-                  label="House Visit Google Link"
-                  value={value ?? ''}
-                  onChangeText={onChange}
-                  placeholder="Paste Google link here"
-                  keyboardType="url"
-                  autoCapitalize="none"
-                  error={formState.errors.houseVisitLink?.message}
-                  required
-                />
-              )}
             />
           </FormCard>
 

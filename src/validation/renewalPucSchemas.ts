@@ -46,7 +46,6 @@ export const renewalPucSchema = z.object({
   parentBankBalance: z.number().min(0).optional(),
 
   // Section 7: Additional Info
-  houseVisitLink: z.string().optional().or(z.literal('')),
   renewalPreviousVPID: z.string().optional().or(z.literal('')),
 });
 

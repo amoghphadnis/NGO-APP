@@ -4,11 +4,11 @@
     "slug": "VPApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Logo.png",
     "scheme": "vpapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/icon.png"
+      "icon": "./assets/Logo.png"
     },
     "android": {
       "package": "com.vidyaposhak.app",
@@ -16,13 +16,13 @@
       "permissions": ["INTERNET", "VIBRATE", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
       "predictiveBackGestureEnabled": false,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/Logo.png",
         "backgroundColor": "#FFFFFF"
       }
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/icon.png"
+      "favicon": "./assets/Logo.png"
     },
     "plugins": [
       "expo-router",
@@ -31,7 +31,7 @@
         {
           "backgroundColor": "#208AEF",
           "android": {
-            "image": "./assets/icon.png",
+            "image": "./assets/Logo.png",
             "imageWidth": 76
           }
         }

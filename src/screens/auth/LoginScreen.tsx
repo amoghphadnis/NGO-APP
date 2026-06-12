@@ -77,7 +77,7 @@ export default function LoginScreen() {
         {/* Logo Section */}
         <View style={styles.logoContainer}>
           <Image
-            source={require('@/assets/icon.png')}
+            source={require('@/assets/Logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -154,13 +154,13 @@ export default function LoginScreen() {
             required
           />
 
-          {/* Forgot Password */}
-          <TouchableOpacity
-            style={styles.forgotPasswordContainer}
-            onPress={() => router.push('/forgot-password' as any)}
-          >
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        {/* Sign Up Link */}
+        <View style={styles.signUpContainer}>
+          <Text style={styles.signUpText}>Don't have an account? </Text>
+          <TouchableOpacity onPress={() => router.push('/register' as any)}>
+            <Text style={styles.signUpLink}>Sign Up</Text>
           </TouchableOpacity>
+        </View>
 
           {/* Login Button */}
           <TouchableOpacity
@@ -178,6 +178,14 @@ export default function LoginScreen() {
               </>
             )}
           </TouchableOpacity>
+
+          {/* Forgot Password */}
+          <TouchableOpacity
+            style={styles.forgotPasswordContainer}
+            onPress={() => router.push('/forgot-password' as any)}
+          >
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Security Note */}
@@ -186,14 +194,6 @@ export default function LoginScreen() {
           <Text style={styles.securityText}>
             Your data is secured with 256-bit encryption
           </Text>
-        </View>
-
-        {/* Sign Up Link */}
-        <View style={styles.signUpContainer}>
-          <Text style={styles.signUpText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/register' as any)}>
-            <Text style={styles.signUpLink}>Sign Up</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Terms and Privacy */}
@@ -323,8 +323,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   forgotPasswordContainer: {
-    alignSelf: 'flex-end',
-    marginTop: spacing.xs,
+    alignSelf: 'center',
+    marginTop: spacing.lg,
     marginBottom: spacing.lg,
   },
   forgotPasswordText: {
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   signUpContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.lg,
   },
   signUpText: {
     fontSize: typography.body,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   signUpLink: {
     fontSize: typography.body,
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '800',
     textDecorationLine: 'underline',
   },
   termsText: {

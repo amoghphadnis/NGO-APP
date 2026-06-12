@@ -31,8 +31,12 @@ export default function CategorySection({ navigation }: CategorySectionProps) {
           value: Number(c.value),
           label: c.label
         })) || []);
-        // House types may not be in API, fallback to empty
+        setHouseTypeOptions(response.data.houseTypes?.map((h: any) => ({
+          value: Number(h.value),
+          label: h.label
+        })) || []);
         console.log('[Payana CategorySection] Caste options:', response.data.castes);
+        console.log('[Payana CategorySection] House type options:', response.data.houseTypes);
       }
       setLoadingDropdowns(false);
     }

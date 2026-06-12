@@ -15,14 +15,16 @@ export async function createProfessionalStudent(
   formData: FormData
 ): Promise<NormalizedApiResponse<any>> {
   try {
-    const response = await api.post('/students/professional/create', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await api.post('/students/professional/create', formData);
 
     return normalizeApiResponse(response.data);
   } catch (error: any) {
+    console.error('[createProfessionalStudent] API Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+      headers: error.response?.headers,
+    });
     return normalizeApiError(error);
   }
 }

@@ -29,8 +29,17 @@ export default function CategorySection({ navigation }: any) {
           value: Number(c.value),
           label: c.label
         })) || []);
-        // Note: API may not have house types and reference sources, fallback to empty
+        setHouseTypeOptions(response.data.houseTypes?.map((h: any) => ({
+          value: Number(h.value),
+          label: h.label
+        })) || []);
+        setReferenceSourceOptions(response.data.referenceSources?.map((r: any) => ({
+          value: Number(r.value),
+          label: r.label
+        })) || []);
         console.log('[CategorySection] Caste options:', response.data.castes);
+        console.log('[CategorySection] House type options:', response.data.houseTypes);
+        console.log('[CategorySection] Reference source options:', response.data.referenceSources);
       }
       setLoadingDropdowns(false);
     }

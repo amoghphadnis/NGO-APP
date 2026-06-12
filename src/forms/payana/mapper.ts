@@ -19,12 +19,11 @@ export function mapPayanaFormToApiPayload(formData: PayanaFormValues): Record<st
     // Address details
     RAddress: formData.address.residentialAddress,
     CAddress: formData.address.currentAddress,
-    Place: formData.address.place || '',
     Taluka: formData.address.taluka,
     DistrictID: formData.address.districtID,
     OtherDistrict: formData.address.otherDistrict || '',
     PinCode: formData.address.pincode,
-    AreaTypeID: formData.address.areaTypeID,
+    PlaceID: formData.address.placeID,
 
     // Category details
     CasteCategoryID: formData.category.casteCategoryID,

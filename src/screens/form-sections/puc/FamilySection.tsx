@@ -144,8 +144,12 @@ export default function FamilySection({ navigation }: any) {
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Family Members"
-              value={String(value)}
-              onChangeText={(text) => onChange(Number(text))}
+              value={value === undefined || value === null ? '' : String(value)}
+              onChangeText={(text) => {
+                const cleanText = text.replace(/[^0-9]/g, '');
+                const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
+                onChange(num);
+              }}
               placeholder="Enter number of family members"
               keyboardType="numeric"
               error={formState.errors.familyMembers?.message}
@@ -174,6 +178,7 @@ export default function FamilySection({ navigation }: any) {
               options={fatherOccupationOptions}
               placeholder="Select father's occupation"
               error={formState.errors.fatherOccupationID?.message}
+              required
               disabled={loadingDropdowns}
             />
           )}
@@ -190,6 +195,7 @@ export default function FamilySection({ navigation }: any) {
               options={motherOccupationOptions}
               placeholder="Select mother's occupation"
               error={formState.errors.motherOccupationID?.message}
+              required
               disabled={loadingDropdowns}
             />
           )}
@@ -217,6 +223,7 @@ export default function FamilySection({ navigation }: any) {
               keyboardType="numeric"
               error={formState.errors.annualIncome?.message}
               helperText="Enter total annual income of all family members"
+              required
             />
           )}
         />

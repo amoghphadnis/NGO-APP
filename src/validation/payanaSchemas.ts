@@ -5,7 +5,7 @@ export const payanaGenderSchema = z.number().min(1, { message: 'Gender is requir
 
 export const payanaDistrictSchema = z.number().min(1, { message: 'District is required' });
 
-export const payanaAreaTypeSchema = z.number().min(1, { message: 'Area type is required' });
+export const payanaPlaceSchema = z.number().min(1, { message: 'Place is required' });
 
 export const payanaCasteCategorySchema = z.number().min(1, { message: 'Caste category is required' });
 
@@ -62,12 +62,11 @@ export const payanaContactSchema = z.object({
 export const payanaAddressSchema = z.object({
   residentialAddress: z.string().min(1, { message: 'Residential address is required' }),
   currentAddress: z.string().min(1, { message: 'Current address is required' }),
-  place: z.string().optional(),
   taluka: z.string().min(1, { message: 'Taluka is required' }),
   districtID: payanaDistrictSchema,
   otherDistrict: z.string().optional(),
   pincode: z.string().min(6, { message: 'Valid pincode required' }),
-  areaTypeID: payanaAreaTypeSchema,
+  placeID: payanaPlaceSchema,
 }).refine(
   (data) => {
     if (data.districtID === 11) { // Assuming 11 is 'Other'

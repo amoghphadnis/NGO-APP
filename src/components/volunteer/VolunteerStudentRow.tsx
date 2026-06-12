@@ -8,11 +8,18 @@ import { StudentListViewModel, StudentType } from '@/types/studentList';
 interface VolunteerStudentRowProps {
   student: StudentListViewModel;
   onHouseVisit: (studentId: number, studentType: StudentType, studentName: string) => void;
+  onView?: (student: StudentListViewModel) => void;
 }
 
-export default function VolunteerStudentRow({ student, onHouseVisit }: VolunteerStudentRowProps) {
+export default function VolunteerStudentRow({ student, onHouseVisit, onView }: VolunteerStudentRowProps) {
   const handleHouseVisit = () => {
     onHouseVisit(student.id, student.studentType, student.name);
+  };
+
+  const handleView = () => {
+    if (onView) {
+      onView(student);
+    }
   };
 
   const handleOpenMaps = () => {
@@ -59,24 +66,25 @@ export default function VolunteerStudentRow({ student, onHouseVisit }: Volunteer
             <Text style={styles.actionButtonText}>Maps</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity
-          style={[
-            styles.actionButton,
-            student.isVisited ? styles.visitedButton : styles.visitButton
-          ]}
-          onPress={handleHouseVisit}
-          activeOpacity={0.8}
-          disabled={student.isVisited}
-        >
-          <Ionicons
-            name={student.isVisited ? "eye" : "home"}
-            size={14}
-            color="#FFFFFF"
-          />
-          <Text style={styles.actionButtonText}>
-            {student.isVisited ? 'View' : 'Visit'}
-          </Text>
-        </TouchableOpacity>
+        {student.isVisited ? (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.viewButton]}
+            onPress={handleView}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="eye" size={14} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>View</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.visitButton]}
+            onPress={handleHouseVisit}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="home" size={14} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>Visit</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -141,6 +149,9 @@ const styles = StyleSheet.create({
   visitedButton: {
     backgroundColor: colors.success,
     opacity: 0.8,
+  },
+  viewButton: {
+    backgroundColor: colors.primary,
   },
   mapsButton: {
     backgroundColor: '#34A853',
