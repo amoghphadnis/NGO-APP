@@ -199,11 +199,11 @@ export default function LoginScreen() {
         {/* Terms and Privacy */}
         <Text style={styles.termsText}>
           By continuing, you agree to our{' '}
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/legal/terms' as any)}>
             <Text style={styles.termsLink}>Terms of Service</Text>
           </TouchableOpacity>
           {' '}and{' '}
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/legal/privacy' as any)}>
             <Text style={styles.termsLink}>Privacy Policy</Text>
           </TouchableOpacity>
         </Text>

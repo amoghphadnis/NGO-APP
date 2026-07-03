@@ -36,6 +36,8 @@ export default function RootLayout() {
           <Stack.Screen name="reset-password" />
           <Stack.Screen name="dashboard" />
           <Stack.Screen name="pdashboard" />
+          <Stack.Screen name="legal/terms" />
+          <Stack.Screen name="legal/privacy" />
         </Stack>
       </>
     </QueryClientProvider>

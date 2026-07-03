@@ -410,6 +410,18 @@ export default function RegisterScreen() {
             <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity> */}
 
+          {/* Terms and Privacy */}
+          <Text style={styles.termsText}>
+            By continuing, you agree to our{' '}
+            <TouchableOpacity onPress={() => router.push('/legal/terms' as any)}>
+              <Text style={styles.termsLink}>Terms of Service</Text>
+            </TouchableOpacity>
+            {' '}and{' '}
+            <TouchableOpacity onPress={() => router.push('/legal/privacy' as any)}>
+              <Text style={styles.termsLink}>Privacy Policy</Text>
+            </TouchableOpacity>
+          </Text>
+
           {/* Footer */}
           <Text style={styles.footer}>© Vidya Poshak 2026</Text>
         </View>
@@ -625,6 +637,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  termsText: {
+    marginTop: spacing.lg,
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    flexWrap: 'wrap',
+  },
+  termsLink: {
+    color: colors.primary,
+    fontWeight: '500',
   },
 
   // Success screen
