@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { Stack } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Stack } from 'expo-router';
+import { useEffect } from 'react';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -36,6 +36,8 @@ export default function RootLayout() {
           <Stack.Screen name="reset-password" />
           <Stack.Screen name="dashboard" />
           <Stack.Screen name="pdashboard" />
+          <Stack.Screen name="my-applications" />
+          <Stack.Screen name="help" />
           <Stack.Screen name="legal/terms" />
           <Stack.Screen name="legal/privacy" />
         </Stack>

@@ -1,11 +1,10 @@
-import api, { ApiError } from './client';
 import { environment } from '@/config/environment';
 import { Linking } from 'react-native';
+import api, { ApiError } from './client';
 
 export interface RegisterRequest {
   Role: string;
   DistrictID?: number;
-  OtherDistrict?: string;
   Taluk?: string;
   Name: string;
   Email: string;

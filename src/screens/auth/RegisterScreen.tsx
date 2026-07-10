@@ -1,24 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  StatusBar,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Image,
+    KeyboardAvoidingView,
+    Linking,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
-import VPInputField from '@/components/common/VPInputField';
+import { registrationApi } from '@/api/registrationApi';
 import ModalSelectField from '@/components/common/ModalSelectField';
+import VPInputField from '@/components/common/VPInputField';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-import { registrationApi } from '@/api/registrationApi';
+
+const PRIVACY_TERMS_PDF_URL = 'https://vpwebservices.testserver.envisage-workflow.in/PrivacyAndTerms.pdf';
 
 const ROLES = [
   'Admin',
@@ -44,11 +47,9 @@ const DISTRICTS = [
   { label: 'Shimogga', value: 8 },
   { label: 'Davangere', value: 9 },
   { label: 'Haveri', value: 10 },
-  { label: 'Other', value: 11 },
 ];
 
 const DISTRICT_SCOPED_ROLES = ['Volunteer', 'Branch Executives', 'Employee'];
-const OTHER_DISTRICT_ID = 11;
 
 function isDistrictScoped(role: string): boolean {
   return DISTRICT_SCOPED_ROLES.includes(role);
@@ -59,7 +60,6 @@ export default function RegisterScreen() {
 
   const [role, setRole] = useState('');
   const [districtID, setDistrictID] = useState<number | undefined>(undefined);
-  const [otherDistrict, setOtherDistrict] = useState('');
   const [taluk, setTaluk] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -67,6 +67,7 @@ export default function RegisterScreen() {
   const [mobile, setMobile] = useState('');
   const [address, setAddress] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -96,14 +97,12 @@ export default function RegisterScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const showDistrict = isDistrictScoped(role);
-  const showOtherDistrict = showDistrict && districtID === OTHER_DISTRICT_ID;
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!role) newErrors.role = 'Role is required';
     if (showDistrict && !districtID) newErrors.districtID = 'District is required';
-    if (showOtherDistrict && !otherDistrict.trim()) newErrors.otherDistrict = 'Please enter your district name';
     if (!name.trim()) newErrors.name = 'Name is required';
     if (!email.trim()) {
       newErrors.email = 'Email is required';
@@ -142,9 +141,6 @@ export default function RegisterScreen() {
       if (showDistrict && districtID) {
         payload.DistrictID = districtID;
         payload.Taluk = taluk;
-      }
-      if (showOtherDistrict) {
-        payload.OtherDistrict = otherDistrict;
       }
 
       const response = await registrationApi.register(payload);
@@ -250,7 +246,6 @@ export default function RegisterScreen() {
             onChange={(val) => {
               setRole(val);
               setDistrictID(undefined);
-              setOtherDistrict('');
               setTaluk('');
               clearFieldError('role');
             }}
@@ -268,25 +263,11 @@ export default function RegisterScreen() {
               options={DISTRICTS}
               onChange={(val) => {
                 setDistrictID(val);
-                setOtherDistrict('');
                 clearFieldError('districtID');
               }}
               error={errors.districtID}
               required
               modalTitle="Select District"
-            />
-          )}
-
-          {/* Other District (conditional) */}
-          {showOtherDistrict && (
-            <VPInputField
-              label="Other District Name"
-              value={otherDistrict}
-              onChangeText={(t) => { setOtherDistrict(t); clearFieldError('otherDistrict'); }}
-              placeholder="Enter your district name"
-              leftIcon={<Ionicons name="location-outline" size={18} color={colors.textSecondary} />}
-              error={errors.otherDistrict}
-              required
             />
           )}
 
@@ -369,12 +350,34 @@ export default function RegisterScreen() {
             leftIcon={<Ionicons name="home-outline" size={18} color={colors.textSecondary} />}
           />
 
+          {/* Terms & Conditions Checkbox */}
+          <TouchableOpacity
+            style={styles.termsCheckboxRow}
+            onPress={() => setTermsAccepted(!termsAccepted)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
+              {termsAccepted && (
+                <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+              )}
+            </View>
+            <Text style={styles.termsCheckboxText}>
+              I accept the{' '}
+              <Text
+                style={styles.termsLink}
+                onPress={() => Linking.openURL(PRIVACY_TERMS_PDF_URL).catch(() => {})}
+              >
+                Privacy and Terms & Conditions
+              </Text>
+            </Text>
+          </TouchableOpacity>
+
           {/* Register Button */}
           <TouchableOpacity
-            style={[styles.registerButton, isLoading && styles.buttonDisabled]}
+            style={[styles.registerButton, (isLoading || !termsAccepted) && styles.buttonDisabled]}
             onPress={handleRegister}
             activeOpacity={0.8}
-            disabled={isLoading}
+            disabled={isLoading || !termsAccepted}
           >
             {isLoading ? (
               <ActivityIndicator color="#FFFFFF" />
@@ -413,13 +416,12 @@ export default function RegisterScreen() {
           {/* Terms and Privacy */}
           <Text style={styles.termsText}>
             By continuing, you agree to our{' '}
-            <TouchableOpacity onPress={() => router.push('/legal/terms' as any)}>
-              <Text style={styles.termsLink}>Terms of Service</Text>
-            </TouchableOpacity>
-            {' '}and{' '}
-            <TouchableOpacity onPress={() => router.push('/legal/privacy' as any)}>
-              <Text style={styles.termsLink}>Privacy Policy</Text>
-            </TouchableOpacity>
+            <Text
+              style={styles.termsLink}
+              onPress={() => Linking.openURL(PRIVACY_TERMS_PDF_URL).catch(() => {})}
+            >
+              Privacy and Terms & Conditions
+            </Text>
           </Text>
 
           {/* Footer */}
@@ -560,6 +562,35 @@ const styles = StyleSheet.create({
   },
   btnIcon: {
     marginRight: spacing.sm,
+  },
+
+  // Terms checkbox
+  termsCheckboxRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+  },
+  termsCheckboxText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.textSecondary,
+    flexWrap: 'wrap',
+    lineHeight: 20,
   },
   registerButtonText: {
     color: '#FFFFFF',

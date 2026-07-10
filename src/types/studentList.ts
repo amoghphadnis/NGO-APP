@@ -61,6 +61,22 @@ export interface PayanaStudent {
   approveStatus: string;
 }
 
+export interface SemiProfessionalStudent {
+  studentID: number;
+  studentName: string;
+  contactNumber: string;
+  address: string;
+  place: string;
+  taluka: string;
+  houseVisitLink: string;
+  districtName: string;
+  collegeName: string;
+  familyIncome: number;
+  securedPercentage: number;
+  isVisited: boolean;
+  approveStatus: string;
+}
+
 // ============================================================================
 // District Dropdown
 // ============================================================================
@@ -89,6 +105,11 @@ export interface PayanaStudentListResponse {
   districts: District[];
 }
 
+export interface SemiProfessionalStudentListResponse {
+  students: SemiProfessionalStudent[];
+  districts: District[];
+}
+
 // ============================================================================
 // Query Parameters
 // ============================================================================
@@ -102,7 +123,7 @@ export interface StudentListQueryParams {
 // Component/View Types
 // ============================================================================
 
-export type StudentType = 'professional' | 'puc' | 'payana';
+export type StudentType = 'professional' | 'puc' | 'payana' | 'semiProfessional';
 
 export interface StudentListViewModel {
   id: number;

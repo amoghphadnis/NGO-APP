@@ -9,8 +9,8 @@
  * - Supports all student types (PUC, Professional, Payana)
  */
 
+import { HouseVisitApiResponse, HouseVisitCreatePayload } from '@/types/houseVisit';
 import api from './client';
-import { HouseVisitCreatePayload, HouseVisitApiResponse } from '@/types/houseVisit';
 
 const BASE_URL = '/housevisit';
 
@@ -117,7 +117,7 @@ export async function createHouseVisit(
  */
 export function getHouseVisitLink(
   studentId: number,
-  source: 'professional' | 'puc' | 'payana',
+  source: 'professional' | 'puc' | 'payana' | 'semiProfessional',
   studentName?: string
 ): string {
   const encodedName = studentName ? encodeURIComponent(studentName) : '';

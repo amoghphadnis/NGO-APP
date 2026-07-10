@@ -1,36 +1,36 @@
-import React, { useState, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  FlatList,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  RefreshControl,
-  Platform,
+    FlatList,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
 
-import StudentRowSkeleton, { TABLE_WIDTH } from '@/components/approval/StudentRowSkeleton';
-import VolunteerStudentRow from '@/components/volunteer/VolunteerStudentRow';
-import StudentDetailModal from '@/components/student/StudentDetailModal';
-import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
-import { platform } from '@/theme/platform';
-import {
-  StudentType,
-  StudentListViewModel,
-  StudentListQueryParams,
-  District,
-} from '@/types/studentList';
+import { houseVisitApi } from '@/api/houseVisitApi';
+import { payanaStudentApi } from '@/api/payanaStudentApi';
 import { professionalStudentApi } from '@/api/professionalStudentApi';
 import { pucStudentApi } from '@/api/pucStudentApi';
-import { payanaStudentApi } from '@/api/payanaStudentApi';
-import { houseVisitApi } from '@/api/houseVisitApi';
+import { semiProfessionalStudentApi } from '@/api/semiProfessionalStudentApi';
+import StudentRowSkeleton, { TABLE_WIDTH } from '@/components/approval/StudentRowSkeleton';
+import StudentDetailModal from '@/components/student/StudentDetailModal';
+import VolunteerStudentRow from '@/components/volunteer/VolunteerStudentRow';
+import { colors } from '@/theme/colors';
+import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import {
+    District,
+    StudentListQueryParams,
+    StudentListViewModel,
+    StudentType,
+} from '@/types/studentList';
 
 // ============================================================================
 // Types
@@ -129,13 +129,18 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
         ? professionalStudentApi.queryKeys.list(queryParams)
         : studentType === 'payana'
           ? payanaStudentApi.queryKeys.list(queryParams)
-          : pucStudentApi.queryKeys.list(queryParams),
+          : studentType === 'semiProfessional'
+            ? semiProfessionalStudentApi.queryKeys.list(queryParams)
+            : pucStudentApi.queryKeys.list(queryParams),
     queryFn: () => {
       if (studentType === 'professional') {
         return professionalStudentApi.getList(queryParams);
       }
       if (studentType === 'payana') {
         return payanaStudentApi.getList(queryParams);
+      }
+      if (studentType === 'semiProfessional') {
+        return semiProfessionalStudentApi.getList(queryParams);
       }
       return pucStudentApi.getList(queryParams);
     },

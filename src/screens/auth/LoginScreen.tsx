@@ -1,23 +1,24 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/store/useAuthStore';
-import { isDistrictScopedRole } from '@/utils/roleUtils';
 import VPInputField from '@/components/common/VPInputField';
+import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
+import { isDistrictScopedRole } from '@/utils/roleUtils';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import {
+    ActivityIndicator,
+    Image,
+    KeyboardAvoidingView,
+    Linking,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 export default function LoginScreen() {
   const login = useAuthStore((state) => state.login);
@@ -199,13 +200,12 @@ export default function LoginScreen() {
         {/* Terms and Privacy */}
         <Text style={styles.termsText}>
           By continuing, you agree to our{' '}
-          <TouchableOpacity onPress={() => router.push('/legal/terms' as any)}>
-            <Text style={styles.termsLink}>Terms of Service</Text>
-          </TouchableOpacity>
-          {' '}and{' '}
-          <TouchableOpacity onPress={() => router.push('/legal/privacy' as any)}>
-            <Text style={styles.termsLink}>Privacy Policy</Text>
-          </TouchableOpacity>
+          <Text
+            style={styles.termsLink}
+            onPress={() => Linking.openURL('https://vpwebservices.testserver.envisage-workflow.in/PrivacyAndTerms.pdf').catch(() => {})}
+          >
+            Privacy and Terms & Conditions
+          </Text>
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>

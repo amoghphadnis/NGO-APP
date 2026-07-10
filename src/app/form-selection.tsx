@@ -1,218 +1,289 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import {
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import type { HomeSection, RenewalCardItem, ScholarshipCardItem } from '@/config/homeSections';
+import { homeSections } from '@/config/homeSections';
+import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { navigateToDashboard } from '@/utils/navigateToDashboard';
+
+const { width: screenWidth } = Dimensions.get('window');
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+const BOTTOM_NAV_ITEMS: {
+  id: string;
+  label: string;
+  icon: IoniconsName;
+  activeIcon: IoniconsName;
+  route: string;
+}[] = [
+  { id: 'home', label: 'Home', icon: 'home-outline', activeIcon: 'home', route: '/' },
+  { id: 'notifications', label: 'Notifications', icon: 'notifications-outline', activeIcon: 'notifications', route: '/notifications' },
+  { id: 'applications', label: 'My Applications', icon: 'document-text-outline', activeIcon: 'document-text', route: '/my-applications' },
+  { id: 'help', label: 'Help', icon: 'help-circle-outline', activeIcon: 'help-circle', route: '/help' },
+];
 
 export default function FormSelectionScreen() {
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
-  const handleFormSelect = (formType: 'professional' | 'puc' | 'payana' | 'semiProfessional') => {
-    // Navigate to form-engine route with form type parameter
+  const handleFormSelect = (formType: string) => {
     (router.push as any)(`/form-engine?formType=${formType}`);
   };
 
-  const handleRenewalPUC = () => {
-    (router.push as any)('/renewal-puc');
+  const handlePrimaryLogin = () => {
+    (router.push as any)('/login');
   };
 
-  const handleRenewalProfessional = () => {
-    (router.push as any)('/renewal-professional');
+  const handlePrimaryDashboard = () => {
+    if (user) {
+      navigateToDashboard(user.Role);
+    } else {
+      (router.push as any)('/login');
+    }
   };
 
-  const handleRenewalPayana = () => {
-    (router.push as any)('/renewal-payana');
+  const handleApplyNow = () => {
+    // Scroll to the new scholarships section is not implemented; direct navigation is sufficient
+    // Find the first new scholarship item and navigate
+    const firstSection = homeSections.find((s) => s.id === 'new-scholarships');
+    if (firstSection && firstSection.items.length > 0) {
+      const firstItem = firstSection.items[0] as ScholarshipCardItem;
+      handleFormSelect(firstItem.formType);
+    }
+  };
+
+  const handleRenewalPress = (route: string) => {
+    (router.push as any)(route);
+  };
+
+  const handleNavPress = (route: string) => {
+    if (route === '/') return; // already on home
+    (router.push as any)(route);
+  };
+
+  const renderSection = (section: HomeSection) => {
+    const isNew = section.id === 'new-scholarships';
+    const isRenewal = section.id === 'renewal-scholarships';
+
+    return (
+      <View key={section.id} style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{section.title}</Text>
+          <Text style={styles.sectionSubtitle}>{section.subtitle}</Text>
+        </View>
+        {isNew && (
+          <View style={styles.cardsGrid}>
+            {(section.items as ScholarshipCardItem[]).map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.scholarshipCard}
+                onPress={() => handleFormSelect(item.formType)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.scholarshipCardHeader}>
+                  <View style={styles.scholarshipIconContainer}>
+                    <Ionicons name={item.icon} size={24} color={colors.primary} />
+                  </View>
+                  <Text style={styles.scholarshipCardTitle}>{item.title}</Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={colors.textSecondary}
+                    style={styles.chevron}
+                  />
+                </View>
+                <Text style={styles.scholarshipDescription}>{item.description}</Text>
+                <View style={styles.benefitsContainer}>
+                  {item.benefits.map((benefit, index) => (
+                    <View key={index} style={styles.benefitPill}>
+                      <Text style={styles.benefitPillText}>{benefit}</Text>
+                    </View>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        {isRenewal && (
+          <View style={styles.renewalList}>
+            {(section.items as RenewalCardItem[]).map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.renewalCard}
+                onPress={() => handleRenewalPress(item.route)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.renewalIconContainer}>
+                  <Ionicons name={item.icon} size={22} color={colors.success} />
+                </View>
+                <View style={styles.renewalContent}>
+                  <Text style={styles.renewalTitle}>{item.title}</Text>
+                  <Text style={styles.renewalDescription}>{item.description}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+    );
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.title}>Select Scholarship Type</Text>
-            <Text style={styles.subtitle}>
-              Choose the scholarship application you want to apply for
+        {/* Hero Header */}
+        <View style={styles.heroContainer}>
+          <View style={styles.heroBackground}>
+            <Image
+              source={require('@/assets/hero-banner.png')}
+              style={styles.heroBackgroundImage}
+              resizeMode="cover"
+            />
+            <View style={styles.heroGradientOverlay} />
+            <View style={styles.heroTopRow}>
+              <View>
+                {/* <Text style={styles.brandTitle}>VIDYA POSHAK</Text>
+                <Text style={styles.brandTagline}>Empowering Education, Enriching Lives</Text> */}
+              </View>
+              {/* <TouchableOpacity
+                style={styles.heroLoginButton}
+                onPress={isLoggedIn ? handlePrimaryDashboard : handlePrimaryLogin}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.heroLoginButtonText}>
+                  {isLoggedIn ? 'My Dashboard' : 'Login'}
+                </Text>
+              </TouchableOpacity> */}
+            </View>
+
+            <View style={styles.heroContent}>
+              <View style={styles.heroTextContainer}>
+                {/* <Text style={styles.heroTitle}>
+                  {isLoggedIn ? `Welcome back, ${user?.UserName?.split(' ')[0] ?? 'Scholar'}!` : 'Welcome!'}
+                </Text>
+                <Text style={styles.heroSubtitle}>
+                  What would you like to do today?
+                </Text> */}
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Primary Actions */}
+        <View style={styles.primaryActions}>
+          <TouchableOpacity
+            style={styles.primaryActionCard}
+            onPress={isLoggedIn ? handlePrimaryDashboard : handlePrimaryLogin}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.primaryActionIcon, { backgroundColor: colors.primary + '15' }]}>
+              <Ionicons
+                name={isLoggedIn ? 'grid-outline' : 'log-in-outline'}
+                size={28}
+                color={colors.primary}
+              />
+            </View>
+            <View style={styles.primaryActionTextContainer}>
+              <Text style={styles.primaryActionTitle}>
+                {isLoggedIn ? 'My Dashboard' : 'Login'}
+              </Text>
+              <Text style={styles.primaryActionSubtitle}>
+                {isLoggedIn ? 'View your dashboard and tasks' : 'Access your VP account'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.primaryActionCard}
+            onPress={handleApplyNow}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.primaryActionIcon, { backgroundColor: colors.success + '15' }]}>
+              <Ionicons name="create-outline" size={28} color={colors.success} />
+            </View>
+            <View style={styles.primaryActionTextContainer}>
+              <Text style={styles.primaryActionTitle}>Apply for Scholarship</Text>
+              <Text style={styles.primaryActionSubtitle}>Start a new application</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Scholarship Sections */}
+        {homeSections.map(renderSection)}
+
+        {/* Support Section */}
+        <View style={styles.supportCard}>
+          <View style={styles.supportIconContainer}>
+            <Ionicons name="headset-outline" size={36} color={colors.primary} />
+          </View>
+          <View style={styles.supportContent}>
+            <Text style={styles.supportTitle}>Need Help?</Text>
+            <Text style={styles.supportSubtitle}>
+              Not sure which scholarship is right for you?
             </Text>
           </View>
           <TouchableOpacity
-            style={styles.volunteerLoginButton}
-            onPress={() => (router.push as any)('/login')}
+            style={styles.supportButton}
+            onPress={() => (router.push as any)('/help')}
             activeOpacity={0.8}
           >
-            <Ionicons name="log-in-outline" size={20} color={colors.card} />
-            <Text style={styles.volunteerLoginText}>Login</Text>
+            <Text style={styles.supportButtonText}>Contact Support</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Form Options */}
-        <View style={styles.optionsContainer}>
-          {/* Professional Scholarship */}
-          <TouchableOpacity
-            style={styles.optionCard}
-            onPress={() => handleFormSelect('professional')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionHeader}>
-              <Ionicons name="briefcase" size={32} color={colors.primary} />
-              <Text style={styles.optionTitle}>Professional Student</Text>
-            </View>
-            <Text style={styles.optionDescription}>
-              For students pursuing professional courses like Engineering, Medicine, Architecture, etc.
-            </Text>
-            <View style={styles.featuresList}>
-              <Text style={styles.featureItem}>• Higher scholarship amounts</Text>
-              <Text style={styles.featureItem}>• Merit-based selection</Text>
-              <Text style={styles.featureItem}>• Professional course verification</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* PUC Scholarship */}
-          <TouchableOpacity
-            style={styles.optionCard}
-            onPress={() => handleFormSelect('puc')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionHeader}>
-              <Ionicons name="school" size={32} color={colors.primary} />
-              <Text style={styles.optionTitle}>PUC-I Students 2025-26</Text>
-            </View>
-            <Text style={styles.optionDescription}>
-              For students in Pre-University College (11th & 12th grade)
-            </Text>
-            <View style={styles.featuresList}>
-              <Text style={styles.featureItem}>• Foundation scholarship</Text>
-              <Text style={styles.featureItem}>• Academic performance based</Text>
-              <Text style={styles.featureItem}>• Stream-specific benefits</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Semi Professional Scholarship */}
-          <TouchableOpacity
-            style={styles.optionCard}
-            onPress={() => handleFormSelect('semiProfessional')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionHeader}>
-              <Ionicons name="construct" size={32} color={colors.primary} />
-              <Text style={styles.optionTitle}>Semi Professional Student 2025-26</Text>
-            </View>
-            <Text style={styles.optionDescription}>
-              For students pursuing semi-professional courses like Diploma, ITI, Nursing, Pharmacy, etc.
-            </Text>
-            <View style={styles.featuresList}>
-              <Text style={styles.featureItem}>• Diploma & ITI courses</Text>
-              <Text style={styles.featureItem}>• Need-based scholarship</Text>
-              <Text style={styles.featureItem}>• Document verification required</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Payana Scholarship */}
-          <TouchableOpacity
-            style={styles.optionCard}
-            onPress={() => handleFormSelect('payana')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionHeader}>
-              <Ionicons name="star" size={32} color={colors.primary} />
-              <Text style={styles.optionTitle}>Payana New Student 2025-26</Text>
-            </View>
-            <Text style={styles.optionDescription}>
-              For new students applying for Payana financial assistance program
-            </Text>
-            <View style={styles.featuresList}>
-              <Text style={styles.featureItem}>• Financial assistance program</Text>
-              <Text style={styles.featureItem}>• Need-based selection</Text>
-              <Text style={styles.featureItem}>• Complete documentation required</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Renewal PUC */}
-          <TouchableOpacity
-            style={[styles.optionCard, styles.renewalCard]}
-            onPress={handleRenewalPUC}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionHeader}>
-              <Ionicons name="refresh-circle" size={32} color={colors.success} />
-              <Text style={[styles.optionTitle, styles.renewalTitle]}>Renewal PUC 2025-26</Text>
-            </View>
-            <Text style={styles.optionDescription}>
-              For existing Vidya Poshak scholars renewing their PUC scholarship for 2025-26
-            </Text>
-            <View style={styles.featuresList}>
-              <Text style={styles.featureItem}>• Existing VP scholars only</Text>
-              <Text style={styles.featureItem}>• Use your VP ID to renew</Text>
-              <Text style={styles.featureItem}>• Updated academic results required</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Renewal Professional */}
-          <TouchableOpacity
-            style={[styles.optionCard, styles.renewalCard]}
-            onPress={handleRenewalProfessional}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionHeader}>
-              <Ionicons name="refresh-circle" size={32} color={colors.success} />
-              <Text style={[styles.optionTitle, styles.renewalTitle]}>
-                Renewal Professional 2025-26
-              </Text>
-            </View>
-            <Text style={styles.optionDescription}>
-              For existing VP scholars in professional courses renewing for 2025-26
-            </Text>
-            <View style={styles.featuresList}>
-              <Text style={styles.featureItem}>• Engineering, Medicine, Architecture etc.</Text>
-              <Text style={styles.featureItem}>• Document uploads required</Text>
-              <Text style={styles.featureItem}>• Use your VP ID to renew</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Renewal Payana */}
-          <TouchableOpacity
-            style={[styles.optionCard, styles.renewalCard]}
-            onPress={handleRenewalPayana}
-            activeOpacity={0.8}
-          >
-            <View style={styles.optionHeader}>
-              <Ionicons name="refresh-circle" size={32} color={colors.success} />
-              <Text style={[styles.optionTitle, styles.renewalTitle]}>
-                Renewal Payana 2025-26
-              </Text>
-            </View>
-            <Text style={styles.optionDescription}>
-              For existing Payana scholars renewing their financial assistance for 2025-26
-            </Text>
-            <View style={styles.featuresList}>
-              <Text style={styles.featureItem}>• Payana scholars only</Text>
-              <Text style={styles.featureItem}>• Use your Payana ID to renew</Text>
-              <Text style={styles.featureItem}>• Document uploads required</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Help Section */}
-        <View style={styles.helpSection}>
-          <Text style={styles.helpTitle}>Need Help?</Text>
-          <Text style={styles.helpText}>
-            Not sure which scholarship to apply for? Contact our support team for guidance.
-          </Text>
-          <TouchableOpacity style={styles.helpButton} activeOpacity={0.8}>
-            <Ionicons name="help-circle" size={20} color={colors.primary} />
-            <Text style={styles.helpButtonText}>Contact Support</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Bottom spacing to account for fixed bottom nav */}
+        <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        {BOTTOM_NAV_ITEMS.map((item) => {
+          const isActive = item.route === '/';
+          return (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.bottomNavItem}
+              onPress={() => handleNavPress(item.route)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={isActive ? item.activeIcon : item.icon}
+                size={24}
+                color={isActive ? colors.primary : colors.textSecondary}
+              />
+              <Text
+                style={[styles.bottomNavLabel, isActive && styles.bottomNavLabelActive]}
+              >
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </SafeAreaView>
   );
 }
@@ -220,146 +291,334 @@ export default function FormSelectionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.darkMode,
+    backgroundColor: colors.background,
   },
   scroll: {
     flex: 1,
   },
   content: {
-    padding: spacing.lg,
     paddingBottom: spacing.xl,
   },
-  header: {
+
+  // Hero
+  heroContainer: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+  },
+  heroBackground: {
+    borderRadius: 25,
+    padding: spacing.xs,
+    overflow: 'hidden',
+    minHeight: screenWidth * 0.50,
+    ...platform.elevation.button,
+  },
+  heroBackgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  heroGradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+  },
+  heroTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xl,
+    alignItems: 'flex-start',
+    marginBottom: spacing.md,
   },
-  headerTextContainer: {
+  brandTitle: {
+    fontSize: platform.normalize.fontSize.caption,
+    lineHeight: platform.normalize.lineHeight.caption,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    letterSpacing: 1.2,
+  },
+  brandTagline: {
+    fontSize: platform.normalize.fontSize.small,
+    lineHeight: platform.normalize.lineHeight.small,
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginTop: 2,
+  },
+  heroLoginButton: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 20,
+    ...platform.elevation.card,
+  },
+  heroLoginButtonText: {
+    top: 0,
+    color: colors.primary,
+    fontSize: platform.normalize.fontSize.body,
+    lineHeight: platform.normalize.lineHeight.body,
+    fontWeight: '700',
+  },
+  heroContent: {
     flex: 1,
+    justifyContent: 'flex-end',
   },
-  title: {
+  heroTextContainer: {
+    width: '100%',
+  },
+  heroTitle: {
     fontSize: platform.normalize.fontSize.h1,
     lineHeight: platform.normalize.lineHeight.h1,
-    color: colors.textTitle,
+    color: '#FFFFFF',
     fontWeight: '700',
-    textAlign: 'left',
     marginBottom: spacing.sm,
   },
-  subtitle: {
+  heroSubtitle: {
     fontSize: platform.normalize.fontSize.body,
     lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textSubtitle,
-    textAlign: 'left',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
-  optionsContainer: {
-    gap: spacing.lg,
-    marginBottom: spacing.xl,
+
+  // Primary Actions
+  primaryActions: {
+    paddingHorizontal: spacing.md,
+    gap: spacing.md,
+    marginBottom: spacing.lg,
   },
-  optionCard: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  optionHeader: {
+  primaryActionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: spacing.md,
+    gap: spacing.md,
+    ...platform.elevation.card,
   },
-  optionTitle: {
-    fontSize: platform.normalize.fontSize.h2,
-    lineHeight: platform.normalize.lineHeight.h2,
-    color: colors.textPrimary,
-    fontWeight: '600',
-    marginLeft: spacing.sm,
-  },
-  optionDescription: {
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-    textAlign: 'justify',
-  },
-  featuresList: {
-    gap: spacing.xs,
-  },
-  featureItem: {
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textSecondary,
-  },
-  volunteerLoginButton: {
-    flexDirection: 'row',
+  primaryActionIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderRadius: 12,
-    marginBottom: spacing.lg,
-    gap: spacing.sm,
   },
-  volunteerLoginText: {
-    color: colors.card,
-    fontWeight: '600',
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
+  primaryActionTextContainer: {
+    flex: 1,
   },
-  helpSection: {
-    alignItems: 'center',
-    padding: spacing.lg,
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  helpTitle: {
+  primaryActionTitle: {
     fontSize: platform.normalize.fontSize.h3,
     lineHeight: platform.normalize.lineHeight.h3,
     color: colors.textPrimary,
-    fontWeight: '600',
-    marginBottom: spacing.sm,
+    fontWeight: '700',
   },
-  helpText: {
+  primaryActionSubtitle: {
+    fontSize: platform.normalize.fontSize.caption,
+    lineHeight: platform.normalize.lineHeight.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+
+  // Sections
+  section: {
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  sectionHeader: {
+    marginBottom: spacing.md,
+  },
+  sectionTitle: {
+    fontSize: platform.normalize.fontSize.h2,
+    lineHeight: platform.normalize.lineHeight.h2,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
+  sectionSubtitle: {
     fontSize: platform.normalize.fontSize.body,
     lineHeight: platform.normalize.lineHeight.body,
     color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: spacing.md,
+    marginTop: 4,
   },
-  helpButton: {
+
+  // Scholarship Cards
+  cardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  scholarshipCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: spacing.sm,
+    width: '47.5%',
+    ...platform.elevation.card,
+  },
+  scholarshipCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 8,
-    backgroundColor: colors.background,
+    marginBottom: spacing.sm,
   },
-  helpButtonText: {
+  scholarshipIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: colors.primary + '12',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  scholarshipCardTitle: {
+    flex: 1,
     fontSize: platform.normalize.fontSize.body,
     lineHeight: platform.normalize.lineHeight.body,
-    color: colors.primary,
-    fontWeight: '500',
-    marginLeft: spacing.sm,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  chevron: {
+    marginLeft: spacing.xs,
+    display: 'none',
+  },
+  scholarshipDescription: {
+    fontSize: platform.normalize.fontSize.body,
+    lineHeight: platform.normalize.lineHeight.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  benefitsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  benefitPill: {
+    backgroundColor: colors.background,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  benefitPillText: {
+    fontSize: platform.normalize.fontSize.small,
+    lineHeight: platform.normalize.lineHeight.small,
+    color: colors.textSecondary,
+  },
+
+  // Renewal Cards
+  renewalList: {
+    gap: spacing.sm,
   },
   renewalCard: {
-    borderColor: colors.success,
-    borderWidth: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    padding: spacing.md,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.success,
+    ...platform.elevation.card,
+  },
+  renewalIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: colors.success + '12',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  renewalContent: {
+    flex: 1,
   },
   renewalTitle: {
-    color: colors.success,
+    fontSize: platform.normalize.fontSize.body,
+    lineHeight: platform.normalize.lineHeight.body,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
+  renewalDescription: {
+    fontSize: platform.normalize.fontSize.caption,
+    lineHeight: platform.normalize.lineHeight.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+
+  // Support
+  supportCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: spacing.md,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.lg,
+    ...platform.elevation.card,
+  },
+  supportIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: colors.primary + '12',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  supportContent: {
+    flex: 1,
+  },
+  supportTitle: {
+    fontSize: platform.normalize.fontSize.h3,
+    lineHeight: platform.normalize.lineHeight.h3,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
+  supportSubtitle: {
+    fontSize: platform.normalize.fontSize.caption,
+    lineHeight: platform.normalize.lineHeight.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  supportButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 10,
+  },
+  supportButtonText: {
+    color: '#FFFFFF',
+    fontSize: platform.normalize.fontSize.caption,
+    lineHeight: platform.normalize.lineHeight.caption,
+    fontWeight: '600',
+  },
+
+  // Bottom nav
+  bottomSpacer: {
+    height: 80,
+  },
+  bottomNav: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    backgroundColor: colors.card,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    ...platform.elevation.button,
+  },
+  bottomNavItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+    gap: 4,
+  },
+  bottomNavLabel: {
+    fontSize: platform.normalize.fontSize.small,
+    lineHeight: platform.normalize.lineHeight.small,
+    color: colors.textSecondary,
+  },
+  bottomNavLabelActive: {
+    color: colors.primary,
+    fontWeight: '600',
   },
 });

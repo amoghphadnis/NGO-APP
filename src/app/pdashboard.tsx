@@ -1,28 +1,29 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  StyleSheet,
-  Platform,
-  RefreshControl,
-  Animated,
-  ScrollView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/store/useAuthStore';
 import { dashboardApi } from '@/api/dashboardApi';
-import { pucStudentApi } from '@/api/pucStudentApi';
 import { payanaStudentApi } from '@/api/payanaStudentApi';
 import { professionalStudentApi } from '@/api/professionalStudentApi';
-import { PDashboardResponseDto, DashboardError, DashboardErrorCode } from '@/types/dashboard';
+import { pucStudentApi } from '@/api/pucStudentApi';
+import { semiProfessionalStudentApi } from '@/api/semiProfessionalStudentApi';
+import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { DashboardError, DashboardErrorCode, PDashboardResponseDto } from '@/types/dashboard';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    FlatList,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const DRAWER_WIDTH = 280;
 
@@ -37,6 +38,7 @@ const STAT_CARDS: StatCardConfig[] = [
   { label: 'Pending PUC',          field: 'PendingPUC',          icon: 'school-outline',         route: '/approval/puc' },
   { label: 'Pending Payana',       field: 'PendingPayana',        icon: 'bicycle-outline',        route: '/approval/payana' },
   { label: 'Pending Professional', field: 'PendingProfessional',  icon: 'briefcase-outline',      route: '/approval/professional' },
+  { label: 'Pending Semi Prof',    field: 'PendingSemiProfessional', icon: 'book-outline',        route: '/approval/semi-professional' },
 ];
 
 interface DrawerNavItem {
@@ -62,6 +64,7 @@ interface RealTimeCounts {
   pendingPUC: number;
   pendingPayana: number;
   pendingProfessional: number;
+  pendingSemiProfessional: number;
 }
 
 interface DrawerProps {
@@ -105,6 +108,12 @@ function DrawerSidebar({
       label: 'Pending Professional',
       badge: realTimeCounts.pendingProfessional,
       route: '/approval/professional',
+    },
+    {
+      icon: 'book-outline',
+      label: 'Pending Semi Prof',
+      badge: realTimeCounts.pendingSemiProfessional,
+      route: '/approval/semi-professional',
     },
   ];
 
@@ -173,6 +182,7 @@ export default function PDashboardScreen() {
     pendingPUC: 0,
     pendingPayana: 0,
     pendingProfessional: 0,
+    pendingSemiProfessional: 0,
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -216,16 +226,18 @@ export default function PDashboardScreen() {
     try {
       console.log('[PDashboard] Fetching real-time student counts...');
       
-      const [pucResult, payanaResult, professionalResult] = await Promise.allSettled([
+      const [pucResult, payanaResult, professionalResult, semiProfResult] = await Promise.allSettled([
         pucStudentApi.getList(),
         payanaStudentApi.getList(),
         professionalStudentApi.getList(),
+        semiProfessionalStudentApi.getList(),
       ]);
 
       const counts: RealTimeCounts = {
         pendingPUC: 0,
         pendingPayana: 0,
         pendingProfessional: 0,
+        pendingSemiProfessional: 0,
       };
 
       if (pucResult.status === 'fulfilled') {
@@ -241,6 +253,11 @@ export default function PDashboardScreen() {
       if (professionalResult.status === 'fulfilled') {
         counts.pendingProfessional = professionalResult.value.students?.length || 0;
         console.log('[PDashboard] Professional students count:', counts.pendingProfessional);
+      }
+
+      if (semiProfResult.status === 'fulfilled') {
+        counts.pendingSemiProfessional = semiProfResult.value.students?.length || 0;
+        console.log('[PDashboard] Semi Professional students count:', counts.pendingSemiProfessional);
       }
 
       setRealTimeCounts(counts);
@@ -292,6 +309,8 @@ export default function PDashboardScreen() {
         return realTimeCounts.pendingPayana;
       case 'PendingProfessional':
         return realTimeCounts.pendingProfessional;
+      case 'PendingSemiProfessional':
+        return realTimeCounts.pendingSemiProfessional;
       default:
         return dashboard?.[field] ?? 0;
     }

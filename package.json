@@ -8,7 +8,12 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "vp:generate": "npx tsx .claude/skills/vpapp-frontend/scripts/generate-form-section.ts",
+    "vp:validate": "npx tsx .claude/skills/vpapp-frontend/scripts/validate-form-config.ts",
+    "vp:audit": "npx tsx .claude/skills/vpapp-frontend/scripts/design-system-audit.ts",
+    "vp:context": "npx tsx .claude/skills/senior-architect/scripts/update-project-context.ts",
+    "vp:health": "npx tsx .claude/skills/senior-architect/scripts/architecture-health.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -52,6 +57,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.10",
+    "tsx": "^4.19.0",
     "typescript": "~5.9.2"
   },
   "private": true

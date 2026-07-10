@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "VPApp",
-    "slug": "VPApp",
+    "name": "Vidya Poshak",
+    "slug": "VidyaPoshak",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/Logo.png",
-    "scheme": "vpapp",
+    "scheme": "VidyaPoshak",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/Logo.png"

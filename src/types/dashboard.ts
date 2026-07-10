@@ -5,6 +5,7 @@ export interface DashboardResponseDto {
   PendingPUC: number;
   PendingPayana: number;
   PendingProfessional: number;
+  PendingSemiProfessional: number;
   PendingHousePUC: number;
   PendingHousePayana: number;
   PendingPUCRenewal: number;
@@ -19,6 +20,7 @@ export interface PDashboardResponseDto {
   PendingPUC: number;
   PendingPayana: number;
   PendingProfessional: number;
+  PendingSemiProfessional: number;
   PendingHousePUC: number;
   PendingHousePayana: number;
   PendingPUCRenewal: number;
