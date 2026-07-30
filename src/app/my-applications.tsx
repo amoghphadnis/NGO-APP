@@ -1,12 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import AppFooter from '@/components/common/AppFooter';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
 
 export default function MyApplicationsScreen() {
   const router = useRouter();
@@ -37,6 +37,7 @@ export default function MyApplicationsScreen() {
           <Text style={styles.homeButtonText}>Back to Home</Text>
         </TouchableOpacity>
       </View>
+      <AppFooter />
     </SafeAreaView>
   );
 }

@@ -1,24 +1,23 @@
+import { APP_TITLES } from '@/config/appContent';
 import { FormConfig, FormStep } from '../shared/types';
 
 export const semiProfessionalFormConfig: FormConfig = {
   type: 'semiProfessional',
-  title: 'Semi Professional Student Application',
-  description: 'Semi Professional Student Information Sheet - 2025-26',
+  title: APP_TITLES.semiProfessionalApplication,
+  description: APP_TITLES.semiProfessionalApplication,
   steps: [
     'guidelines',
     'personal',
-    'address',
     'family',
     'academic',
     'documents',
     'review',
     'success',
   ],
-  totalSteps: 8,
+  totalSteps: 7,
   validation: {
     guidelines: 'guidelinesSchema',
     personal: 'semiProfPersonalSchema',
-    address: 'semiProfAddressSchema',
     family: 'semiProfFamilySchema',
     academic: 'semiProfAcademicSchema',
     documents: 'semiProfDocumentSchema',
@@ -39,26 +38,17 @@ export const semiProfessionalStepConfigs = [
   },
   {
     id: 'personal' as FormStep,
-    title: 'Personal Details',
-    subtitle: 'Student name, email, contact, gender and caste',
+    title: "Applicant's Information",
+    subtitle: 'Personal, contact and address details',
     component: 'PersonalSection',
     validation: 'semiProfPersonalSchema',
     required: true,
     icon: 'person',
   },
   {
-    id: 'address' as FormStep,
-    title: 'Address Details',
-    subtitle: 'District, taluk, place and address',
-    component: 'AddressSection',
-    validation: 'semiProfAddressSchema',
-    required: true,
-    icon: 'location',
-  },
-  {
     id: 'family' as FormStep,
-    title: 'Family Information',
-    subtitle: 'Parents occupation and income',
+    title: 'Family Details',
+    subtitle: 'Parents info, family and housing details',
     component: 'FamilySection',
     validation: 'semiProfFamilySchema',
     required: true,
@@ -67,7 +57,7 @@ export const semiProfessionalStepConfigs = [
   {
     id: 'academic' as FormStep,
     title: 'Academic Details',
-    subtitle: 'PU percentage, course and college details',
+    subtitle: 'PU percentage, CET/PT rank, course details',
     component: 'AcademicSection',
     validation: 'semiProfAcademicSchema',
     required: true,

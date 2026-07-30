@@ -1,3 +1,4 @@
+import AppFooter from '@/components/common/AppFooter';
 import VPInputField from '@/components/common/VPInputField';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
@@ -11,7 +12,6 @@ import {
     ActivityIndicator,
     Image,
     KeyboardAvoidingView,
-    Linking,
     Platform,
     ScrollView,
     StyleSheet,
@@ -197,16 +197,7 @@ export default function LoginScreen() {
           </Text>
         </View>
 
-        {/* Terms and Privacy */}
-        <Text style={styles.termsText}>
-          By continuing, you agree to our{' '}
-          <Text
-            style={styles.termsLink}
-            onPress={() => Linking.openURL('https://vpwebservices.testserver.envisage-workflow.in/PrivacyAndTerms.pdf').catch(() => {})}
-          >
-            Privacy and Terms & Conditions
-          </Text>
-        </Text>
+        <AppFooter />
       </ScrollView>
     </KeyboardAvoidingView>
   );

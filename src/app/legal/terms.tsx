@@ -1,21 +1,5 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
-import LegalModal from '@/components/common/LegalModal';
-import { TERMS_CONTENT } from '@/constants/legalContent';
+import LegalViewer from '@/components/common/LegalViewer';
 
-export default function TermsModal() {
-  const router = useRouter();
-
-  const handleClose = () => {
-    router.back();
-  };
-
-  return (
-    <LegalModal
-      visible={true}
-      onClose={handleClose}
-      title="Terms & Conditions"
-      content={TERMS_CONTENT}
-    />
-  );
+export default function TermsScreen() {
+  return <LegalViewer type="terms" />;
 }

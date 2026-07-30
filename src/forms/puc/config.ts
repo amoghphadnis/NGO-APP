@@ -1,9 +1,10 @@
+import { APP_TITLES } from '@/config/appContent';
 import { FormConfig, FormStep } from '../shared/types';
 
 export const pucFormConfig: FormConfig = {
   type: 'puc',
-  title: 'PUC Scholarship Application',
-  description: 'Apply for Pre-University College scholarships',
+  title: APP_TITLES.pucApplication,
+  description: APP_TITLES.pucApplication,
   steps: [
     'guidelines',
     'personal',

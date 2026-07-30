@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
@@ -21,6 +21,8 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
 
   const [genderOptions, setGenderOptions] = useState<Option<number>[]>([]);
   const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
+  const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
+  const [areaTypeOptions, setAreaTypeOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
@@ -36,8 +38,14 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
           value: Number(c.value),
           label: c.label
         })) || []);
-        console.log('[SemiPro PersonalSection] Gender options:', response.data.genders);
-        console.log('[SemiPro PersonalSection] Caste options:', response.data.casteCategories);
+        setDistrictOptions(response.data.districts?.map((d: any) => ({
+          value: Number(d.value),
+          label: d.label
+        })) || []);
+        setAreaTypeOptions(response.data.areaTypes?.map((a: any) => ({
+          value: Number(a.value),
+          label: a.label
+        })) || []);
       }
       setLoadingDropdowns(false);
     }
@@ -45,20 +53,32 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
   }, []);
 
   const personalData = (formData as any).personal ?? {
-    studentName: '',
     email: '',
+    studentName: '',
     dateOfBirth: '',
     contactNumber: '',
+    alternateNumber: '',
+    residentialAddress: '',
+    googleMapLink: '',
+    areaTypeID: 0,
+    districtID: 0,
+    otherDistrict: '',
     genderID: 0,
     casteCategoryID: 0,
   };
 
   const { control, handleSubmit, formState, watch } = useForm<SemiProfPersonalFormValues>({
     defaultValues: {
-      studentName: personalData.studentName ?? '',
       email: personalData.email ?? '',
+      studentName: personalData.studentName ?? '',
       dateOfBirth: personalData.dateOfBirth ?? '',
       contactNumber: personalData.contactNumber ?? '',
+      alternateNumber: personalData.alternateNumber ?? '',
+      residentialAddress: personalData.residentialAddress ?? '',
+      googleMapLink: personalData.googleMapLink ?? '',
+      areaTypeID: personalData.areaTypeID ?? 0,
+      districtID: personalData.districtID ?? 0,
+      otherDistrict: personalData.otherDistrict ?? '',
       genderID: personalData.genderID ?? 0,
       casteCategoryID: personalData.casteCategoryID ?? 0,
     },
@@ -68,48 +88,35 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
 
   const watchedEmail = watch('email');
   const emailSuccess = !!watchedEmail && !formState.errors.email;
+  const selectedDistrict = watch('districtID');
+  const showOtherDistrict = selectedDistrict === 11;
 
   const onSubmit = (data: SemiProfPersonalFormValues) => {
     updateSectionData('personal', data);
     updateValidationState('personal', { isValid: true, data });
     markStepComplete(1);
-    navigation.navigate('address');
+    navigation.navigate('family');
   };
 
   const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
-      title="Personal Details"
+      title="Applicant's Information"
       step={2}
-      totalSteps={8}
+      totalSteps={7}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader
         icon="person"
-        title="Student Information"
+        title="Personal Details"
         subtitle="Fields marked with * are required"
         showRequired
       />
 
       <FormCard>
-        <Controller
-          control={control}
-          name="studentName"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Student Name"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter your full name"
-              error={formState.errors.studentName?.message}
-              required
-            />
-          )}
-        />
-
         <Controller
           control={control}
           name="email"
@@ -131,6 +138,21 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
 
         <Controller
           control={control}
+          name="studentName"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Student Name"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter your full name"
+              error={formState.errors.studentName?.message}
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
           name="dateOfBirth"
           render={({ field: { onChange, value } }) => (
             <VPDatePickerField
@@ -139,6 +161,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
               onChange={onChange}
               placeholder="Select date of birth"
               error={formState.errors.dateOfBirth?.message}
+              required
             />
           )}
         />
@@ -156,6 +179,22 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
               maxLength={10}
               error={formState.errors.contactNumber?.message}
               required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="alternateNumber"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Alternate Number"
+              value={value ?? ''}
+              onChangeText={onChange}
+              placeholder="Enter alternate number (optional)"
+              keyboardType="phone-pad"
+              maxLength={10}
+              error={formState.errors.alternateNumber?.message}
             />
           )}
         />
@@ -190,6 +229,102 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
               error={formState.errors.casteCategoryID?.message}
               required
               disabled={loadingDropdowns}
+            />
+          )}
+        />
+      </FormCard>
+
+      <FormSectionHeader
+        icon="location"
+        title="Address Details"
+        subtitle="Where do you currently reside?"
+        showRequired
+      />
+
+      <FormCard>
+        <Controller
+          control={control}
+          name="areaTypeID"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="Area Type"
+              value={value}
+              options={areaTypeOptions}
+              onChange={onChange}
+              placeholder="Select area type"
+              error={formState.errors.areaTypeID?.message}
+              required
+              disabled={loadingDropdowns}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="districtID"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="District"
+              value={value}
+              options={districtOptions}
+              disabled={loadingDropdowns}
+              onChange={onChange}
+              placeholder="Select district"
+              error={formState.errors.districtID?.message}
+              required
+            />
+          )}
+        />
+
+        {showOtherDistrict && (
+          <Controller
+            control={control}
+            name="otherDistrict"
+            render={({ field: { onChange, value } }) => (
+              <VPInputField
+                label="Other District"
+                value={value ?? ''}
+                onChangeText={onChange}
+                placeholder="Enter district name"
+                error={formState.errors.otherDistrict?.message}
+                required
+              />
+            )}
+          />
+        )}
+
+        <Controller
+          control={control}
+          name="residentialAddress"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Residential Address"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter complete residential address"
+              multiline
+              numberOfLines={3}
+              error={formState.errors.residentialAddress?.message}
+              helperText="Include house number, street name, and landmarks"
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="googleMapLink"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Google Map Link"
+              value={value ?? ''}
+              onChangeText={onChange}
+              placeholder="Paste Google Maps link (optional)"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              error={formState.errors.googleMapLink?.message}
+              helperText="Optional: Link to your residence location"
             />
           )}
         />

@@ -4,18 +4,18 @@
  */
 
 import api from './client';
-import { normalizeApiResponse, normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
-import { normalizeSemiProfessionalDropdowns, NormalizedSemiProfDropdowns } from './transformers/normalizeSemiProfDropdowns';
+import { normalizeApiError, normalizeApiResponse, NormalizedApiResponse } from './transformers/normalizeApiResponse';
+import { NormalizedSemiProfDropdowns, normalizeSemiProfessionalDropdowns } from './transformers/normalizeSemiProfDropdowns';
 
 /**
  * Creates a new Semi Professional student application
- * POST /api/semiprofessionalstudent/create
+ * POST /api/semi-professional/create
  */
 export async function createSemiProfessionalStudent(
   formData: FormData
 ): Promise<NormalizedApiResponse<any>> {
   try {
-    const response = await api.post('/semiprofessionalstudent/create', formData);
+    const response = await api.post('/semi-professional/create', formData);
 
     return normalizeApiResponse(response.data);
   } catch (error: any) {
@@ -25,13 +25,13 @@ export async function createSemiProfessionalStudent(
 
 /**
  * Gets Semi Professional dropdown data
- * GET /api/semiprofessionalstudent/create
+ * GET /api/semi-professional/form-data
  */
 export async function getSemiProfessionalDropdowns(): Promise<
   NormalizedApiResponse<NormalizedSemiProfDropdowns>
 > {
   try {
-    const response = await api.get('/semiprofessionalstudent/dropdowns');
+    const response = await api.get('/semi-professional/form-data');
     // Handle both wrapped (data.Data) and unwrapped (data) responses
     const dropdownData = response.data.Data || response.data;
     const normalizedDropdowns = normalizeSemiProfessionalDropdowns(dropdownData);

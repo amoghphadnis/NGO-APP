@@ -1,100 +1,143 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
-import FormCard from '@/components/common/FormCard';
-import VPInputField from '@/components/common/VPInputField';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { isProfessionalForm } from '@/types/forms';
-import {
-  professionalFamilyDetailsSchema,
-  ProfessionalFamilyDetailsFormValues,
-} from '@/validation/professionalSchemas';
 import { getProfessionalDropdowns } from '@/api/professionalApi';
-import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
-import { platform } from '@/theme/platform';
+import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import { ProfessionalFamilyDetailsFormValues, professionalFamilyDetailsSchema } from '@/validation/professionalSchemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function FamilySection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const [fatherOccupationOptions, setFatherOccupationOptions] = useState<Option<number>[]>([]);
   const [motherOccupationOptions, setMotherOccupationOptions] = useState<Option<number>[]>([]);
+  const [houseTypeOptions, setHouseTypeOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
     async function loadDropdowns() {
       const response = await getProfessionalDropdowns();
-      console.log('[FamilySection] Dropdown response:', response);
       if (response.success && response.data) {
-        setFatherOccupationOptions(response.data.fatherOcc?.map((o: any) => ({ 
-          value: Number(o.value), 
-          label: o.label 
+        setFatherOccupationOptions(response.data.fatherOcc?.map((o: any) => ({
+          value: Number(o.value),
+          label: o.label
         })) || []);
-        setMotherOccupationOptions(response.data.motherOcc?.map((o: any) => ({ 
-          value: Number(o.value), 
-          label: o.label 
+        setMotherOccupationOptions(response.data.motherOcc?.map((o: any) => ({
+          value: Number(o.value),
+          label: o.label
         })) || []);
-        console.log('[FamilySection] Father occupation options:', response.data.fatherOcc);
-        console.log('[FamilySection] Mother occupation options:', response.data.motherOcc);
+        setHouseTypeOptions(response.data.houseTypes?.map((h: any) => ({
+          value: Number(h.value),
+          label: h.label
+        })) || []);
       }
       setLoadingDropdowns(false);
     }
     loadDropdowns();
   }, []);
 
-  const familyData = isProfessionalForm(formData) 
-    ? formData.family 
-    : { FatherOccupationID: undefined, MotherOccupationID: undefined, FamilyMembers: 1, AnnualIncome: '' };
+  const familyData = (formData as any).family ?? {
+    FatherName: '',
+    MotherName: '',
+    FatherOccupationID: 0,
+    MotherOccupationID: 0,
+    FamilyMembers: 1,
+    HouseTypeID: 0,
+    MonthlyRent: undefined,
+    FamilyIncome: 0,
+  };
 
-  const { control, handleSubmit, formState } = useForm<ProfessionalFamilyDetailsFormValues>({
+  const { control, handleSubmit, formState, watch } = useForm<ProfessionalFamilyDetailsFormValues>({
     defaultValues: {
-      FatherOccupationID: familyData.FatherOccupationID ?? undefined,
-      MotherOccupationID: familyData.MotherOccupationID ?? undefined,
-      FamilyMembers: familyData.FamilyMembers || 1,
-      AnnualIncome: familyData.AnnualIncome || '',
+      FatherName: familyData.FatherName ?? '',
+      MotherName: familyData.MotherName ?? '',
+      FatherOccupationID: familyData.FatherOccupationID ?? 0,
+      MotherOccupationID: familyData.MotherOccupationID ?? 0,
+      FamilyMembers: familyData.FamilyMembers ?? 1,
+      HouseTypeID: familyData.HouseTypeID ?? 0,
+      MonthlyRent: familyData.MonthlyRent,
+      FamilyIncome: familyData.FamilyIncome ?? 0,
     },
     resolver: zodResolver(professionalFamilyDetailsSchema),
     mode: 'onChange',
   });
 
+  const selectedHouseType = watch('HouseTypeID');
+  const showMonthlyRent = selectedHouseType === 2 || selectedHouseType === 3;
+
   const onSubmit = (data: ProfessionalFamilyDetailsFormValues) => {
     updateSectionData('family', data);
     updateValidationState('family', { isValid: true, data });
-    markStepComplete(4);
+    markStepComplete(2);
     navigation.navigate('academic');
   };
 
+  const isNextDisabled = !formState.isValid || loadingDropdowns;
+
   return (
     <FormScreenLayout
-      title="Family Information"
-      step={5}
+      title="Family Details"
+      step={3}
+      totalSteps={7}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
+      nextDisabled={isNextDisabled}
     >
-      {/* Parents Information */}
       <FormSectionHeader
         icon="people"
         title="Parents Information"
         subtitle="Tell us about your parents"
+        showRequired
       />
 
       <FormCard>
+        <Controller
+          control={control}
+          name="FatherName"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Father's Name"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter father's full name"
+              error={formState.errors.FatherName?.message}
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="MotherName"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Mother's Name"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter mother's full name"
+              error={formState.errors.MotherName?.message}
+              required
+            />
+          )}
+        />
+
         <Controller
           control={control}
           name="FatherOccupationID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Father's Occupation"
-              placeholder="Select father's occupation (Optional)"
+              placeholder="Select father's occupation"
               value={value}
               onChange={onChange}
               options={fatherOccupationOptions}
               error={formState.errors.FatherOccupationID?.message}
+              required
               disabled={loadingDropdowns}
             />
           )}
@@ -106,22 +149,23 @@ export default function FamilySection({ navigation }: any) {
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Mother's Occupation"
-              placeholder="Select mother's occupation (Optional)"
+              placeholder="Select mother's occupation"
               value={value}
               onChange={onChange}
               options={motherOccupationOptions}
               error={formState.errors.MotherOccupationID?.message}
+              required
               disabled={loadingDropdowns}
             />
           )}
         />
       </FormCard>
 
-      {/* Family Details */}
       <FormSectionHeader
         icon="home"
-        title="Family Details"
-        subtitle="Information about your family"
+        title="Family & Housing Details"
+        subtitle="Information about your family and housing"
+        showRequired
       />
 
       <FormCard>
@@ -140,7 +184,6 @@ export default function FamilySection({ navigation }: any) {
               placeholder="Enter total family members"
               keyboardType="numeric"
               maxLength={2}
-              selectTextOnFocus
               error={formState.errors.FamilyMembers?.message}
               helperText="Include all family members living together"
               required
@@ -150,85 +193,65 @@ export default function FamilySection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="AnnualIncome"
+          name="HouseTypeID"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="House Type"
+              placeholder="Select house type"
+              value={value}
+              onChange={onChange}
+              options={houseTypeOptions}
+              error={formState.errors.HouseTypeID?.message}
+              required
+              disabled={loadingDropdowns}
+            />
+          )}
+        />
+
+        {showMonthlyRent && (
+          <Controller
+            control={control}
+            name="MonthlyRent"
+            render={({ field: { onChange, value } }) => (
+              <VPInputField
+                label="Monthly Rent"
+                value={value === undefined || value === null ? '' : String(value)}
+                onChangeText={(text) => {
+                  const cleanText = text.replace(/[^0-9]/g, '');
+                  const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
+                  onChange(num);
+                }}
+                placeholder="Enter monthly rent"
+                keyboardType="numeric"
+                prefix="₹"
+                error={formState.errors.MonthlyRent?.message}
+              />
+            )}
+          />
+        )}
+
+        <Controller
+          control={control}
+          name="FamilyIncome"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Annual Family Income"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter annual family income"
+              label="Family Income"
+              value={value === undefined || value === null ? '' : String(value)}
+              onChangeText={(text) => {
+                const cleanText = text.replace(/[^0-9]/g, '');
+                const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
+                onChange(num);
+              }}
+              placeholder="Enter family income"
               keyboardType="numeric"
               prefix="₹"
-              error={formState.errors.AnnualIncome?.message}
-              helperText="Total annual income from all sources"
+              error={formState.errors.FamilyIncome?.message}
+              helperText="Total income from all sources"
               required
             />
           )}
         />
       </FormCard>
-
-      {/* Income Guidelines */}
-      <FormCard>
-        <View style={styles.guidelineContainer}>
-          <Text style={styles.guidelineTitle}>Income Guidelines:</Text>
-          <Text style={styles.guidelineText}>
-            • Income should be from all family members
-          </Text>
-          <Text style={styles.guidelineText}>
-            • Include salary, business, agricultural income
-          </Text>
-          <Text style={styles.guidelineText}>
-            • Income certificates may be required for verification
-          </Text>
-          <Text style={styles.guidelineText}>
-            • False information may lead to scholarship cancellation
-          </Text>
-        </View>
-      </FormCard>
-
-      {/* Privacy Notice */}
-      <FormCard>
-        <View style={styles.infoBanner}>
-          <Text style={styles.infoIcon}>🔒</Text>
-          <Text style={styles.infoText}>
-            Family information is kept confidential and used only for scholarship eligibility assessment.
-          </Text>
-        </View>
-      </FormCard>
     </FormScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  guidelineContainer: {
-    padding: spacing.sm,
-  },
-  guidelineTitle: {
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-    marginBottom: spacing.sm,
-  },
-  guidelineText: {
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  infoIcon: {
-    fontSize: 20,
-    marginRight: spacing.sm,
-    marginTop: 2,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textSecondary,
-  },
-});

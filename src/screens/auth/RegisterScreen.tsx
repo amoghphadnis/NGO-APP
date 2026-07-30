@@ -5,7 +5,6 @@ import {
     ActivityIndicator,
     Image,
     KeyboardAvoidingView,
-    Linking,
     Platform,
     ScrollView,
     StatusBar,
@@ -16,12 +15,11 @@ import {
 } from 'react-native';
 
 import { registrationApi } from '@/api/registrationApi';
+import AppFooter from '@/components/common/AppFooter';
 import ModalSelectField from '@/components/common/ModalSelectField';
 import VPInputField from '@/components/common/VPInputField';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-
-const PRIVACY_TERMS_PDF_URL = 'https://vpwebservices.testserver.envisage-workflow.in/PrivacyAndTerms.pdf';
 
 const ROLES = [
   'Admin',
@@ -30,7 +28,7 @@ const ROLES = [
   'Program Manager',
   'Account Manager',
   'Admin(CEO)',
-  'Resource Modulization',
+  'Resource Mobilization',
   'Volunteer',
 ];
 
@@ -365,9 +363,9 @@ export default function RegisterScreen() {
               I accept the{' '}
               <Text
                 style={styles.termsLink}
-                onPress={() => Linking.openURL(PRIVACY_TERMS_PDF_URL).catch(() => {})}
+                onPress={() => router.push('/legal/terms' as any)}
               >
-                Privacy and Terms & Conditions
+                Terms & Conditions
               </Text>
             </Text>
           </TouchableOpacity>
@@ -388,6 +386,8 @@ export default function RegisterScreen() {
               </>
             )}
           </TouchableOpacity>
+
+          <AppFooter />
 
           {/* Login link */}
           <View style={styles.loginLinkRow}>
@@ -413,16 +413,6 @@ export default function RegisterScreen() {
             <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity> */}
 
-          {/* Terms and Privacy */}
-          <Text style={styles.termsText}>
-            By continuing, you agree to our{' '}
-            <Text
-              style={styles.termsLink}
-              onPress={() => Linking.openURL(PRIVACY_TERMS_PDF_URL).catch(() => {})}
-            >
-              Privacy and Terms & Conditions
-            </Text>
-          </Text>
 
           {/* Footer */}
           <Text style={styles.footer}>© Vidya Poshak 2026</Text>

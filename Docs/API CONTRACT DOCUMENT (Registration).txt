@@ -1,0 +1,44 @@
+API CONTRACT DOCUMENT
+Base Route Prefix:
+api/registration
+===================================================================================
+1. User Registration
+===================================================================================
+Endpoint:
+POST /api/registration/registerNew
+Purpose:
+Registers a new user into the application after validating the request, checking fo
+Content-Type:
+application/json
+Authorization:
+Not Required
+Path Parameters:
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | - | - |
+Query Parameters:
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | - | - |
+Request Body
+```json
+{
+"Name": "John Doe",
+"Email": "john.doe@gmail.com",
+"Password": "Password@123",
+"Mobile": "9876543210",
+"Role": "Branch Executives",
+"DistrictID": 5,
+"Taluk": "Mysore",
+"Address": "123 Main Road"
+} ```
+Request Body Fields
+| Field | Type | Required | Description |
+|--------|------|----------|-------------|| Name | string | Yes | Full name of the user || Email | string | Yes | User email address (must be unique) || Password | string | Yes | Login password || Mobile | string | No | Mobile number || Role | string | Yes | User role || DistrictID | integer | No | District ID (ignored for Admin and Employee roles) || Taluk | string | No | Taluk name || Address | string | Yes | Residential address |Form Data / Multipart FieldsNot ApplicableFile Upload FieldsNoneValidation Rules- Request body must be valid JSON.- Model validation is performed using Data Annotation attributes.- Mandatory fields are validated before processing.- Email address must be unique.- Duplicate email registration is not allowed.- DistrictID is nullable.- Mobile is optional.- Taluk is optional.- Address validation depends on model attributes defined in the Users model.Business Logic Notes- Model validation is executed before any database operation.- If validation fails, all validation error messages are returned.- Duplicate email check is performed using a case-insensitive comparison.- If Role = **Admin** - DistrictID is automatically set to NULL.- If Role = **Employee** - DistrictID is automatically set to NULL.- If DistrictID is provided: - District name is retrieved from the **DistrictMaster** table. - Retrieved district name is stored in the **District** column of the Users table- **OtherDistrict** is always stored as NULL.- **Status** is automatically initialized to **0** (Pending/Inactive).- User record is inserted into the **Users** table.- On successful registration, the API returns a success response with no data payloSuccess Response (200 OK)```json{ "success": true,
+"message": "Registration Successful!", "data": null}```Failure Responses400 Bad Request (Validation Failure)```json{ "success": false, "message": "Validation error(s)"}```400 Bad Request (Business Validation)```json{ "success": false, "message": "Email already registered. Please login."}```500 Internal Server Error```json{ "success": false, "message": "Unexpected server error."}```Example Error JSON```json{ "success": false, "message": "Error message"}```Status Codes Used| Status Code | Description ||-------------|-------------|| 200 | Registration Successful || 400 | Validation Failure / Duplicate Email / Business Validation || 500 | Internal Server Error |===================================================================================
+COMMON DTOS===================================================================================Users DTO```json{ "Name": "John Doe", "Email": "john.doe@gmail.com", "Password": "Password@123", "Mobile": "9876543210", "Role": "Branch Executives", "DistrictID": 5, "Taluk": "Mysore", "Address": "123 Main Road"}```Success Response DTO```json{ "success": true, "message": "Registration Successful!", "data": null}```Error Response DTO```json{ "success": false, "message": "Error message"}```Supported Role Values| Role ||------|| Admin || Employee || Branch Executives || Program Manager || Account Manager || Admin (CEO) || Resource Modulization || Volunteer |Default Values
+| Field | Default Value |
+|--------|---------------|
+| Status | 0 |
+| DistrictID | NULL (for Admin and Employee roles) |
+| District | Retrieved from DistrictMaster |

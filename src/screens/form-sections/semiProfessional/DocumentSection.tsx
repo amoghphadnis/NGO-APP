@@ -1,73 +1,61 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FileUploadField from '@/components/form/FileUploadField';
-import VPInputField from '@/components/common/VPInputField';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { pickDocument } from '@/utils/filePicker';
-import { SEMI_PROFESSIONAL_UPLOAD_RULES, validateSemiProfUpload } from '@/forms/semiProfessional/uploads';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { SEMI_PROFESSIONAL_FILE_KEYS } from '@/forms/semiProfessional/fileKeys';
-import { UploadedDocument } from '@/types/documents';
+import { validateSemiProfUpload } from '@/forms/semiProfessional/uploads';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { UploadedDocument } from '@/types/documents';
+import { pickDocument } from '@/utils/filePicker';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 interface DocumentFormData {
-  pucMarksCard?: UploadedDocument;
+  studentSelfie?: UploadedDocument;
+  cetRankSheet?: UploadedDocument;
+  ptRankSheet?: UploadedDocument;
+  dwellingUnitPhoto?: UploadedDocument;
+  marksSheet12?: UploadedDocument;
+  houseVideo?: UploadedDocument;
+  electricityBill?: UploadedDocument;
   incomeCertificate?: UploadedDocument;
-  aadharCard?: UploadedDocument;
-  houseVisitLink: string;
+  rationCard?: UploadedDocument;
 }
+
+const DOC_KEYS = [
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.STUDENT_SELFIE, label: 'Student Selfie/Photograph', subtitle: 'Upload a clear selfie/photograph (PDF/JPG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.CET_RANK_SHEET, label: 'CET Rank Sheet', subtitle: 'Upload CET rank sheet (PDF/JPG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.PT_RANK_SHEET, label: 'PT Rank Sheet', subtitle: 'Upload PT rank sheet (PDF/JPG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.DWELLING_UNIT_PHOTO, label: 'Dwelling Unit Photo', subtitle: 'Upload photo of your dwelling unit (PDF/JPG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.MARKS_SHEET_12, label: '12th Marks Sheet', subtitle: 'Upload 12th marks sheet (PDF/JPG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO, label: 'House Video', subtitle: 'Upload house video link or file (PDF/JPG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL, label: 'Electricity Bill', subtitle: 'Upload latest electricity bill (PDF/JPG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE, label: 'Income Certificate', subtitle: 'Upload family income certificate (PDF/JPG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.RATION_CARD, label: 'Ration Card', subtitle: 'Upload ration card (PDF/JPG, max 2MB)' },
+];
 
 export default function DocumentSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData, uploadState, updateUploadState } = useFormEngineStore();
 
-  const documentData = (formData as any).documents ?? {
-    pucMarksCard: undefined,
-    incomeCertificate: undefined,
-    aadharCard: undefined,
-    houseVisitLink: '',
-  };
-
-  const { control, handleSubmit, formState, watch } = useForm<DocumentFormData>({
-    defaultValues: {
-      pucMarksCard: documentData.pucMarksCard ?? undefined,
-      incomeCertificate: documentData.incomeCertificate ?? undefined,
-      aadharCard: documentData.aadharCard ?? undefined,
-      houseVisitLink: documentData.houseVisitLink ?? '',
-    },
-    mode: 'onChange',
-  });
-
-  const houseVisitLinkValue = watch('houseVisitLink');
+  const documentData = (formData as any).documents ?? {};
 
   const handleFileUpload = async (documentKey: string) => {
-    console.log('[SemiProf DocumentSection] Handling file upload for:', documentKey);
-
     updateUploadState(documentKey, { isUploading: true, error: undefined, progress: 0 });
 
     const file = await pickDocument();
-
     if (!file) {
-      console.log('[SemiProf DocumentSection] No file selected or picker canceled');
       updateUploadState(documentKey, { isUploading: false });
       return;
     }
 
-    console.log('[SemiProf DocumentSection] File picked:', file);
-
     const validation = validateSemiProfUpload(file, documentKey);
     if (!validation.valid) {
-      console.error('[SemiProf DocumentSection] File validation failed:', validation.error);
       updateUploadState(documentKey, { isUploading: false, error: validation.error });
       return;
     }
-
-    console.log('[SemiProf DocumentSection] File validation passed');
 
     const updatedDocuments = {
       ...documentData,
@@ -77,14 +65,10 @@ export default function DocumentSection({ navigation }: any) {
       },
     };
     updateSectionData('documents', updatedDocuments);
-
     updateUploadState(documentKey, { isUploading: false, uploaded: true, progress: 100 });
-    console.log('[SemiProf DocumentSection] File upload complete for:', documentKey);
   };
 
   const handleDeleteFile = (documentKey: string) => {
-    console.log('[SemiProf DocumentSection] Deleting file for:', documentKey);
-
     const updatedDocuments = {
       ...documentData,
       [documentKey]: null,
@@ -93,105 +77,42 @@ export default function DocumentSection({ navigation }: any) {
     updateUploadState(documentKey, { isUploading: false, uploaded: false, error: undefined, progress: 0 });
   };
 
-  const onSubmit = (data: DocumentFormData) => {
-    const updatedDocuments = {
-      pucMarksCard: documentData.pucMarksCard ?? undefined,
-      incomeCertificate: documentData.incomeCertificate ?? undefined,
-      aadharCard: documentData.aadharCard ?? undefined,
-      houseVisitLink: data.houseVisitLink,
-    };
-
-    updateSectionData('documents', updatedDocuments);
-    updateValidationState('documents', { isValid: true, data: updatedDocuments });
-    markStepComplete(5);
+  const onSubmit = () => {
+    updateValidationState('documents', { isValid: true, data: documentData });
+    markStepComplete(4);
     navigation.navigate('review');
   };
 
   return (
     <FormScreenLayout
       title="Document Upload"
-      step={6}
-      totalSteps={8}
+      step={5}
+      totalSteps={7}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={onSubmit}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Required Documents */}
         <FormSectionHeader
           icon="attach"
           title="Upload Documents"
-          subtitle="Upload PU Marks Card, Income Certificate and Aadhaar Card"
+          subtitle="Upload all applicable documents (PDF/JPG/PNG, max 2MB each)"
         />
 
-        <FormCard>
-          <FileUploadField
-            title="PU Marks Card"
-            subtitle="Upload your PU marks card (PDF/JPG, max 2MB)"
-            file={documentData.pucMarksCard?.file}
-            meta={uploadState[SEMI_PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD]}
-            onUpload={() => handleFileUpload(SEMI_PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD)}
-            onDelete={() => handleDeleteFile(SEMI_PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD)}
-            maxSize={2 * 1024 * 1024}
-            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
-          />
-        </FormCard>
+        {DOC_KEYS.map((doc) => (
+          <FormCard key={doc.key}>
+            <FileUploadField
+              title={doc.label}
+              subtitle={doc.subtitle}
+              file={documentData[doc.key]?.file}
+              meta={uploadState[doc.key]}
+              onUpload={() => handleFileUpload(doc.key)}
+              onDelete={() => handleDeleteFile(doc.key)}
+              maxSize={2 * 1024 * 1024}
+              acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+            />
+          </FormCard>
+        ))}
 
-        <FormCard>
-          <FileUploadField
-            title="Income Certificate"
-            subtitle="Upload family income certificate (PDF/JPG, max 2MB)"
-            file={documentData.incomeCertificate?.file}
-            meta={uploadState[SEMI_PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE]}
-            onUpload={() => handleFileUpload(SEMI_PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE)}
-            onDelete={() => handleDeleteFile(SEMI_PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE)}
-            maxSize={2 * 1024 * 1024}
-            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
-          />
-        </FormCard>
-
-        <FormCard>
-          <FileUploadField
-            title="Aadhaar Card"
-            subtitle="Upload your Aadhaar card (PDF/JPG, max 2MB)"
-            file={documentData.aadharCard?.file}
-            meta={uploadState[SEMI_PROFESSIONAL_FILE_KEYS.AADHAR_CARD]}
-            onUpload={() => handleFileUpload(SEMI_PROFESSIONAL_FILE_KEYS.AADHAR_CARD)}
-            onDelete={() => handleDeleteFile(SEMI_PROFESSIONAL_FILE_KEYS.AADHAR_CARD)}
-            maxSize={2 * 1024 * 1024}
-            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
-          />
-        </FormCard>
-
-        {/* House Visit Link */}
-        <FormSectionHeader
-          icon="link"
-          title="House Visit Google Link"
-          subtitle="Paste the Google link for house visit verification"
-        />
-
-        <FormCard>
-          <Controller
-            control={control}
-            name="houseVisitLink"
-            render={({ field: { onChange, value } }) => (
-              <VPInputField
-                label="House Visit Google Link"
-                value={value}
-                onChangeText={onChange}
-                placeholder="Paste Google link here"
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="url"
-                multiline
-                numberOfLines={3}
-                error={formState.errors.houseVisitLink?.message}
-                helperText="Optional: Link for house visit verification"
-              />
-            )}
-          />
-        </FormCard>
-
-        {/* Upload Guidelines */}
         <FormCard>
           <View style={styles.guidelineContainer}>
             <View style={styles.guidelineItem}>
@@ -221,7 +142,6 @@ export default function DocumentSection({ navigation }: any) {
           </View>
         </FormCard>
 
-        {/* Upload Status */}
         <FormSectionHeader
           icon="checkmark-circle"
           title="Upload Status"
@@ -230,33 +150,17 @@ export default function DocumentSection({ navigation }: any) {
 
         <FormCard>
           <View style={styles.statusContainer}>
-            <View style={styles.statusItem}>
-              <Text style={styles.statusLabel}>PU Marks Card:</Text>
-              <Text style={[
-                styles.statusText,
-                uploadState[SEMI_PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD]?.uploaded ? styles.successText : styles.pendingText
-              ]}>
-                {uploadState[SEMI_PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD]?.uploaded ? '✓ Uploaded' : 'Pending'}
-              </Text>
-            </View>
-            <View style={styles.statusItem}>
-              <Text style={styles.statusLabel}>Income Certificate:</Text>
-              <Text style={[
-                styles.statusText,
-                uploadState[SEMI_PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE]?.uploaded ? styles.successText : styles.pendingText
-              ]}>
-                {uploadState[SEMI_PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE]?.uploaded ? '✓ Uploaded' : 'Pending'}
-              </Text>
-            </View>
-            <View style={styles.statusItem}>
-              <Text style={styles.statusLabel}>Aadhaar Card:</Text>
-              <Text style={[
-                styles.statusText,
-                uploadState[SEMI_PROFESSIONAL_FILE_KEYS.AADHAR_CARD]?.uploaded ? styles.successText : styles.pendingText
-              ]}>
-                {uploadState[SEMI_PROFESSIONAL_FILE_KEYS.AADHAR_CARD]?.uploaded ? '✓ Uploaded' : 'Pending'}
-              </Text>
-            </View>
+            {DOC_KEYS.map((doc) => (
+              <View key={doc.key} style={styles.statusItem}>
+                <Text style={styles.statusLabel}>{doc.label}:</Text>
+                <Text style={[
+                  styles.statusText,
+                  uploadState[doc.key]?.uploaded ? styles.successText : styles.pendingText
+                ]}>
+                  {uploadState[doc.key]?.uploaded ? '✓ Uploaded' : 'Pending'}
+                </Text>
+              </View>
+            ))}
           </View>
         </FormCard>
       </ScrollView>

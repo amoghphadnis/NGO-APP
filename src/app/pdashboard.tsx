@@ -3,6 +3,8 @@ import { payanaStudentApi } from '@/api/payanaStudentApi';
 import { professionalStudentApi } from '@/api/professionalStudentApi';
 import { pucStudentApi } from '@/api/pucStudentApi';
 import { semiProfessionalStudentApi } from '@/api/semiProfessionalStudentApi';
+import AppFooter from '@/components/common/AppFooter';
+import { DASHBOARD_MENU_ITEMS, DASHBOARD_MENU_SECTIONS } from '@/config/appContent';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
@@ -140,7 +142,7 @@ function DrawerSidebar({
         </View>
 
         <ScrollView style={styles.drawerNav} showsVerticalScrollIndicator={false}>
-          <Text style={styles.drawerSectionLabel}>APPROVALS</Text>
+          <Text style={styles.drawerSectionLabel}>{DASHBOARD_MENU_SECTIONS.approvals.toUpperCase()}</Text>
           {navItems.map((item) => (
             <TouchableOpacity
               key={item.label}
@@ -157,6 +159,25 @@ function DrawerSidebar({
                   </Text>
                 </View>
               )}
+            </TouchableOpacity>
+          ))}
+
+          <View style={styles.drawerDivider} />
+
+          <Text style={styles.drawerSectionLabel}>{DASHBOARD_MENU_SECTIONS.renewals.toUpperCase()}</Text>
+          {[
+            { ...DASHBOARD_MENU_ITEMS.renewalPuc, icon: 'refresh-outline' as const },
+            { ...DASHBOARD_MENU_ITEMS.renewalProfessional, icon: 'refresh-outline' as const },
+            { ...DASHBOARD_MENU_ITEMS.renewalPayana, icon: 'refresh-outline' as const },
+          ].map((item) => (
+            <TouchableOpacity
+              key={item.route}
+              style={styles.drawerItem}
+              onPress={() => onNavigate(item.route)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name={item.icon} size={20} color={colors.success} />
+              <Text style={styles.drawerItemLabel}>{item.label}</Text>
             </TouchableOpacity>
           ))}
 
@@ -368,6 +389,7 @@ export default function PDashboardScreen() {
 
   const renderFooter = () => (
     <View style={styles.footerContainer}>
+      <AppFooter compact />
       <Text style={styles.footerCopyright}>Copyright © Vidya Poshak 2026</Text>
     </View>
   );

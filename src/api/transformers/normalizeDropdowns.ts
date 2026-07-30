@@ -32,8 +32,8 @@ export interface NormalizedDropdowns {
   districts: NormalizedDropdownOption[];
   genders: NormalizedDropdownOption[];
   castes: NormalizedDropdownOption[];
-  courses: NormalizedDropdownOption[];
-  places: NormalizedDropdownOption[];
+  courses?: NormalizedDropdownOption[];
+  places?: NormalizedDropdownOption[];
   fatherOcc?: NormalizedDropdownOption[];
   motherOcc?: NormalizedDropdownOption[];
   collegeTypes?: NormalizedDropdownOption[];
@@ -46,38 +46,26 @@ export interface NormalizedDropdowns {
  * Normalizes Professional dropdown response
  */
 export function normalizeProfessionalDropdowns(apiResponse: any): NormalizedDropdowns {
-  // Debug: log raw response
-  console.log('[normalizeDropdowns] Raw API response:', JSON.stringify(apiResponse, null, 2));
-
   // Handle both capitalized, lowercase, and *List suffix keys from backend
   const districts = apiResponse.DistrictList || apiResponse.Districts || apiResponse.districts || [];
   const genders = apiResponse.GenderList || apiResponse.Genders || apiResponse.genders || [];
   const castes = apiResponse.CasteList || apiResponse.CasteCategories || apiResponse.Castes || apiResponse.castes || apiResponse.casteCategories || [];
-  const courses = apiResponse.CourseList || apiResponse.CourseTypes || apiResponse.Courses || apiResponse.courses || apiResponse.courseTypes || [];
-  const places = apiResponse.PlaceList || apiResponse.Places || apiResponse.places || [];
   const fatherOcc = apiResponse.FatherOccupationList || apiResponse.FatherOcc || apiResponse.fatherOcc || apiResponse.FatherOccupations || apiResponse.fatherOccupations || [];
   const motherOcc = apiResponse.MotherOccupationList || apiResponse.MotherOcc || apiResponse.motherOcc || apiResponse.MotherOccupations || apiResponse.motherOccupations || [];
-  const collegeTypes = apiResponse.CollegeTypeList || apiResponse.CollegeTypes || apiResponse.collegeTypes || [];
   const areaTypes = apiResponse.AreaList || apiResponse.AreaTypes || apiResponse.areaTypes || [];
   const houseTypes = apiResponse.HouseList || apiResponse.HouseTypes || apiResponse.houseTypes || apiResponse.Houses || apiResponse.houses || [];
+  const referenceSources = apiResponse.ReferenceList || apiResponse.ReferenceSources || apiResponse.referenceSources || apiResponse.References || apiResponse.references || [];
 
-  const normalized = {
+  return {
     districts: normalizeDistricts(districts),
     genders: normalizeGenders(genders),
     castes: normalizeCastes(castes),
-    courses: normalizeCourses(courses),
-    places: normalizePlaces(places),
     fatherOcc: normalizeOccupations(fatherOcc),
     motherOcc: normalizeOccupations(motherOcc),
-    collegeTypes: normalizeCollegeTypes(collegeTypes),
     areaTypes: areaTypes.length > 0 ? normalizeAreaTypes(areaTypes) : undefined,
     houseTypes: houseTypes.length > 0 ? normalizeHouseTypes(houseTypes) : undefined,
+    referenceSources: referenceSources.length > 0 ? normalizeReferenceSources(referenceSources) : undefined,
   };
-
-  // Debug: log normalized response
-  console.log('[normalizeDropdowns] Normalized dropdowns:', JSON.stringify(normalized, null, 2));
-
-  return normalized;
 }
 
 /**

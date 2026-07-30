@@ -1,32 +1,31 @@
 // Centralized Form Type Definitions for VP Scholarship App
 // This file provides type-safe interfaces using Zod-inferred types as single source of truth
 
-import { z } from 'zod';
 import {
-  personalDetailsSchema,
-  contactDetailsSchema,
-  addressDetailsSchema,
-  familyDetailsSchema,
-  guidelinesSchema,
-} from '@/validation/sharedSchemas';
-import {
-  academicDetailsSchema,
-  bankDetailsSchema,
-  professionalFormSchema,
-  professionalDocumentDetailsSchema,
-} from '@/validation/professionalSchemas';
-import {
-  pucCategoryHousingSchema,
-  pucAcademicDetailsSchema,
-  pucFormSchema,
-  pucDocumentDetailsSchema,
-} from '@/validation/pucSchemas';
-import {
-  payanaFormSchema,
+    payanaFormSchema,
 } from '@/validation/payanaSchemas';
 import {
-  semiProfessionalFormSchema,
+    academicDetailsSchema,
+    professionalDocumentDetailsSchema,
+    professionalFormSchema,
+} from '@/validation/professionalSchemas';
+import {
+    pucAcademicDetailsSchema,
+    pucCategoryHousingSchema,
+    pucDocumentDetailsSchema,
+    pucFormSchema,
+} from '@/validation/pucSchemas';
+import {
+    semiProfessionalFormSchema,
 } from '@/validation/semiProfessionalSchemas';
+import {
+    addressDetailsSchema,
+    contactDetailsSchema,
+    familyDetailsSchema,
+    guidelinesSchema,
+    personalDetailsSchema,
+} from '@/validation/sharedSchemas';
+import { z } from 'zod';
 
 // Type exports from Zod schemas (single source of truth)
 export type PersonalDetailsFormValues = z.infer<typeof personalDetailsSchema>;
@@ -36,7 +35,6 @@ export type FamilyDetailsFormValues = z.infer<typeof familyDetailsSchema>;
 export type GuidelinesFormValues = z.infer<typeof guidelinesSchema>;
 
 export type AcademicDetailsFormValues = z.infer<typeof academicDetailsSchema>;
-export type BankDetailsFormValues = z.infer<typeof bankDetailsSchema>;
 export type ProfessionalDocumentDetailsFormValues = z.infer<typeof professionalDocumentDetailsSchema>;
 export type ProfessionalFormValues = z.infer<typeof professionalFormSchema>;
 
@@ -90,7 +88,7 @@ export interface NavigationProps {
 
 // Type guards for safe form operations
 export const isProfessionalForm = (data: FormDataUnion): data is ProfessionalFormValues => {
-  return data && 'academic' in data && !('category' in data);
+  return data && 'personal' in data && 'family' in data && 'StudentName' in (data as any).personal && !('category' in data) && !('bank' in data);
 };
 
 export const isPUCForm = (data: FormDataUnion): data is PucFormValues => {
@@ -102,5 +100,5 @@ export const isPayanaForm = (data: FormDataUnion): data is PayanaFormValues => {
 };
 
 export const isSemiProfessionalForm = (data: FormDataUnion): data is SemiProfessionalFormValues => {
-  return data && 'academic' in data && 'personal' in data && 'semiProfessionalCourseID' in (data as any).academic;
+  return data && 'personal' in data && 'family' in data && 'studentName' in (data as any).personal && !('category' in data) && !('bank' in data);
 };

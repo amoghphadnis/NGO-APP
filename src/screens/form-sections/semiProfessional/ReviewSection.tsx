@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { preparePayload, submitApplication } from '@/submission';
-import { SemiProfessionalFormValues } from '@/validation/semiProfessionalSchemas';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { SemiProfessionalFormValues } from '@/validation/semiProfessionalSchemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function ReviewSection({ navigation }: any) {
   const {
@@ -29,10 +29,9 @@ export default function ReviewSection({ navigation }: any) {
 
   const isFormComplete = () => {
     const hasPersonal = spFormData.personal?.studentName && spFormData.personal?.email;
-    const hasAddress = spFormData.address?.districtID && spFormData.address?.taluk;
     const hasFamily = spFormData.family?.familyMembers > 0;
-    const hasAcademic = spFormData.academic?.semiProfessionalCourseID && spFormData.academic?.collegeName;
-    return hasPersonal && hasAddress && hasFamily && hasAcademic;
+    const hasAcademic = spFormData.academic?.courseApplying && spFormData.academic?.courseStream;
+    return hasPersonal && hasFamily && hasAcademic;
   };
 
   const canSubmit = isFormComplete() && declarationAccepted;
@@ -56,7 +55,7 @@ export default function ReviewSection({ navigation }: any) {
       }
 
       setSubmissionSuccess(true, response.data?.studentId?.toString() || response.data?.applicationId || undefined);
-      markStepComplete(6);
+      markStepComplete(5);
       navigation.navigate('success');
     } catch (error: any) {
       const message = error?.message || 'Failed to submit application. Please try again.';
@@ -97,8 +96,8 @@ export default function ReviewSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Review Application"
-      step={7}
-      totalSteps={8}
+      step={6}
+      totalSteps={7}
       onBack={navigation.goBack}
       onNext={onSubmit}
       nextDisabled={!canSubmit || submissionState.isSubmitting}
@@ -113,43 +112,39 @@ export default function ReviewSection({ navigation }: any) {
           subtitle="Review all information before submitting"
         />
 
-        {/* Personal Details */}
+        {/* Applicant's Information */}
         {renderSection(
-          "Personal Details",
+          "Applicant's Information",
           {
             "Name": spFormData.personal?.studentName,
             "Email": spFormData.personal?.email,
             "Date of Birth": spFormData.personal?.dateOfBirth,
             "Contact": spFormData.personal?.contactNumber,
+            "Alternate Number": spFormData.personal?.alternateNumber || undefined,
             "Gender ID": spFormData.personal?.genderID,
             "Caste Category ID": spFormData.personal?.casteCategoryID,
+            "Area Type ID": spFormData.personal?.areaTypeID,
+            "District ID": spFormData.personal?.districtID,
+            "Other District": spFormData.personal?.otherDistrict || undefined,
+            "Residential Address": spFormData.personal?.residentialAddress,
+            "Google Map Link": spFormData.personal?.googleMapLink || undefined,
           },
           "person",
           () => navigation.navigate('personal')
         )}
 
-        {/* Address Details */}
+        {/* Family Details */}
         {renderSection(
-          "Address Details",
+          "Family Details",
           {
-            "District ID": spFormData.address?.districtID,
-            "Other District": spFormData.address?.otherDistrict || undefined,
-            "Taluk": spFormData.address?.taluk,
-            "Place ID": spFormData.address?.placeID,
-            "Address": spFormData.address?.address,
-          },
-          "location",
-          () => navigation.navigate('address')
-        )}
-
-        {/* Family Information */}
-        {renderSection(
-          "Family Information",
-          {
+            "Father's Name": spFormData.family?.fatherName,
+            "Mother's Name": spFormData.family?.motherName,
             "Father Occupation ID": spFormData.family?.fatherOccupationID,
             "Mother Occupation ID": spFormData.family?.motherOccupationID,
             "Family Members": spFormData.family?.familyMembers,
-            "Annual Income": spFormData.family?.annualIncome ? `₹${spFormData.family.annualIncome}` : undefined,
+            "House Type ID": spFormData.family?.houseTypeID,
+            "Monthly Rent": spFormData.family?.monthlyRent ? `₹${spFormData.family.monthlyRent}` : undefined,
+            "Family Income": spFormData.family?.familyIncome ? `₹${spFormData.family.familyIncome}` : undefined,
           },
           "people",
           () => navigation.navigate('family')
@@ -160,10 +155,10 @@ export default function ReviewSection({ navigation }: any) {
           "Academic Details",
           {
             "PU Percentage": spFormData.academic?.puPercentage ? `${spFormData.academic.puPercentage}%` : undefined,
-            "Course ID": spFormData.academic?.semiProfessionalCourseID,
-            "College Name": spFormData.academic?.collegeName,
-            "College Type ID": spFormData.academic?.collegeTypeID,
-            "College Fees": spFormData.academic?.collegeFees ? `₹${spFormData.academic.collegeFees}` : undefined,
+            "CET Rank": spFormData.academic?.cetRank || undefined,
+            "PT Rank": spFormData.academic?.ptRank || undefined,
+            "Course Applying": spFormData.academic?.courseApplying,
+            "Course Stream": spFormData.academic?.courseStream,
           },
           "school",
           () => navigation.navigate('academic')
@@ -183,30 +178,24 @@ export default function ReviewSection({ navigation }: any) {
           </View>
 
           <View style={styles.sectionContent}>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>PU Marks Card:</Text>
-              <Text style={spFormData.documents?.pucMarksCard ? styles.documentUploaded : styles.documentPending}>
-                {spFormData.documents?.pucMarksCard ? '✓ Uploaded' : 'Not uploaded'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>Income Certificate:</Text>
-              <Text style={spFormData.documents?.incomeCertificate ? styles.documentUploaded : styles.documentPending}>
-                {spFormData.documents?.incomeCertificate ? '✓ Uploaded' : 'Not uploaded'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>Aadhaar Card:</Text>
-              <Text style={spFormData.documents?.aadharCard ? styles.documentUploaded : styles.documentPending}>
-                {spFormData.documents?.aadharCard ? '✓ Uploaded' : 'Not uploaded'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>House Visit Link:</Text>
-              <Text style={spFormData.documents?.houseVisitLink ? styles.documentUploaded : styles.documentPending}>
-                {spFormData.documents?.houseVisitLink ? '✓ Provided' : 'Not provided'}
-              </Text>
-            </View>
+            {[
+              { label: 'Student Selfie', key: 'studentSelfie' },
+              { label: 'CET Rank Sheet', key: 'cetRankSheet' },
+              { label: 'PT Rank Sheet', key: 'ptRankSheet' },
+              { label: 'Dwelling Unit Photo', key: 'dwellingUnitPhoto' },
+              { label: '12th Marks Sheet', key: 'marksSheet12' },
+              { label: 'House Video', key: 'houseVideo' },
+              { label: 'Electricity Bill', key: 'electricityBill' },
+              { label: 'Income Certificate', key: 'incomeCertificate' },
+              { label: 'Ration Card', key: 'rationCard' },
+            ].map((doc) => (
+              <View key={doc.key} style={styles.documentRow}>
+                <Text style={styles.documentLabel}>{doc.label}:</Text>
+                <Text style={(spFormData.documents as any)?.[doc.key] ? styles.documentUploaded : styles.documentPending}>
+                  {(spFormData.documents as any)?.[doc.key] ? '✓ Uploaded' : 'Not uploaded'}
+                </Text>
+              </View>
+            ))}
           </View>
         </FormCard>
 

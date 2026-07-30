@@ -4,18 +4,18 @@
  */
 
 import api from './client';
-import { normalizeApiResponse, normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
-import { normalizeProfessionalDropdowns, NormalizedDropdowns } from './transformers/normalizeDropdowns';
+import { normalizeApiError, normalizeApiResponse, NormalizedApiResponse } from './transformers/normalizeApiResponse';
+import { NormalizedDropdowns, normalizeProfessionalDropdowns } from './transformers/normalizeDropdowns';
 
 /**
  * Creates a new Professional student application
- * POST /students/professional/create
+ * POST /api/VP_NewProfessional/submit
  */
 export async function createProfessionalStudent(
   formData: FormData
 ): Promise<NormalizedApiResponse<any>> {
   try {
-    const response = await api.post('/students/professional/create', formData);
+    const response = await api.post('/api/VP_NewProfessional/submit', formData);
 
     return normalizeApiResponse(response.data);
   } catch (error: any) {
@@ -31,14 +31,13 @@ export async function createProfessionalStudent(
 
 /**
  * Gets Professional dropdown data
- * GET /students/professional/dropdowns
+ * GET /api/VP_NewProfessional/dropdowns
  */
 export async function getProfessionalDropdowns(): Promise<
   NormalizedApiResponse<NormalizedDropdowns>
 > {
   try {
-    const response = await api.get('/students/professional/dropdowns');
-    console.log('[getProfessionalDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
+    const response = await api.get('/api/VP_NewProfessional/dropdowns');
     
     // Handle both wrapped (data.Data) and unwrapped (data) responses
     const dropdownData = response.data.Data || response.data;

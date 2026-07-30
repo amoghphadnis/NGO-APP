@@ -1,9 +1,10 @@
+import { APP_TITLES } from '@/config/appContent';
 import { FormConfig, FormStep } from '../shared/types';
 
 export const payanaFormConfig: FormConfig = {
   type: 'payana',
-  title: 'Payana Scholarship Application',
-  description: 'Apply for Payana New Student Scholarship 2025-26',
+  title: APP_TITLES.payanaApplication,
+  description: APP_TITLES.payanaApplication,
   steps: [
     'guidelines',
     'personal',

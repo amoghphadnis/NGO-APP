@@ -1,0 +1,68 @@
+API Contract - VP_Format1_1PUCApiController
+Base Route Prefix: api/VP_Format1_1PUC
+1. Get Dropdowns
+Endpoint: GET /api/VP_Format1_1PUC/dropdowns
+Purpose: Returns dropdown/master data required for the application form.
+Name	Type	Required	Description
+None	-	-	No parameters
+Success Response: Returns Gender, Area, District, Caste, House, Reference, Course, CollegeType, FatherOccupation and MotherOccupation lists.
+2. Submit PUC Application
+Endpoint: POST /api/VP_Format1_1PUC
+Content-Type: multipart/form-data
+Purpose: Submits a new PUC scholarship application with mandatory documents.
+Field	Type	Required	Description
+Email	string/number	Yes	Email
+StudentName	string/number	Yes	StudentName
+District	string/number	Yes	District
+OtherDistrict	string/number	No	OtherDistrict
+Taluk	string/number	Yes	Taluk
+ResidentialAddress	string/number	Yes	ResidentialAddress
+ContactNumber	string/number	Yes	ContactNumber
+AlternateNumber	string/number	No	AlternateNumber
+Gender	string/number	Yes	Gender
+DateOfBirth	string/number	Yes	DateOfBirth
+Caste	string/number	Yes	Caste
+Place	string/number	Yes	Place
+FatherOccupation	string/number	Yes	FatherOccupation
+MotherOccupation	string/number	Yes	MotherOccupation
+TotalFamilyMembers	string/number	Yes	TotalFamilyMembers
+FamilyAnnualIncome	string/number	Yes	FamilyAnnualIncome
+SSLCPercentage	string/number	Yes	SSLCPercentage
+CourseJoined	string/number	Yes	CourseJoined
+CollegeName	string/number	Yes	CollegeName
+CollegeType	string/number	Yes	CollegeType
+CollegeFees	string/number	Yes	CollegeFees
+CollegeContactNumber	string/number	Yes	CollegeContactNumber
+Achievement	string/number	No	Achievement
+ParentsBankBalance	string/number	Yes	ParentsBankBalance
+AccountHolderName	string/number	Yes	AccountHolderName
+AccountNumber	string/number	Yes	AccountNumber
+IFSCCode	string/number	Yes	IFSCCode
+BankName	string/number	Yes	BankName
+BranchName	string/number	Yes	BranchName
+Required File Uploads
+Field	Type	Required	Allowed Extensions	Max Size
+StudentSelfie	File	Yes	PDF,JPG,JPEG,PNG	Server Configured
+SSLCMarksCard	File	Yes	PDF,JPG,JPEG,PNG	Server Configured
+FeeReceipts	File	Yes	PDF,JPG,JPEG,PNG	Server Configured
+BankPassbook	File	Yes	PDF,JPG,JPEG,PNG	Server Configured
+AadhaarCard	File	Yes	PDF,JPG,JPEG,PNG	Server Configured
+Business Logic
+•	Request must be multipart/form-data.
+•	Validates model using DataAnnotations.
+•	All five documents are mandatory.
+•	Only PDF/JPG/JPEG/PNG files allowed.
+•	Creates upload folder automatically.
+•	Files stored under /Uploads/PUC_Format1_1/.
+•	CreatedDate set using GETDATE().
+•	Status defaults to 1.
+•	Returns success when record inserted.
+Status Codes
+200 OK
+400 Bad Request
+415 Unsupported Media Type
+500 Internal Server Error
+Common DTOs
+ApiResponse { Success, Message, Data }
+DropdownItem { Id, Name }
+DropdownsResponse { GenderList, AreaList, DistrictList, CasteList, CourseList, CollegeTypeList, FatherOccupationList, MotherOccupationList }

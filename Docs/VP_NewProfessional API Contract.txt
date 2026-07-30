@@ -1,0 +1,70 @@
+VP_NewProfessional API Contract
+Controller: VP_NewProfessionalApiController
+Base Route: api/VP_NewProfessional
+Endpoint 1 - Get Dropdowns
+GET /api/VP_NewProfessional/dropdowns
+Purpose: Returns all master dropdown values required to render the New Professional application form.
+Content-Type: application/json
+Authorization: Not Required
+Returns: Gender, Area, District, Caste, House, Reference, Course, CollegeType, FatherOccupation and MotherOccupation lists.
+Endpoint 2 - Submit New Professional Application
+POST /api/VP_NewProfessional/submit
+Content-Type: multipart/form-data
+Authorization: Not Required
+Field	Type	Required	Description
+Email	String/Number	Required	Email
+StudentName	String/Number	Required	StudentName
+DOB	String/Number	Required	DOB
+ContactNumber	String/Number	Required	ContactNumber
+AlternateNumber	String/Number	Optional	AlternateNumber
+ResidentialAddress	String/Number	Required	ResidentialAddress
+GoogleMapLink	String/Number	Optional	GoogleMapLink
+AreaTypeID	String/Number	Required	AreaTypeID
+DistrictID	String/Number	Required	DistrictID
+OtherDistrict	String/Number	Optional	OtherDistrict
+GenderID	String/Number	Required	GenderID
+CasteCategoryID	String/Number	Required	CasteCategoryID
+FatherName	String/Number	Required	FatherName
+MotherName	String/Number	Required	MotherName
+FatherOccupationID	String/Number	Required	FatherOccupationID
+MotherOccupationID	String/Number	Required	MotherOccupationID
+FamilyMembers	String/Number	Required	FamilyMembers
+HouseTypeID	String/Number	Required	HouseTypeID
+MonthlyRent	String/Number	Optional	MonthlyRent
+FamilyIncome	String/Number	Required	FamilyIncome
+PUPercentage	String/Number	Required	PUPercentage
+CETRank	String/Number	Optional	CETRank
+NEETRank	String/Number	Optional	NEETRank
+CourseApplying	String/Number	Required	CourseApplying
+CourseStream	String/Number	Required	CourseStream
+File Upload Fields
+Field	Type	Required	Extensions	Max Size
+StudentSelfie	File	Optional	Server Configured	Server Configured
+CETNEETRankSheet	File	Optional	Server Configured	Server Configured
+DwellingUnitPhoto	File	Optional	Server Configured	Server Configured
+MarksSheet12	File	Optional	Server Configured	Server Configured
+RequestLetter	File	Optional	Server Configured	Server Configured
+HouseVideo	File	Optional	Server Configured	Server Configured
+ElectricityBill	File	Optional	Server Configured	Server Configured
+IncomeCertificate	File	Optional	Server Configured	Server Configured
+RationCard	File	Optional	Server Configured	Server Configured
+Business Logic
+•	Accepts multipart/form-data requests.
+•	Creates upload folder automatically if missing.
+•	Stores uploaded files under ~/Uploads/NewProfessional/.
+•	Files are renamed using GUID values.
+•	OtherDistrict saved as NULL when blank.
+•	MonthlyRent, CETRank and NEETRank are nullable.
+•	CreatedDate is automatically set to DateTime.Now.
+•	Status defaults to 1.
+•	Returns Success=True after successful database insert.
+Status Codes
+200 OK
+400 Bad Request
+500 Internal Server Error
+Common DTOs
+MasterDto
+DropdownViewModel
+NewProfessionalModel
+Success Response
+Error Response

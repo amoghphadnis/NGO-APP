@@ -164,9 +164,15 @@ export type FormStep = typeof FORM_STEPS[number];
 // ============================================================================
 
 export const PROFESSIONAL_REQUIRED_DOCUMENTS = [
-  'marksCard',
-  'aadhaar',
-  'incomeCert',
+  'StudentSelfie',
+  'CETNEETRankSheet',
+  'DwellingUnitPhoto',
+  'MarksSheet12',
+  'RequestLetter',
+  'HouseVideo',
+  'ElectricityBill',
+  'IncomeCertificate',
+  'RationCard',
 ] as const;
 
 export const PUC_REQUIRED_DOCUMENTS = [
@@ -182,9 +188,15 @@ export const PUC_REQUIRED_DOCUMENTS = [
 ] as const;
 
 export const SEMI_PROFESSIONAL_REQUIRED_DOCUMENTS = [
-  'pucMarksCard',
+  'studentSelfie',
+  'cetRankSheet',
+  'ptRankSheet',
+  'dwellingUnitPhoto',
+  'marksSheet12',
+  'houseVideo',
+  'electricityBill',
   'incomeCertificate',
-  'aadharCard',
+  'rationCard',
 ] as const;
 
 // ============================================================================

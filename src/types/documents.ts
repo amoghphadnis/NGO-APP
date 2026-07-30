@@ -15,25 +15,17 @@ export interface UploadedDocument {
   uploadedAt?: string;
 }
 
-// Professional form documents
+// Professional form documents (9 total per new API contract)
 export interface ProfessionalDocuments {
-  // Required documents (16 total)
-  PUCMarksCard?: UploadedDocument;
+  StudentSelfie?: UploadedDocument;
+  CETNEETRankSheet?: UploadedDocument;
+  DwellingUnitPhoto?: UploadedDocument;
+  MarksSheet12?: UploadedDocument;
+  RequestLetter?: UploadedDocument;
+  HouseVideo?: UploadedDocument;
+  ElectricityBill?: UploadedDocument;
   IncomeCertificate?: UploadedDocument;
-  Rationcard?: UploadedDocument;
-  Electricitybill?: UploadedDocument;
-  CollegeID?: UploadedDocument;
-  Admissionproof?: UploadedDocument;
-  FeesReceipts?: UploadedDocument;
-  Expenditure?: UploadedDocument;
-  Studentphoto?: UploadedDocument;
-  Photoinfrontofcollege?: UploadedDocument;
-  Dwellingunit?: UploadedDocument;
-  CET?: UploadedDocument;
-  Studentpass?: UploadedDocument;
-  Monthsbank?: UploadedDocument;
-  AadharCard?: UploadedDocument;
-  Handwritten?: UploadedDocument;
+  RationCard?: UploadedDocument;
 }
 
 // PUC form documents
@@ -46,11 +38,17 @@ export interface PUCDocuments extends ProfessionalDocuments {
   houseVideo?: UploadedDocument;
 }
 
-// Semi Professional form documents
+// Semi Professional form documents (9 total per new API contract)
 export interface SemiProfessionalDocuments {
-  pucMarksCard?: UploadedDocument;
+  studentSelfie?: UploadedDocument;
+  cetRankSheet?: UploadedDocument;
+  ptRankSheet?: UploadedDocument;
+  dwellingUnitPhoto?: UploadedDocument;
+  marksSheet12?: UploadedDocument;
+  houseVideo?: UploadedDocument;
+  electricityBill?: UploadedDocument;
   incomeCertificate?: UploadedDocument;
-  aadharCard?: UploadedDocument;
+  rationCard?: UploadedDocument;
 }
 
 // Union type for all documents

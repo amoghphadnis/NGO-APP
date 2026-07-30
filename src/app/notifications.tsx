@@ -2,25 +2,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { dashboardApi } from '@/api/dashboardApi';
+import AppFooter from '@/components/common/AppFooter';
+import { APP_TITLES } from '@/config/appContent';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import {
-  DashboardError,
-  DashboardErrorCode,
-  DashboardResponseDto
+    DashboardError,
+    DashboardErrorCode,
+    DashboardResponseDto
 } from '@/types/dashboard';
 
 interface NotificationItem {
@@ -228,7 +230,7 @@ export default function NotificationsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Notifications</Text>
+        <Text style={styles.topBarTitle}>{APP_TITLES.notifications}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -244,6 +246,7 @@ export default function NotificationsScreen() {
           keyExtractor={(item) => item.id}
           renderItem={renderNotification}
           ListEmptyComponent={renderEmpty}
+          ListFooterComponent={<AppFooter />}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={

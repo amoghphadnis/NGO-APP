@@ -1,26 +1,23 @@
+import { APP_TITLES } from '@/config/appContent';
 import { FormConfig, FormStep } from '../shared/types';
 
 export const professionalFormConfig: FormConfig = {
   type: 'professional',
-  title: 'Professional Scholarship Application',
-  description: 'Apply for professional course scholarships',
+  title: APP_TITLES.professionalApplication,
+  description: APP_TITLES.professionalApplication,
   steps: [
     'guidelines',
     'personal',
-    'contact',
-    'address',
     'family',
     'academic',
     'documents',
     'review',
     'success'
   ],
-  totalSteps: 9,
+  totalSteps: 7,
   validation: {
     guidelines: 'guidelinesSchema',
     personal: 'professionalPersonalDetailsSchema',
-    contact: 'professionalContactDetailsSchema',
-    address: 'professionalAddressDetailsSchema',
     family: 'professionalFamilyDetailsSchema',
     academic: 'academicDetailsSchema',
     documents: 'professionalDocumentDetailsSchema',
@@ -41,37 +38,19 @@ export const professionalStepConfigs = [
   },
   {
     id: 'personal' as FormStep,
-    title: 'Personal Details',
-    subtitle: 'Tell us about yourself',
+    title: "Applicant's Information",
+    subtitle: 'Personal, contact and address details',
     component: 'PersonalSection',
-    validation: 'personalDetailsSchema',
+    validation: 'professionalPersonalDetailsSchema',
     required: true,
     icon: 'person'
   },
   {
-    id: 'contact' as FormStep,
-    title: 'Contact Information',
-    subtitle: 'How can we reach you',
-    component: 'ContactSection',
-    validation: 'contactDetailsSchema',
-    required: true,
-    icon: 'mail'
-  },
-  {
-    id: 'address' as FormStep,
-    title: 'Address Details',
-    subtitle: 'Where do you live',
-    component: 'AddressSection',
-    validation: 'addressDetailsSchema',
-    required: true,
-    icon: 'location'
-  },
-  {
     id: 'family' as FormStep,
-    title: 'Family Information',
-    subtitle: 'Tell us about your family',
+    title: 'Family Details',
+    subtitle: 'Family and housing information',
     component: 'FamilySection',
-    validation: 'familyDetailsSchema',
+    validation: 'professionalFamilyDetailsSchema',
     required: true,
     icon: 'people'
   },
@@ -87,7 +66,7 @@ export const professionalStepConfigs = [
   {
     id: 'documents' as FormStep,
     title: 'Document Upload',
-    subtitle: 'Upload required documents and house visit link',
+    subtitle: 'Upload required documents',
     component: 'DocumentSection',
     validation: 'professionalDocumentDetailsSchema',
     required: true,

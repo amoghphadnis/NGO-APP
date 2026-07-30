@@ -1,15 +1,17 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
+import RequireAuthentication from '@/components/auth/RequireAuthentication';
 import RenewalPUCForm from '@/screens/form-sections/renewal/RenewalPUCForm';
+import { useRouter } from 'expo-router';
 
 export default function RenewalPUCScreen() {
   const router = useRouter();
 
   return (
-    <RenewalPUCForm
-      navigation={{
-        goBack: () => router.back(),
-      }}
-    />
+    <RequireAuthentication>
+      <RenewalPUCForm
+        navigation={{
+          goBack: () => router.back(),
+        }}
+      />
+    </RequireAuthentication>
   );
 }

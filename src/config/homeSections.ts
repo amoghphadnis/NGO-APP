@@ -68,33 +68,4 @@ export const homeSections: HomeSection[] = [
       },
     ],
   },
-  {
-    id: 'renewal-scholarships',
-    title: 'Renew Your Scholarship',
-    subtitle: 'Continue your support.',
-    accent: 'success',
-    items: [
-      {
-        id: 'renew-puc',
-        title: 'Renew PUC',
-        route: '/renewal-puc',
-        icon: 'refresh-outline',
-        description: 'For existing VP scholars in PUC',
-      },
-      {
-        id: 'renew-professional',
-        title: 'Renew Professional',
-        route: '/renewal-professional',
-        icon: 'refresh-outline',
-        description: 'For existing VP scholars in professional courses',
-      },
-      {
-        id: 'renew-payana',
-        title: 'Renew Payana',
-        route: '/renewal-payana',
-        icon: 'refresh-outline',
-        description: 'For existing Payana scholars',
-      },
-    ],
-  },
 ];

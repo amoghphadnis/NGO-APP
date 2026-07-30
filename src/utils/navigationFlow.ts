@@ -10,8 +10,6 @@ import { FormType } from '@/forms/shared/types';
 export const PROFESSIONAL_STEPS: FormStep[] = [
   'guidelines',
   'personal',
-  'contact',
-  'address',
   'family',
   'academic',
   'documents',
@@ -49,7 +47,6 @@ export const PAYANA_STEPS: FormStep[] = [
 export const SEMI_PROFESSIONAL_STEPS: FormStep[] = [
   'guidelines',
   'personal',
-  'address',
   'family',
   'academic',
   'documents',

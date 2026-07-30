@@ -1,48 +1,45 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import { useFormEngineStore } from '../store/useFormEngineStore';
+import { Text, View } from 'react-native';
 import { getFormConfig } from '../forms/shared/registry';
+import { useFormEngineStore } from '../store/useFormEngineStore';
 
 // Import shared/professional form section components
+import ProfAcademicSection from '../screens/form-sections/professional/AcademicSection';
+import ProfDocumentSection from '../screens/form-sections/professional/DocumentSection';
+import ProfFamilySection from '../screens/form-sections/professional/FamilySection';
 import GuidelinesSection from '../screens/form-sections/professional/GuidelinesSection';
 import ProfPersonalSection from '../screens/form-sections/professional/PersonalSection';
-import ProfContactSection from '../screens/form-sections/professional/ContactSection';
-import ProfAddressSection from '../screens/form-sections/professional/AddressSection';
-import ProfFamilySection from '../screens/form-sections/professional/FamilySection';
-import ProfDocumentSection from '../screens/form-sections/professional/DocumentSection';
-import ProfAcademicSection from '../screens/form-sections/professional/AcademicSection';
 import ReviewSection from '../screens/form-sections/professional/ReviewSection';
 import SuccessSection from '../screens/form-sections/professional/SuccessSection';
 
 // Import PUC-specific form section components
-import PucPersonalSection from '../screens/form-sections/puc/PersonalSection';
-import PucContactSection from '../screens/form-sections/puc/ContactSection';
-import PucAddressSection from '../screens/form-sections/puc/AddressSection';
-import PucFamilySection from '../screens/form-sections/puc/FamilySection';
-import PucCategorySection from '../screens/form-sections/puc/CategorySection';
 import PucAcademicSection from '../screens/form-sections/puc/AcademicSection';
+import PucAddressSection from '../screens/form-sections/puc/AddressSection';
+import PucCategorySection from '../screens/form-sections/puc/CategorySection';
+import PucContactSection from '../screens/form-sections/puc/ContactSection';
 import PucDocumentSection from '../screens/form-sections/puc/DocumentSection';
+import PucFamilySection from '../screens/form-sections/puc/FamilySection';
+import PucPersonalSection from '../screens/form-sections/puc/PersonalSection';
 
 // Import Semi Professional-specific form section components
-import SemiProfGuidelinesSection from '../screens/form-sections/semiProfessional/GuidelinesSection';
-import SemiProfPersonalSection from '../screens/form-sections/semiProfessional/PersonalSection';
-import SemiProfAddressSection from '../screens/form-sections/semiProfessional/AddressSection';
-import SemiProfFamilySection from '../screens/form-sections/semiProfessional/FamilySection';
 import SemiProfAcademicSection from '../screens/form-sections/semiProfessional/AcademicSection';
 import SemiProfDocumentSection from '../screens/form-sections/semiProfessional/DocumentSection';
+import SemiProfFamilySection from '../screens/form-sections/semiProfessional/FamilySection';
+import SemiProfGuidelinesSection from '../screens/form-sections/semiProfessional/GuidelinesSection';
+import SemiProfPersonalSection from '../screens/form-sections/semiProfessional/PersonalSection';
 import SemiProfReviewSection from '../screens/form-sections/semiProfessional/ReviewSection';
 import SemiProfSuccessSection from '../screens/form-sections/semiProfessional/SuccessSection';
 
 // Import Payana-specific form section components
+import PayanaAcademicSection from '../screens/form-sections/payana/AcademicSection';
+import PayanaAddressSection from '../screens/form-sections/payana/AddressSection';
+import PayanaBankSection from '../screens/form-sections/payana/BankSection';
+import PayanaCategorySection from '../screens/form-sections/payana/CategorySection';
+import PayanaContactSection from '../screens/form-sections/payana/ContactSection';
+import PayanaDocumentSection from '../screens/form-sections/payana/DocumentSection';
+import PayanaFamilySection from '../screens/form-sections/payana/FamilySection';
 import PayanaGuidelinesSection from '../screens/form-sections/payana/GuidelinesSection';
 import PayanaPersonalSection from '../screens/form-sections/payana/PersonalSection';
-import PayanaContactSection from '../screens/form-sections/payana/ContactSection';
-import PayanaAddressSection from '../screens/form-sections/payana/AddressSection';
-import PayanaFamilySection from '../screens/form-sections/payana/FamilySection';
-import PayanaCategorySection from '../screens/form-sections/payana/CategorySection';
-import PayanaAcademicSection from '../screens/form-sections/payana/AcademicSection';
-import PayanaBankSection from '../screens/form-sections/payana/BankSection';
-import PayanaDocumentSection from '../screens/form-sections/payana/DocumentSection';
 
 interface FormRendererProps {
   navigation: any;
@@ -57,8 +54,6 @@ interface FormRendererProps {
 const professionalComponentMap: Record<string, React.ComponentType<any>> = {
   guidelines: GuidelinesSection,
   personal: ProfPersonalSection,
-  contact: ProfContactSection,
-  address: ProfAddressSection,
   family: ProfFamilySection,
   academic: ProfAcademicSection,
   documents: ProfDocumentSection,
@@ -82,7 +77,6 @@ const pucComponentMap: Record<string, React.ComponentType<any>> = {
 const semiProfessionalComponentMap: Record<string, React.ComponentType<any>> = {
   guidelines: SemiProfGuidelinesSection,
   personal: SemiProfPersonalSection,
-  address: SemiProfAddressSection,
   family: SemiProfFamilySection,
   academic: SemiProfAcademicSection,
   documents: SemiProfDocumentSection,

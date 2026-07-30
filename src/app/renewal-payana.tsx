@@ -1,15 +1,17 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
+import RequireAuthentication from '@/components/auth/RequireAuthentication';
 import RenewalPayanaForm from '@/screens/form-sections/renewal/RenewalPayanaForm';
+import { useRouter } from 'expo-router';
 
 export default function RenewalPayanaScreen() {
   const router = useRouter();
 
   return (
-    <RenewalPayanaForm
-      navigation={{
-        goBack: () => router.back(),
-      }}
-    />
+    <RequireAuthentication>
+      <RenewalPayanaForm
+        navigation={{
+          goBack: () => router.back(),
+        }}
+      />
+    </RequireAuthentication>
   );
 }

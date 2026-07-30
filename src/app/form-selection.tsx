@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { HomeSection, RenewalCardItem, ScholarshipCardItem } from '@/config/homeSections';
+import AppFooter from '@/components/common/AppFooter';
+import type { HomeSection, ScholarshipCardItem } from '@/config/homeSections';
 import { homeSections } from '@/config/homeSections';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
@@ -68,10 +69,6 @@ export default function FormSelectionScreen() {
     }
   };
 
-  const handleRenewalPress = (route: string) => {
-    (router.push as any)(route);
-  };
-
   const handleNavPress = (route: string) => {
     if (route === '/') return; // already on home
     (router.push as any)(route);
@@ -79,7 +76,6 @@ export default function FormSelectionScreen() {
 
   const renderSection = (section: HomeSection) => {
     const isNew = section.id === 'new-scholarships';
-    const isRenewal = section.id === 'renewal-scholarships';
 
     return (
       <View key={section.id} style={styles.section}>
@@ -116,27 +112,6 @@ export default function FormSelectionScreen() {
                     </View>
                   ))}
                 </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-        {isRenewal && (
-          <View style={styles.renewalList}>
-            {(section.items as RenewalCardItem[]).map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.renewalCard}
-                onPress={() => handleRenewalPress(item.route)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.renewalIconContainer}>
-                  <Ionicons name={item.icon} size={22} color={colors.success} />
-                </View>
-                <View style={styles.renewalContent}>
-                  <Text style={styles.renewalTitle}>{item.title}</Text>
-                  <Text style={styles.renewalDescription}>{item.description}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             ))}
           </View>
@@ -216,7 +191,7 @@ export default function FormSelectionScreen() {
             <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.primaryActionCard}
             onPress={handleApplyNow}
             activeOpacity={0.8}
@@ -225,11 +200,11 @@ export default function FormSelectionScreen() {
               <Ionicons name="create-outline" size={28} color={colors.success} />
             </View>
             <View style={styles.primaryActionTextContainer}>
-              <Text style={styles.primaryActionTitle}>Apply for Scholarship</Text>
+              <Text style={styles.primaryActionTitle}>{APP_TITLES.applyScholarship}</Text>
               <Text style={styles.primaryActionSubtitle}>Start a new application</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Scholarship Sections */}
@@ -254,6 +229,8 @@ export default function FormSelectionScreen() {
             <Text style={styles.supportButtonText}>Contact Support</Text>
           </TouchableOpacity>
         </View>
+
+        <AppFooter />
 
         {/* Bottom spacing to account for fixed bottom nav */}
         <View style={styles.bottomSpacer} />
@@ -499,45 +476,6 @@ const styles = StyleSheet.create({
     fontSize: platform.normalize.fontSize.small,
     lineHeight: platform.normalize.lineHeight.small,
     color: colors.textSecondary,
-  },
-
-  // Renewal Cards
-  renewalList: {
-    gap: spacing.sm,
-  },
-  renewalCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: 14,
-    padding: spacing.md,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.success,
-    ...platform.elevation.card,
-  },
-  renewalIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: colors.success + '12',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm,
-  },
-  renewalContent: {
-    flex: 1,
-  },
-  renewalTitle: {
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textPrimary,
-    fontWeight: '700',
-  },
-  renewalDescription: {
-    fontSize: platform.normalize.fontSize.caption,
-    lineHeight: platform.normalize.lineHeight.caption,
-    color: colors.textSecondary,
-    marginTop: 2,
   },
 
   // Support

@@ -1,15 +1,14 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { isProfessionalForm } from '@/types/forms';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { isProfessionalForm } from '@/types/forms';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function SuccessSection({ navigation }: any) {
   const { formData, resetForm, submissionState } = useFormEngineStore();
@@ -39,7 +38,8 @@ export default function SuccessSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Application Submitted"
-      step={8}
+      step={7}
+      totalSteps={7}
       showBack={false}
       showNext={false}
     >

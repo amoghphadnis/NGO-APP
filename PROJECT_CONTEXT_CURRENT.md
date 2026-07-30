@@ -1,6 +1,6 @@
 # PROJECT_CONTEXT_CURRENT.md
 
-> **Generated:** July 5, 2026  
+> **Generated:** July 12, 2026  
 > **Project:** Vidya Poshak Scholarship App (VPApp)  
 > **Stack:** React Native (Expo 54) + TypeScript + Zustand + React Hook Form + Zod  
 > **Purpose:** Comprehensive status report for external stakeholders and AI tools.
@@ -10,13 +10,14 @@
 ## Table of Contents
 
 1. [Core Architecture](#1-core-architecture)
-2. [Form Implementation Status](#2-form-implementation-status)
-3. [API & Networking](#3-api--networking)
-4. [UI System Stabilization](#4-ui-system-stabilization)
-5. [Validation & Error Handling](#5-validation--error-handling)
-6. [Next Steps & Technical Debt](#6-next-steps--technical-debt)
-7. [Tree Structure](#7-tree-structure)
-8. [Milestone Checklist](#8-milestone-checklist)
+2. [Recent Feature Additions (July 11–12, 2026)](#2-recent-feature-additions-july-1112-2026)
+3. [Form Implementation Status](#3-form-implementation-status)
+4. [API & Networking](#4-api--networking)
+5. [UI System Stabilization](#5-ui-system-stabilization)
+6. [Validation & Error Handling](#6-validation--error-handling)
+7. [Next Steps & Technical Debt](#7-next-steps--technical-debt)
+8. [Tree Structure](#8-tree-structure)
+9. [Milestone Checklist](#9-milestone-checklist)
 
 ---
 
@@ -83,7 +84,64 @@ export type FormType = 'professional' | 'puc' | 'payana' | 'semiProfessional';
 
 ---
 
-## 2. Form Implementation Status
+## 2. Recent Feature Additions (July 11–12, 2026)
+
+### 2.1 Semi Professional House Visit Module
+
+**Status:** OPERATIONAL
+
+Added full student listing and house-visit navigation for Semi Professional students, reusing the existing `StudentListScreen` and `VolunteerStudentRow` components.
+
+**New files:**
+- `src/api/semiProfessionalStudentApi.ts` — `GET` student list with query params and PascalCase→camelCase normalization.
+- `src/app/volunteer/semi-professional.tsx` — Volunteer listing route.
+
+**Modified files:**
+- `src/types/studentList.ts` — Added `SemiProfessionalStudent` interface and `'semiProfessional'` to `StudentType` union.
+- `src/screens/volunteer/StudentListScreen.tsx` — Added semi-professional branch to React Query hook.
+- `src/app/approval/semi-professional.tsx` — Fixed to use `studentType="semiProfessional"`.
+- `src/api/houseVisitApi.ts` — Added `'semiProfessional'` to `getHouseVisitLink` source union.
+- `src/types/dashboard.ts` — Added `PendingSemiProfessional` to dashboard response types.
+- `src/app/dashboard.tsx` and `src/app/pdashboard.tsx` — Added Semi Professional stat cards, drawer items, and real-time counts.
+
+### 2.2 Welcome Dashboard Notifications
+
+**Status:** OPERATIONAL
+
+Rewrote `src/app/notifications.tsx` from a static empty state to a data-driven notifications screen. Fetches dashboard data (`getDashboard` / `getPDashboard` based on role) and renders pending items as notification cards with counts, icons, routes, colors, pull-to-refresh, plus loading, empty, and error states.
+
+### 2.3 Register Screen Refresh
+
+**Status:** COMPLETE
+
+Updated `src/screens/auth/RegisterScreen.tsx` and `src/api/registrationApi.ts`:
+- Removed the "Other District" field and related state/schema/API payload key.
+- Added a Terms & Conditions acceptance checkbox that gates the Register button.
+- Replaced separate Privacy and Terms links with a single combined PDF link (`PrivacyAndTerms.pdf`) in both Register and Login screens.
+
+### 2.4 Home (Welcome) Screen Redesign
+
+**Status:** COMPLETE
+
+Redesigned `src/app/form-selection.tsx` as a premium, student-friendly landing experience:
+- Hero header with full-bleed `assets/hero-banner.png` background.
+- Primary action cards: Login/My Dashboard + Apply for Scholarship.
+- Config-driven scholarship sections (New + Renewal) rendered from `src/config/homeSections.ts`.
+- New Scholarship cards displayed in a 2×2 grid.
+- Renewal scholarships in a green-accented compact list.
+- Support card and Material 3-inspired bottom navigation (Home, Notifications, My Applications, Help).
+
+**New files:**
+- `src/config/homeSections.ts` — Config-driven data source for scholarship/renewal sections.
+- `src/utils/navigateToDashboard.ts` — Role-aware dashboard router (Volunteer → `/dashboard`; Program Manager/Admin → `/pdashboard`).
+- `src/app/my-applications.tsx` and `src/app/help.tsx` — Lightweight "Coming Soon" placeholder screens.
+
+**Modified files:**
+- `src/app/_layout.tsx` — Registered `my-applications` and `help` routes.
+
+---
+
+## 3. Form Implementation Status
 
 ### Shared Sections Folder Audit (`src/screens/form-sections/`)
 
@@ -131,7 +189,7 @@ The Professional form correctly uses **PascalCase** field names throughout the s
 
 ---
 
-## 3. API & Networking
+## 4. API & Networking
 
 ### Base URL
 
@@ -168,7 +226,9 @@ MAX_IMAGE_SIZE = 2MB (images)
 | PUC Dropdowns | GET | `/students/puc/dropdowns` | `pucApi.ts` |
 | Payana Submit | POST | `/api/payanastudent/create` | `payanaApi.ts` |
 | SemiProf Submit | POST | `/api/semiprofessionalstudent/create` | `semiProfessionalApi.ts` |
-| Dashboard | GET | `/welcomedashboard` | `dashboardApi.ts` |
+| SemiProf Student List | GET | `/api/semiprofessionalstudent/studentlist` | `semiProfessionalStudentApi.ts` |
+| Dashboard | GET | `/welcomedashboard/dashboard` | `dashboardApi.ts` |
+| PDashboard | GET | `/welcomedashboard/pdashboard` | `dashboardApi.ts` |
 | House Visit | POST/GET | `/housevisit/*` | `houseVisitApi.ts` |
 | Approval | GET/POST | `/approval/*` | `approvalApi.ts` |
 
@@ -201,7 +261,7 @@ preparePayload(formType, formData)  →  submitApplication(formType, payload)  �
 
 ---
 
-## 4. UI System Stabilization
+## 5. UI System Stabilization
 
 ### VP UI System Components — STATUS: FULLY DEPLOYED
 
@@ -284,7 +344,7 @@ Only defines 4 font sizes: `h1: 24`, `h2: 20`, `body: 16`, `caption: 14`. No lin
 
 ---
 
-## 5. Validation & Error Handling
+## 6. Validation & Error Handling
 
 ### Zod + React Hook Form — MODULARIZED BY FORM TYPE
 
@@ -345,7 +405,7 @@ Only defines 4 font sizes: `h1: 24`, `h2: 20`, `body: 16`, `caption: 14`. No lin
 
 ---
 
-## 6. Next Steps & Technical Debt
+## 7. Next Steps & Technical Debt
 
 ### Known Issues & Technical Debt
 
@@ -381,7 +441,7 @@ The guardrails (native build constraints, Android manifest overrides, Gradle cre
 
 ---
 
-## 7. Tree Structure
+## 8. Tree Structure
 
 ```
 src/
@@ -402,6 +462,7 @@ src/
 │   ├── renewalProfessionalApi.ts
 │   ├── renewalPucApi.ts
 │   ├── semiProfessionalApi.ts
+│   ├── semiProfessionalStudentApi.ts           # Semi Professional student listing API
 │   ├── studentApi.ts
 │   └── transformers/
 │       ├── normalizeApiResponse.ts
@@ -411,14 +472,16 @@ src/
 │   ├── _layout.tsx
 │   ├── dashboard.tsx
 │   ├── form-engine.tsx                    # Entry point for form rendering
-│   ├── form-selection.tsx                 # Form type selection screen
+│   ├── form-selection.tsx                 # Redesigned home/welcome landing screen
+│   ├── help.tsx                           # Coming Soon placeholder
 │   ├── index.tsx
 │   ├── login.tsx
+│   ├── my-applications.tsx                # Coming Soon placeholder
+│   ├── notifications.tsx                  # Data-driven notifications screen
+│   ├── pdashboard.tsx
 │   ├── register.tsx
 │   ├── forgot-password.tsx
 │   ├── reset-password.tsx
-│   ├── notifications.tsx
-│   ├── pdashboard.tsx
 │   ├── renewal-payana.tsx
 │   ├── renewal-professional.tsx
 │   ├── renewal-puc.tsx
@@ -457,7 +520,8 @@ src/
 │   ├── student/
 │   └── volunteer/
 ├── config/
-│   └── environment.ts                     # API_BASE_URL, timeouts, file limits
+│   ├── environment.ts                     # API_BASE_URL, timeouts, file limits
+│   └── homeSections.ts                    # Config-driven home scholarship/renewal sections
 ├── constants/
 │   ├── formOptions.ts                     # Required documents per form type
 │   └── (2 more items)
@@ -521,7 +585,8 @@ src/
 │   ├── api.ts                             # API types, UploadableFile
 │   ├── documents.ts                       # Document type interfaces
 │   └── (3 more items)
-├── utils/                                 # (13 items)
+├── utils/                                 # (14 items)
+│   ├── navigateToDashboard.ts             # Role-aware dashboard navigation helper
 ├── validation/
 │   ├── sharedSchemas.ts                   # Shared Zod schemas (camelCase)
 │   ├── professionalSchemas.ts             # Professional Zod schemas (PascalCase)
@@ -538,7 +603,7 @@ src/
 
 ---
 
-## 8. Milestone Checklist
+## 9. Milestone Checklist
 
 ### Done
 
@@ -569,6 +634,10 @@ src/
 - [x] **Auth Screens** — Login, Register, ForgotPassword, ResetPassword
 - [x] **Dashboard** — Student and volunteer dashboards
 - [x] **Approval Workflow** — Approval screens and API
+- [x] **Semi Professional House Visit** — Student listing, house-visit link, dashboard counts
+- [x] **Welcome Dashboard Notifications** — Data-driven notifications with loading/empty/error states
+- [x] **Register Refresh** — Terms checkbox, single PDF link, removed Other District
+- [x] **Home Screen Redesign** — Premium hero, config-driven sections, bottom navigation, placeholders
 
 ### Pending
 

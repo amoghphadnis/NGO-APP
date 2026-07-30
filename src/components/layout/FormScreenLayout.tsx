@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import ProgressHeader from '@/components/layout/ProgressHeader';
+import AppFooter from '@/components/common/AppFooter';
 import StickyActionFooter from '@/components/common/StickyActionFooter';
+import ProgressHeader from '@/components/layout/ProgressHeader';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface FormScreenLayoutProps {
   children: React.ReactNode;
@@ -67,6 +68,7 @@ export default function FormScreenLayout({
         keyboardShouldPersistTaps="handled"
       >
         {children}
+        <AppFooter />
       </ScrollView>
 
       {/* Sticky Footer - Fixed at bottom */}

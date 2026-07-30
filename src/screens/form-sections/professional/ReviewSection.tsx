@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import FormCard from '@/components/common/FormCard';
@@ -26,39 +26,27 @@ export default function ReviewSection({ navigation }: any) {
   const [declarationAccepted, setDeclarationAccepted] = useState(false);
 
   const isFormComplete = () => {
-    // Check Professional form completeness
     if (isProfessionalForm(formData)) {
-      const hasPersonal = formData.personal.StudentName && formData.personal.DateOfBirth;
-      const hasContact = formData.contact.Email && formData.contact.ContactNumber;
-      const hasAddress = formData.address.DistrictID && formData.address.Taluk;
-      const hasFamily = formData.family.FamilyMembers > 0;
-      const hasAcademic = formData.academic.CourseTypeID && formData.academic.CollegeName && formData.academic.CollegeFees > 0;
-      const hasHouseVisitLink = formData.documents.HouseVisitLink && formData.documents.HouseVisitLink.startsWith('https://');
+      const p = formData.personal;
+      const hasPersonal = p.StudentName && p.DateOfBirth && p.Email && p.ContactNumber && p.GenderID && p.CasteCategoryID && p.DistrictID && p.AreaTypeID && p.ResidentialAddress;
+      const hasFamily = formData.family.FatherName && formData.family.MotherName && formData.family.FatherOccupationID && formData.family.MotherOccupationID && formData.family.FamilyMembers > 0 && formData.family.HouseTypeID && formData.family.FamilyIncome > 0;
+      const hasAcademic = formData.academic.PUPercentage !== undefined && formData.academic.CourseApplying && formData.academic.CourseStream;
 
-      // Check all 16 required documents
       const docs = formData.documents;
       const hasAllDocuments =
-        docs.PUCMarksCard &&
+        docs.StudentSelfie &&
+        docs.CETNEETRankSheet &&
+        docs.DwellingUnitPhoto &&
+        docs.MarksSheet12 &&
+        docs.RequestLetter &&
+        docs.HouseVideo &&
+        docs.ElectricityBill &&
         docs.IncomeCertificate &&
-        docs.Rationcard &&
-        docs.Electricitybill &&
-        docs.CollegeID &&
-        docs.Admissionproof &&
-        docs.FeesReceipts &&
-        docs.Expenditure &&
-        docs.Studentphoto &&
-        docs.Photoinfrontofcollege &&
-        docs.Dwellingunit &&
-        docs.CET &&
-        docs.Studentpass &&
-        docs.Monthsbank &&
-        docs.AadharCard &&
-        docs.Handwritten;
+        docs.RationCard;
 
-      return hasPersonal && hasContact && hasAddress && hasFamily && hasAllDocuments && hasAcademic && hasHouseVisitLink;
+      return hasPersonal && hasFamily && hasAcademic && hasAllDocuments;
     }
-    
-    // Check Payana form completeness
+
     if (isPayanaForm(formData)) {
       const hasPersonal = formData.personal.studentName && formData.personal.dateOfBirth;
       const hasContact = formData.contact.email && formData.contact.contactNumber;
@@ -67,12 +55,10 @@ export default function ReviewSection({ navigation }: any) {
       const hasAcademic = formData.academic.courseID && formData.academic.collegeName;
       const hasBank = formData.bank.accountHolderName && formData.bank.bankAccountNo && formData.bank.ifscCode;
       const hasAgreement = formData.agreement.isAgreed;
-      
-      // Payana has optional document uploads (not required for form completion)
+
       return hasPersonal && hasContact && hasAddress && hasFamily && hasAcademic && hasBank && hasAgreement;
     }
 
-    // For other form types, assume complete (they have their own validation)
     return true;
   };
 
@@ -89,7 +75,6 @@ export default function ReviewSection({ navigation }: any) {
     }
 
     try {
-      // Pass formData directly to preparePayload which uses the correct mappers
       const payload = preparePayload(currentFormType, formData);
       const response = await submitApplication(currentFormType, payload);
 
@@ -98,7 +83,7 @@ export default function ReviewSection({ navigation }: any) {
       }
 
       setSubmissionSuccess(true, response.data?.applicationId || undefined);
-      markStepComplete(8);
+      markStepComplete(5);
       navigation.navigate('success');
     } catch (error: any) {
       const message = error?.message || 'Failed to submit application. Please try again.';
@@ -120,7 +105,7 @@ export default function ReviewSection({ navigation }: any) {
           <Text style={styles.editButtonText}>Edit</Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.sectionContent}>
         {Object.entries(data).map(([key, value]) => {
           if (!value) return null;
@@ -136,10 +121,20 @@ export default function ReviewSection({ navigation }: any) {
     </FormCard>
   );
 
+  const renderDocumentStatus = (label: string, uploaded: boolean) => (
+    <View style={styles.documentRow}>
+      <Text style={styles.documentLabel}>{label}</Text>
+      <Text style={uploaded ? styles.documentUploaded : styles.documentPending}>
+        {uploaded ? '✓' : '○'}
+      </Text>
+    </View>
+  );
+
   return (
     <FormScreenLayout
       title="Review Application"
-      step={7}
+      step={6}
+      totalSteps={7}
       onBack={navigation.goBack}
       onNext={onSubmit}
       nextDisabled={!canSubmit || submissionState.isSubmitting}
@@ -147,208 +142,88 @@ export default function ReviewSection({ navigation }: any) {
       loading={submissionState.isSubmitting}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Application Summary */}
         <FormSectionHeader
           icon="checkmark-circle"
           title="Application Summary"
           subtitle="Review all information before submitting"
         />
-        
-        {/* Personal Details (Professional only) */}
+
         {isProfessionalForm(formData) && renderSection(
-          "Personal Details",
+          "Applicant's Information",
           {
+            "Email": formData.personal.Email,
             "Student Name": formData.personal.StudentName,
             "Date of Birth": formData.personal.DateOfBirth,
+            "Contact Number": formData.personal.ContactNumber,
+            "Alternate Number": formData.personal.AlternateNumber || 'N/A',
             "Gender ID": formData.personal.GenderID,
             "Caste Category ID": formData.personal.CasteCategoryID,
+            "Area Type ID": formData.personal.AreaTypeID,
+            "District ID": formData.personal.DistrictID,
+            "Other District": formData.personal.OtherDistrict || 'N/A',
+            "Residential Address": formData.personal.ResidentialAddress,
+            "Google Map Link": formData.personal.GoogleMapLink || 'N/A',
           },
           "person",
           () => navigation.navigate('personal')
         )}
 
-        {/* Academic Details (Professional only) */}
         {isProfessionalForm(formData) && renderSection(
-          "Academic Details",
+          "Family Details",
           {
-            "PU Percentage": `${formData.academic.PUPercentage}%`,
-            "CET/NEET Rank": formData.academic.CET_NEET_Rank || 'N/A',
-            "Course Type ID": formData.academic.CourseTypeID,
-            "College Name": formData.academic.CollegeName,
-            "College Type ID": formData.academic.CollegeTypeID,
-            "Annual Fees": `₹${formData.academic.CollegeFees}`,
-          },
-          "school",
-          () => navigation.navigate('academic')
-        )}
-
-        {/* Contact Information (Professional only) */}
-        {isProfessionalForm(formData) && renderSection(
-          "Contact Information",
-          {
-            "Email": formData.contact.Email,
-            "WhatsApp Number": formData.contact.ContactNumber,
-          },
-          "mail",
-          () => navigation.navigate('contact')
-        )}
-
-        {/* Address Details (Professional only) */}
-        {isProfessionalForm(formData) && renderSection(
-          "Address Details",
-          {
-            "District ID": formData.address.DistrictID,
-            "Taluk": formData.address.Taluk,
-            "Place ID": formData.address.PlaceID,
-            "Address": formData.address.Address,
-          },
-          "location",
-          () => navigation.navigate('address')
-        )}
-
-        {/* Family Information (Professional only) */}
-        {isProfessionalForm(formData) && renderSection(
-          "Family Information",
-          {
+            "Father's Name": formData.family.FatherName,
+            "Mother's Name": formData.family.MotherName,
             "Father's Occupation ID": formData.family.FatherOccupationID || 'N/A',
             "Mother's Occupation ID": formData.family.MotherOccupationID || 'N/A',
             "Family Members": formData.family.FamilyMembers,
-            "Annual Income": formData.family.AnnualIncome || 'N/A',
+            "House Type ID": formData.family.HouseTypeID,
+            "Monthly Rent": formData.family.MonthlyRent ? `₹${formData.family.MonthlyRent}` : 'N/A',
+            "Family Income": `₹${formData.family.FamilyIncome}`,
           },
           "people",
           () => navigation.navigate('family')
         )}
 
-        {/* Documents */}
-        <FormCard>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleContainer}>
-              <Ionicons name="attach" size={20} color={colors.primary} style={styles.sectionIcon} />
-              <Text style={styles.sectionTitle}>Documents (16 Required)</Text>
-            </View>
-            <TouchableOpacity onPress={() => navigation.navigate('documents')} style={styles.editButton}>
-              <Ionicons name="create" size={16} color={colors.primary} />
-              <Text style={styles.editButtonText}>Edit</Text>
-            </TouchableOpacity>
-          </View>
+        {isProfessionalForm(formData) && renderSection(
+          "Academic Details",
+          {
+            "PU Percentage": `${formData.academic.PUPercentage}%`,
+            "CET Rank": formData.academic.CETRank || 'N/A',
+            "NEET Rank": formData.academic.NEETRank || 'N/A',
+            "Course Applying": formData.academic.CourseApplying,
+            "Course Stream": formData.academic.CourseStream,
+          },
+          "school",
+          () => navigation.navigate('academic')
+        )}
 
-          <View style={styles.sectionContent}>
-            {/* Documents 1-4 */}
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>1. PUC Marks Card:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.PUCMarksCard ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.PUCMarksCard ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>2. Income Certificate:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.IncomeCertificate ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.IncomeCertificate ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>3. Ration Card:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.Rationcard ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.Rationcard ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>4. Electricity Bill:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.Electricitybill ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.Electricitybill ? '✓' : '○'}
-              </Text>
-            </View>
-
-            {/* Documents 5-8 */}
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>5. College ID:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.CollegeID ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.CollegeID ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>6. Admission Proof:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.Admissionproof ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.Admissionproof ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>7. Fees Receipts:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.FeesReceipts ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.FeesReceipts ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>8. Expenditure Cert:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.Expenditure ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.Expenditure ? '✓' : '○'}
-              </Text>
-            </View>
-
-            {/* Documents 9-12 */}
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>9. Student Photo:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.Studentphoto ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.Studentphoto ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>10. Photo at College:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.Photoinfrontofcollege ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.Photoinfrontofcollege ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>11. Dwelling Unit:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.Dwellingunit ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.Dwellingunit ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>12. CET/NEET Rank:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.CET ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.CET ? '✓' : '○'}
-              </Text>
-            </View>
-
-            {/* Documents 13-16 */}
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>13. Student Passbook:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.Studentpass ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.Studentpass ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>14. 6 Months Bank Stmt:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.Monthsbank ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.Monthsbank ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>15. Aadhar Card:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.AadharCard ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.AadharCard ? '✓' : '○'}
-              </Text>
-            </View>
-            <View style={styles.documentRow}>
-              <Text style={styles.documentLabel}>16. Handwritten Letter:</Text>
-              <Text style={isProfessionalForm(formData) && formData.documents.Handwritten ? styles.documentUploaded : styles.documentPending}>
-                {isProfessionalForm(formData) && formData.documents.Handwritten ? '✓' : '○'}
-              </Text>
-            </View>
-
-            {isProfessionalForm(formData) && (
-              <View style={styles.documentRow}>
-                <Text style={styles.documentLabel}>Google Location Link:</Text>
-                <Text style={formData.documents.HouseVisitLink ? styles.documentUploaded : styles.documentPending}>
-                  {formData.documents.HouseVisitLink ? '✓ Provided' : 'Not provided'}
-                </Text>
+        {isProfessionalForm(formData) && (
+          <FormCard>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleContainer}>
+                <Ionicons name="attach" size={20} color={colors.primary} style={styles.sectionIcon} />
+                <Text style={styles.sectionTitle}>Documents (9 Required)</Text>
               </View>
-            )}
-          </View>
-        </FormCard>
+              <TouchableOpacity onPress={() => navigation.navigate('documents')} style={styles.editButton}>
+                <Ionicons name="create" size={16} color={colors.primary} />
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
+            </View>
 
-        {/* Payana Documents Section */}
+            <View style={styles.sectionContent}>
+              {renderDocumentStatus('1. Student Selfie', !!formData.documents.StudentSelfie)}
+              {renderDocumentStatus('2. CET/NEET Rank Sheet', !!formData.documents.CETNEETRankSheet)}
+              {renderDocumentStatus('3. Dwelling Unit Photo', !!formData.documents.DwellingUnitPhoto)}
+              {renderDocumentStatus('4. 12th Marks Sheet', !!formData.documents.MarksSheet12)}
+              {renderDocumentStatus('5. Request Letter', !!formData.documents.RequestLetter)}
+              {renderDocumentStatus('6. House Video', !!formData.documents.HouseVideo)}
+              {renderDocumentStatus('7. Electricity Bill', !!formData.documents.ElectricityBill)}
+              {renderDocumentStatus('8. Income Certificate', !!formData.documents.IncomeCertificate)}
+              {renderDocumentStatus('9. Ration Card', !!formData.documents.RationCard)}
+            </View>
+          </FormCard>
+        )}
+
         {isPayanaForm(formData) && (
           <FormCard>
             <View style={styles.sectionHeader}>
@@ -403,19 +278,18 @@ export default function ReviewSection({ navigation }: any) {
           </FormCard>
         )}
 
-        {/* Declaration */}
         <FormSectionHeader
           icon="shield-checkmark"
           title="Declaration"
           subtitle="Please read and accept the declaration"
         />
-        
+
         <FormCard>
           <View style={styles.declarationContainer}>
             <Text style={styles.declarationText}>
               I hereby declare that all the information provided by me in this scholarship application is true, correct, and complete to the best of my knowledge and belief. I understand that any false or misleading information may result in the rejection of my application and disqualification from future scholarship opportunities.
             </Text>
-            
+
             <TouchableOpacity
               style={styles.checkboxContainer}
               onPress={() => setDeclarationAccepted(!declarationAccepted)}
@@ -442,7 +316,6 @@ export default function ReviewSection({ navigation }: any) {
           </FormCard>
         ) : null}
 
-        {/* Submission Notice */}
         <FormCard>
           <View style={styles.noticeContainer}>
             <Ionicons name="information-circle" size={24} color={colors.primary} style={styles.noticeIcon} />

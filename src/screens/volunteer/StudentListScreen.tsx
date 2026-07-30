@@ -20,6 +20,7 @@ import { professionalStudentApi } from '@/api/professionalStudentApi';
 import { pucStudentApi } from '@/api/pucStudentApi';
 import { semiProfessionalStudentApi } from '@/api/semiProfessionalStudentApi';
 import StudentRowSkeleton, { TABLE_WIDTH } from '@/components/approval/StudentRowSkeleton';
+import AppFooter from '@/components/common/AppFooter';
 import StudentDetailModal from '@/components/student/StudentDetailModal';
 import VolunteerStudentRow from '@/components/volunteer/VolunteerStudentRow';
 import { colors } from '@/theme/colors';
@@ -384,7 +385,7 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
                 <FlatList
                   data={students}
                   renderItem={renderStudentRow}
-                  keyExtractor={(item, index) => (item.id > 0 ? item.id.toString() : `student-${index}`)}
+                  keyExtractor={(item, index) => `${item.studentType}-${item.id > 0 ? item.id : index}`}
                   refreshControl={
                     <RefreshControl
                       refreshing={isFetching}
@@ -399,6 +400,7 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
             </View>
           </ScrollView>
         </View>
+        <AppFooter compact />
       </View>
     </SafeAreaView>
   );

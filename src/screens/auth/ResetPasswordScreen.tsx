@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
+import {
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
+import { registrationApi } from '@/api/registrationApi';
+import AppFooter from '@/components/common/AppFooter';
 import VPInputField from '@/components/common/VPInputField';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-import { registrationApi } from '@/api/registrationApi';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
@@ -199,6 +200,7 @@ export default function ResetPasswordScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        <AppFooter />
       </ScrollView>
     </KeyboardAvoidingView>
   );

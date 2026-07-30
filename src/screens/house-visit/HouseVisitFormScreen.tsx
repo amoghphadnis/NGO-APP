@@ -3,26 +3,27 @@
  * Sections A-L - Comprehensive Household Assessment
  */
 
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  TextInput,
-  Platform,
+    ActivityIndicator,
+    Alert,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
+import { houseVisitApi } from '@/api/houseVisitApi';
+import AppFooter from '@/components/common/AppFooter';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-import { houseVisitApi } from '@/api/houseVisitApi';
 import { pickDocument } from '@/utils/filePicker';
 
 // ============================================================================
@@ -562,6 +563,7 @@ export default function HouseVisitFormScreen() {
           {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitButtonText}>Submit House Visit</Text>}
         </TouchableOpacity>
 
+        <AppFooter />
         <View style={{ height: 40 }} />
       </ScrollView>
 

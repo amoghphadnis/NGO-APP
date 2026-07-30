@@ -1,63 +1,31 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, Text, View } from 'react-native';
 
-import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
-import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import VPInputField from '@/components/common/VPInputField';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import { colors } from '@/theme/colors';
-import { platform } from '@/theme/platform';
-import { spacing } from '@/theme/spacing';
 import { SemiProfAcademicFormValues, semiProfAcademicSchema } from '@/validation/semiProfessionalSchemas';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function AcademicSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const [collegeTypeOptions, setCollegeTypeOptions] = useState<Option<number>[]>([]);
-  const [semiProfCourseOptions, setSemiProfCourseOptions] = useState<Option<number>[]>([]);
-  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
-
-  useEffect(() => {
-    async function loadDropdowns() {
-      const response = await getSemiProfessionalDropdowns();
-      console.log('[SemiPro AcademicSection] Dropdown response:', response);
-      if (response.success && response.data) {
-        setCollegeTypeOptions(response.data.collegeTypes?.map((c: any) => ({
-          value: Number(c.value),
-          label: c.label
-        })) || []);
-        setSemiProfCourseOptions(response.data.semiProfessionalCourses?.map((c: any) => ({
-          value: Number(c.value),
-          label: c.label
-        })) || []);
-        console.log('[SemiPro AcademicSection] College types:', response.data.collegeTypes);
-        console.log('[SemiPro AcademicSection] Courses:', response.data.semiProfessionalCourses);
-      }
-      setLoadingDropdowns(false);
-    }
-    loadDropdowns();
-  }, []);
-
   const academicData = (formData as any).academic ?? {
     puPercentage: 0,
-    semiProfessionalCourseID: 0,
-    collegeName: '',
-    collegeTypeID: 0,
-    collegeFees: 0,
+    cetRank: undefined,
+    ptRank: undefined,
+    courseApplying: '',
+    courseStream: '',
   };
 
   const { control, handleSubmit, formState } = useForm<SemiProfAcademicFormValues>({
     defaultValues: {
       puPercentage: academicData.puPercentage ?? 0,
-      semiProfessionalCourseID: academicData.semiProfessionalCourseID ?? 0,
-      collegeName: academicData.collegeName ?? '',
-      collegeTypeID: academicData.collegeTypeID ?? 0,
-      collegeFees: academicData.collegeFees ?? 0,
+      cetRank: academicData.cetRank,
+      ptRank: academicData.ptRank,
+      courseApplying: academicData.courseApplying ?? '',
+      courseStream: academicData.courseStream ?? '',
     },
     resolver: zodResolver(semiProfAcademicSchema),
     mode: 'onChange',
@@ -66,22 +34,21 @@ export default function AcademicSection({ navigation }: any) {
   const onSubmit = (data: SemiProfAcademicFormValues) => {
     updateSectionData('academic', data);
     updateValidationState('academic', { isValid: true, data });
-    markStepComplete(4);
+    markStepComplete(3);
     navigation.navigate('documents');
   };
 
-  const isNextDisabled = !formState.isValid || loadingDropdowns;
+  const isNextDisabled = !formState.isValid;
 
   return (
     <FormScreenLayout
       title="Academic Details"
-      step={5}
-      totalSteps={8}
+      step={4}
+      totalSteps={7}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
     >
-      {/* Academic Performance */}
       <FormSectionHeader
         icon="school"
         title="Academic Performance"
@@ -107,44 +74,62 @@ export default function AcademicSection({ navigation }: any) {
             />
           )}
         />
+
+        <Controller
+          control={control}
+          name="cetRank"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="CET Rank"
+              value={value?.toString() ?? ''}
+              onChangeText={(text) => {
+                const num = parseInt(text.replace(/[^0-9]/g, ''), 10);
+                onChange(isNaN(num) ? '' : num);
+              }}
+              placeholder="Enter CET rank (if applicable)"
+              keyboardType="numeric"
+              error={formState.errors.cetRank?.message}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="ptRank"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="PT Rank"
+              value={value?.toString() ?? ''}
+              onChangeText={(text) => {
+                const num = parseInt(text.replace(/[^0-9]/g, ''), 10);
+                onChange(isNaN(num) ? '' : num);
+              }}
+              placeholder="Enter PT rank (if applicable)"
+              keyboardType="numeric"
+              error={formState.errors.ptRank?.message}
+            />
+          )}
+        />
       </FormCard>
 
-      {/* Course Information */}
       <FormSectionHeader
         icon="book"
         title="Course Information"
-        subtitle="Details about your current course"
+        subtitle="Details about the course you are applying for"
         showRequired
       />
 
       <FormCard>
         <Controller
           control={control}
-          name="semiProfessionalCourseID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Semi Professional Course"
-              value={value}
-              options={semiProfCourseOptions}
-              onChange={onChange}
-              placeholder="Select Course"
-              error={formState.errors.semiProfessionalCourseID?.message}
-              required
-              disabled={loadingDropdowns}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="collegeName"
+          name="courseApplying"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="College Name"
+              label="Course Applying For"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter your college name"
-              error={formState.errors.collegeName?.message}
+              placeholder="Enter course name you are applying for"
+              error={formState.errors.courseApplying?.message}
               required
             />
           )}
@@ -152,87 +137,19 @@ export default function AcademicSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="collegeTypeID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="College Type"
-              value={value}
-              options={collegeTypeOptions}
-              onChange={onChange}
-              placeholder="Select college type"
-              error={formState.errors.collegeTypeID?.message}
-              required
-              disabled={loadingDropdowns}
-            />
-          )}
-        />
-      </FormCard>
-
-      {/* Fee Information */}
-      <FormSectionHeader
-        icon="card"
-        title="Fee Information"
-        subtitle="Annual college fees details"
-        showRequired
-      />
-
-      <FormCard>
-        <Controller
-          control={control}
-          name="collegeFees"
+          name="courseStream"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="College Fees"
-              value={value?.toString() ?? ''}
-              onChangeText={(text) => onChange(text ? parseFloat(text.replace(/,/g, '')) : undefined)}
-              placeholder="Enter college fees"
-              keyboardType="numeric"
-              prefix="₹"
-              error={formState.errors.collegeFees?.message}
-              helperText="Enter total annual college fees"
+              label="Course Stream"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter course stream (e.g. Science, Commerce)"
+              error={formState.errors.courseStream?.message}
               required
             />
           )}
         />
-      </FormCard>
-
-      {/* Guidelines */}
-      <FormCard>
-        <View style={styles.guidelineContainer}>
-          <Text style={styles.guidelineTitle}>Important Guidelines:</Text>
-          <Text style={styles.guidelineText}>
-            • Enter accurate academic information
-          </Text>
-          <Text style={styles.guidelineText}>
-            • Percentage should be from recognized board/university
-          </Text>
-          <Text style={styles.guidelineText}>
-            • College fees should include tuition and other mandatory fees
-          </Text>
-          <Text style={styles.guidelineText}>
-            • Documents may be verified during the process
-          </Text>
-        </View>
       </FormCard>
     </FormScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  guidelineContainer: {
-    padding: spacing.sm,
-  },
-  guidelineTitle: {
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textPrimary,
-    fontWeight: '600',
-    marginBottom: spacing.sm,
-  },
-  guidelineText: {
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-});

@@ -1,9 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { TABLE_WIDTH } from '@/components/approval/StudentRowSkeleton';
 import { colors } from '@/theme/colors';
 import { StudentListViewModel, StudentType } from '@/types/studentList';
+import { Ionicons } from '@expo/vector-icons';
+import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface VolunteerStudentRowProps {
   student: StudentListViewModel;
@@ -23,11 +22,15 @@ export default function VolunteerStudentRow({ student, onHouseVisit, onView }: V
   };
 
   const handleOpenMaps = () => {
-    if (student.houseVisitLink) {
-      Linking.openURL(student.houseVisitLink).catch((err) => {
-        console.error('Failed to open maps:', err);
-      });
+    const link = student.houseVisitLink?.trim();
+    if (!link) return;
+    if (!/^https?:\/\//i.test(link)) {
+      console.warn('[VolunteerStudentRow] Invalid house visit link, skipping:', link);
+      return;
     }
+    Linking.openURL(link).catch((err) => {
+      console.error('Failed to open maps:', err);
+    });
   };
 
   return (

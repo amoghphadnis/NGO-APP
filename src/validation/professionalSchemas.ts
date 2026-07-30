@@ -1,95 +1,72 @@
 import { UploadedDocument } from '@/types/documents';
 import { z } from 'zod';
 
-// Professional Personal Details Schema (PascalCase to match API)
+// Professional Personal schema (Applicant's Information: personal + contact + address)
 export const professionalPersonalDetailsSchema = z.object({
+  Email: z.string().min(1, { message: 'Email is required' }).email('Enter a valid email address'),
   StudentName: z.string().min(1, { message: 'Student name is required' }),
   DateOfBirth: z.string().min(1, { message: 'Date of birth is required' }),
-  GenderID: z.number().positive({ message: 'Gender is required' }),
-  CasteCategoryID: z.number().positive({ message: 'Caste category is required' }),
-});
-
-// Professional Contact Details Schema (PascalCase to match API)
-export const professionalContactDetailsSchema = z.object({
-  Email: z.string().min(1, { message: 'Email is required' }).email('Enter a valid email address'),
-  ContactNumber: z.string().min(10, { message: 'Please enter a valid 10-digit number' }).max(10).regex(/^[0-9]{10}$/, 'Please enter a valid 10-digit number'),
-});
-
-// Professional Address Details Schema (PascalCase to match API)
-export const professionalAddressDetailsSchema = z.object({
-  DistrictID: z.number().positive({ message: 'District is required' }),
+  ContactNumber: z.string().min(10, { message: 'Valid 10-digit contact number required' }).max(10),
+  AlternateNumber: z.string().optional(),
+  ResidentialAddress: z.string().min(1, { message: 'Residential address is required' }),
+  GoogleMapLink: z.string().optional(),
+  AreaTypeID: z.number().min(1, { message: 'Area type is required' }),
+  DistrictID: z.number().min(1, { message: 'District is required' }),
   OtherDistrict: z.string().optional(),
-  Taluk: z.string().min(1, { message: 'Taluk is required' }),
-  PlaceID: z.number().positive({ message: 'Place is required' }),
-  Address: z.string().min(1, { message: 'Address is required' }),
-});
+  GenderID: z.number().min(1, { message: 'Gender is required' }),
+  CasteCategoryID: z.number().min(1, { message: 'Caste category is required' }),
+}).refine(
+  (data) => {
+    if (data.DistrictID === 11) {
+      return !!data.OtherDistrict && data.OtherDistrict.trim().length > 0;
+    }
+    return true;
+  },
+  {
+    message: 'Other district name is required when "Other" is selected',
+    path: ['OtherDistrict'],
+  }
+);
 
-// Professional Family Details Schema (PascalCase to match API, occupations optional)
+// Professional Family schema (Family Details: family + housing)
 export const professionalFamilyDetailsSchema = z.object({
-  FatherOccupationID: z.number().optional(),
-  MotherOccupationID: z.number().optional(),
-  FamilyMembers: z.number().min(1, { message: 'At least 1 family member' }),
-  AnnualIncome: z.string().min(1, { message: 'Annual income is required' }),
+  FatherName: z.string().min(1, { message: 'Father name is required' }),
+  MotherName: z.string().min(1, { message: 'Mother name is required' }),
+  FatherOccupationID: z.number().min(1, { message: 'Father occupation is required' }),
+  MotherOccupationID: z.number().min(1, { message: 'Mother occupation is required' }),
+  FamilyMembers: z.number().min(1, { message: 'At least 1 family member required' }),
+  HouseTypeID: z.number().min(1, { message: 'House type is required' }),
+  MonthlyRent: z.number().optional(),
+  FamilyIncome: z.number().positive({ message: 'Family income must be positive' }),
 });
 
+// Professional Academic schema
 export const academicDetailsSchema = z.object({
-  PUPercentage: z.number().min(0, { message: 'Percentage must be at least 0' })
+  PUPercentage: z.number()
+    .min(0, { message: 'Percentage must be at least 0' })
     .max(100, { message: 'Percentage cannot exceed 100' }),
-  CET_NEET_Rank: z.string().optional(), // Can be "Not Appeared" or rank number
-  CourseTypeID: z.number().positive({ message: 'Course type is required' }),
-  CollegeName: z.string().min(1, { message: 'College name is required' }),
-  CollegeTypeID: z.number().positive({ message: 'College type is required' }),
-  CollegeFees: z.number().positive({ message: 'Fees must be a positive number' }),
+  CETRank: z.number().optional(),
+  NEETRank: z.number().optional(),
+  CourseApplying: z.string().min(1, { message: 'Course applying is required' }),
+  CourseStream: z.string().min(1, { message: 'Course stream is required' }),
 });
 
-// Bank details schema kept for potential future use
-export const bankDetailsSchema = z.object({
-  accountHolderName: z
-    .string()
-    .min(1, { message: 'Account holder name is required' })
-    .regex(/^[a-zA-Z\s]+$/, 'Name can only contain letters and spaces'),
-  bankName: z.string().min(1, { message: 'Bank name is required' }),
-  accountNumber: z
-    .string()
-    .min(9, { message: 'Account number must be at least 9 digits' })
-    .max(18, { message: 'Account number must be at most 18 digits' })
-    .regex(/^\d+$/, 'Account number must be numeric'),
-  ifscCode: z
-    .string()
-    .min(1, { message: 'IFSC code is required' })
-    .regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Enter a valid IFSC code'),
-  branchName: z.string().optional(),
-  ifscVerified: z.boolean(),
-});
-
+// Professional Document schema (9 documents, all optional)
 export const professionalDocumentDetailsSchema = z.object({
-  // All 16 documents are required
-  PUCMarksCard: z.custom<UploadedDocument>().optional(),
+  StudentSelfie: z.custom<UploadedDocument>().optional(),
+  CETNEETRankSheet: z.custom<UploadedDocument>().optional(),
+  DwellingUnitPhoto: z.custom<UploadedDocument>().optional(),
+  MarksSheet12: z.custom<UploadedDocument>().optional(),
+  RequestLetter: z.custom<UploadedDocument>().optional(),
+  HouseVideo: z.custom<UploadedDocument>().optional(),
+  ElectricityBill: z.custom<UploadedDocument>().optional(),
   IncomeCertificate: z.custom<UploadedDocument>().optional(),
-  Rationcard: z.custom<UploadedDocument>().optional(),
-  Electricitybill: z.custom<UploadedDocument>().optional(),
-  CollegeID: z.custom<UploadedDocument>().optional(),
-  Admissionproof: z.custom<UploadedDocument>().optional(),
-  FeesReceipts: z.custom<UploadedDocument>().optional(),
-  Expenditure: z.custom<UploadedDocument>().optional(),
-  Studentphoto: z.custom<UploadedDocument>().optional(),
-  Photoinfrontofcollege: z.custom<UploadedDocument>().optional(),
-  Dwellingunit: z.custom<UploadedDocument>().optional(),
-  CET: z.custom<UploadedDocument>().optional(),
-  Studentpass: z.custom<UploadedDocument>().optional(),
-  Monthsbank: z.custom<UploadedDocument>().optional(),
-  AadharCard: z.custom<UploadedDocument>().optional(),
-  Handwritten: z.custom<UploadedDocument>().optional(),
-  HouseVisitLink: z.string()
-    .min(1, { message: 'House visit link is required' })
-    .regex(/^https:\/\/.*/, { message: 'Link must start with https://' }),
+  RationCard: z.custom<UploadedDocument>().optional(),
 });
 
-// Complete professional form schema (PascalCase to match API)
+// Complete professional form schema
 export const professionalFormSchema = z.object({
   personal: professionalPersonalDetailsSchema,
-  contact: professionalContactDetailsSchema,
-  address: professionalAddressDetailsSchema,
   family: professionalFamilyDetailsSchema,
   academic: academicDetailsSchema,
   documents: professionalDocumentDetailsSchema,
@@ -97,10 +74,7 @@ export const professionalFormSchema = z.object({
 
 // Type exports
 export type AcademicDetailsFormValues = z.infer<typeof academicDetailsSchema>;
-export type BankDetailsFormValues = z.infer<typeof bankDetailsSchema>;
 export type ProfessionalFormValues = z.infer<typeof professionalFormSchema>;
 export type ProfessionalDocumentDetailsFormValues = z.infer<typeof professionalDocumentDetailsSchema>;
 export type ProfessionalPersonalDetailsFormValues = z.infer<typeof professionalPersonalDetailsSchema>;
-export type ProfessionalContactDetailsFormValues = z.infer<typeof professionalContactDetailsSchema>;
-export type ProfessionalAddressDetailsFormValues = z.infer<typeof professionalAddressDetailsSchema>;
 export type ProfessionalFamilyDetailsFormValues = z.infer<typeof professionalFamilyDetailsSchema>;

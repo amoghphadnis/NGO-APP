@@ -1,17 +1,16 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { z } from 'zod';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 const guidelinesSchema = z.object({
   guidelinesAccepted: z.boolean().refine(val => val === true, {
@@ -46,7 +45,7 @@ export default function GuidelinesSection({ navigation }: any) {
     <FormScreenLayout
       title="Application Guidelines"
       step={0}
-      totalSteps={8}
+      totalSteps={7}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}

@@ -1,0 +1,79 @@
+API CONTRACT DOCUMENT
+Base Route Prefix:
+api/semi-professional
+===================================================================================
+1. Get Semi Professional Form Data
+===================================================================================
+Endpoint:
+GET /api/semi-professional/form-data
+Purpose:
+Returns all master dropdown values required for the Semi Professional Student appli
+Content-Type:
+application/json
+Authorization:
+Not Required
+Path Parameters:
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | - | - |
+Query Parameters:
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | - | - |
+Request Body:
+Not Applicable
+Form Data / Multipart Fields:
+Not Applicable
+File Upload Fields:
+None
+Validation Rules:
+- No input required.
+- Reads master data from database.
+- Reads LastDateToApply from ApplicationSettings where Id = 3.
+Business Logic Notes:
+- Fetches Gender list.
+- Fetches Area list.
+- Fetches District list.
+- Fetches Caste Category list.- Fetches House Type list.- Fetches Reference Source list.- Fetches Course list.- Fetches College Type list.- Fetches Father Occupation list.- Fetches Mother Occupation list.- Reads LastDateToApply from ApplicationSettings.- Returns LastDate formatted as: dd MMM yyyySuccess Response (200){ "success": true, "message": "Success", "data": { "LastDate": "31 Jul 2026", "Masters": { "GenderList": [ { "Id": 1, "Name": "Male" }, { "Id": 2, "Name": "Female" } ], "AreaList": [ { "Id": 1, "Name": "Urban" } ], "DistrictList": [ { "Id": 1, "Name": "Bengaluru" } ], "CasteList": [ { "Id": 1, "Name": "General" } ], "HouseList": [ { "Id": 1, "Name": "Owned" }
+], "ReferenceList": [ { "Id": 1, "Name": "Teacher" } ], "CourseList": [ { "Id": 1, "Name": "Engineering" } ], "CollegeTypeList": [ { "Id": 1, "Name": "Government" } ], "FatherOccupationList": [ { "Id": 1, "Name": "Farmer" } ], "MotherOccupationList": [ { "Id": 1, "Name": "Homemaker" } ] } }}Failure Responses400 Bad Request{ "success": false, "message": "Invalid request."}500 Internal Server Error{ "success": false, "message": "Internal Server Error"}Status Codes Used
+200400500===================================================================================2. Create Semi Professional Student Application===================================================================================Endpoint:POST /api/semi-professional/createPurpose:Creates a new Semi Professional Student application along with uploading all requirContent-Type:multipart/form-dataAuthorization:Not RequiredPath Parameters| Name | Type | Required | Description ||------|------|----------|-------------|| None | - | - | - |Query Parameters| Name | Type | Required | Description ||------|------|----------|-------------|| None | - | - | - |Request BodyNot Applicable(Request uses multipart/form-data)Form Data / Multipart Fields| Field | Type | Required | Description ||------|------|----------|-------------|| Email | string | Yes | Student Email || StudentName | string | Yes | Student Name || DOB | date | Yes | Date of Birth || ContactNumber | string | Yes | Mobile Number || AlternateNumber | string | No | Alternate Contact || ResidentialAddress | string | Yes | Residential Address || GoogleMapLink | string | No | Google Maps Location || AreaTypeID | integer | Yes | Area Type || DistrictID | integer | Yes | District |
+| OtherDistrict | string | No | Other District Name || GenderID | integer | Yes | Gender || CasteCategoryID | integer | Yes | Caste Category || FatherName | string | Yes | Father Name || MotherName | string | Yes | Mother Name || FatherOccupationID | integer | Yes | Father Occupation || MotherOccupationID | integer | Yes | Mother Occupation || FamilyMembers | integer | Yes | Family Members Count || HouseTypeID | integer | Yes | House Type || MonthlyRent | decimal | No | Monthly Rent || FamilyIncome | decimal | Yes | Family Income || PUPercentage | decimal | Yes | PU Percentage || CETRank | integer | No | CET Rank || PTRank | integer | No | PT Rank || CourseApplying | string | Yes | Course Applying || CourseStream | string | Yes | Course Stream |File Upload Fields| Field | Type | Required | Allowed Extensions | Max Size ||------|------|----------|--------------------|----------|| StudentSelfie | File | No | Any configured by server | Server Configured || CETRankSheet | File | No | Any configured by server | Server Configured || PTRankSheet | File | No | Any configured by server | Server Configured || DwellingUnitPhoto | File | No | Any configured by server | Server Configured || MarksSheet12 | File | No | Any configured by server | Server Configured || HouseVideo | File | No | Any configured by server | Server Configured || ElectricityBill | File | No | Any configured by server | Server Configured || IncomeCertificate | File | No | Any configured by server | Server Configured || RationCard | File | No | Any configured by server | Server Configured |Validation Rules- Request Content-Type must be multipart/form-data.- Model validation is executed.- Required fields must be supplied.- Email must be unique.- Duplicate Email is not allowed.- DOB is parsed as Date.- Integer fields default to 0 if omitted.- Decimal fields default to 0 if omitted.- OtherDistrict is nullable.- MonthlyRent is nullable.- CETRank is nullable.- PTRank is nullable.Business Logic Notes- Rejects non multipart requests.- Reads form values using MultipartHelper.- Uploads all files into:
+~/Uploads/NewSemiProfessional/- Automatically creates upload folder if missing.- Checks duplicate Email before insert.- Student can apply only once.- Stores uploaded file paths into database.- CreatedDate is automatically set to current server date/time.- Status automatically defaults to: 1Success Response (200){ "success": true, "message": "Semi Professional Application submitted successfully.", "data": null}Failure Responses400 Bad Request{ "success": false, "message": "Content must be multipart/form-data."}400 Bad Request{ "success": false, "message": "Validation failed."}409 Conflict{ "success": false, "message": "This Email ID is already registered. Student can apply only once."}500 Internal Server Error{ "success": false, "message": "Unexpected server error."}Status Codes Used200400
+409500===================================================================================COMMON DTOS===================================================================================MasterDto{ "Id": 1, "Name": "Sample"}DropdownViewModel{ "GenderList": [ { "Id": 1, "Name": "Male" } ], "AreaList": [], "DistrictList": [], "CasteList": [], "HouseList": [], "ReferenceList": [], "CourseList": [], "CollegeTypeList": [], "FatherOccupationList": [], "MotherOccupationList": []}GetSemiProfessionalFormData Response DTO{ "LastDate": "31 Jul 2026", "Masters": { "GenderList": [], "AreaList": [], "DistrictList": [], "CasteList": [], "HouseList": [], "ReferenceList": [], "CourseList": [], "CollegeTypeList": [], "FatherOccupationList": [], "MotherOccupationList": [] }}
+CreateSemiProfessionalStudent Form DTO
+{
+"Email": "student@example.com",
+"StudentName": "Rahul Kumar",
+"DOB": "2005-03-12",
+"ContactNumber": "9876543210",
+"AlternateNumber": "9876543211",
+"ResidentialAddress": "Bengaluru",
+"GoogleMapLink": "https://maps.google.com/...",
+"AreaTypeID": 1,
+"DistrictID": 10,
+"OtherDistrict": "",
+"GenderID": 1,
+"CasteCategoryID": 2,
+"FatherName": "Ramesh",
+"MotherName": "Lakshmi",
+"FatherOccupationID": 3,
+"MotherOccupationID": 2,
+"FamilyMembers": 5,
+"HouseTypeID": 1,
+"MonthlyRent": 4500,
+"FamilyIncome": 25000,
+"PUPercentage": 92.50,
+"CETRank": 1245,
+"PTRank": 0,
+"CourseApplying": "Engineering",
+"CourseStream": "Computer Science"
+}
+Standard Success Response
+{
+"success": true,
+"message": "Success",
+"data": {}
+}
+Standard Error Response
+{
+"success": false,
