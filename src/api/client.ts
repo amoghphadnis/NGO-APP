@@ -113,6 +113,11 @@ const BEARER_REQUIRED_PATHS = [
   '/branch-executive-district-mapping',
   '/renewal-puc',
   '/edit-professional-renewal',
+  // House Visit Grid (manager approval) — 3D-G
+  '/puc-housevisits-grid',
+  '/professional-house-visits',
+  '/payana-house-visit-grid',
+  '/semi-professional-house-visits',
   // Legacy callers that still prefix /api explicitly
   '/api/assign-volunteer-house-visit',
   '/api/edit-',
