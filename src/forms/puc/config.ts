@@ -8,11 +8,11 @@ export const pucFormConfig: FormConfig = {
   steps: [
     'guidelines',
     'personal',
-    'contact', 
+    'contact',
     'address',
     'family',
-    'category',
     'academic',
+    'bank',
     'documents',
     'review',
     'success'
@@ -20,13 +20,13 @@ export const pucFormConfig: FormConfig = {
   totalSteps: 10,
   validation: {
     guidelines: 'guidelinesSchema',
-    personal: 'personalDetailsSchema',
-    contact: 'contactDetailsSchema',
-    address: 'addressDetailsSchema',
-    family: 'pucFamilyDetailsSchema',
-    category: 'pucCategoryHousingSchema',
-    academic: 'pucAcademicDetailsSchema',
-    documents: 'pucDocumentDetailsSchema',
+    personal: 'pucFormat11PersonalSchema',
+    contact: 'pucFormat11ContactSchema',
+    address: 'pucFormat11AddressSchema',
+    family: 'pucFormat11FamilySchema',
+    academic: 'pucFormat11AcademicSchema',
+    bank: 'pucFormat11BankSchema',
+    documents: 'pucFormat11DocumentsSchema',
     review: null,
     success: null
   }
@@ -47,7 +47,7 @@ export const pucStepConfigs = [
     title: 'Personal Details',
     subtitle: 'Tell us about yourself',
     component: 'PersonalSection',
-    validation: 'personalDetailsSchema',
+    validation: 'pucFormat11PersonalSchema',
     required: true,
     icon: 'person'
   },
@@ -56,7 +56,7 @@ export const pucStepConfigs = [
     title: 'Contact Information',
     subtitle: 'How can we reach you',
     component: 'ContactSection',
-    validation: 'contactDetailsSchema',
+    validation: 'pucFormat11ContactSchema',
     required: true,
     icon: 'mail'
   },
@@ -65,7 +65,7 @@ export const pucStepConfigs = [
     title: 'Address Details',
     subtitle: 'Where do you live',
     component: 'AddressSection',
-    validation: 'addressDetailsSchema',
+    validation: 'pucFormat11AddressSchema',
     required: true,
     icon: 'location'
   },
@@ -74,34 +74,34 @@ export const pucStepConfigs = [
     title: 'Family Information',
     subtitle: 'Tell us about your family',
     component: 'FamilySection',
-    validation: 'pucFamilyDetailsSchema',
+    validation: 'pucFormat11FamilySchema',
     required: true,
     icon: 'people'
-  },
-  {
-    id: 'category' as FormStep,
-    title: 'Category & Housing',
-    subtitle: 'Caste and housing details',
-    component: 'CategorySection',
-    validation: 'pucCategoryHousingSchema',
-    required: true,
-    icon: 'pricetag'
   },
   {
     id: 'academic' as FormStep,
     title: 'Academic Details',
     subtitle: 'Course and academic information',
     component: 'AcademicSection',
-    validation: 'pucAcademicDetailsSchema',
+    validation: 'pucFormat11AcademicSchema',
     required: true,
     icon: 'school'
+  },
+  {
+    id: 'bank' as FormStep,
+    title: 'Bank Details',
+    subtitle: 'Bank account information',
+    component: 'BankSection',
+    validation: 'pucFormat11BankSchema',
+    required: true,
+    icon: 'card'
   },
   {
     id: 'documents' as FormStep,
     title: 'Document Upload',
     subtitle: 'Upload required documents',
     component: 'DocumentSection',
-    validation: 'pucDocumentDetailsSchema',
+    validation: 'pucFormat11DocumentsSchema',
     required: true,
     icon: 'attach'
   },

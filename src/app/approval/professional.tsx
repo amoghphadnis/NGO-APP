@@ -1,10 +1,17 @@
-import StudentListScreen from '@/screens/volunteer/StudentListScreen';
+import { professionalApprovalApi } from '@/api/professionalApprovalApi';
+import GenericApprovalListScreen from '@/screens/approval/GenericApprovalListScreen';
 
 export default function ApprovalProfessionalScreen() {
   return (
-    <StudentListScreen
-      studentType="professional"
-      title="Professional Students"
+    <GenericApprovalListScreen
+      title="Professional Approval"
+      api={{
+        getList: professionalApprovalApi.getList,
+        approve: professionalApprovalApi.approve,
+        reject: professionalApprovalApi.reject,
+        queryKey: professionalApprovalApi.queryKeys.list,
+        invalidatePrefix: 'professionalApproval',
+      }}
     />
   );
 }

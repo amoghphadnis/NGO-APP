@@ -3,32 +3,30 @@
  * Handles Payana New Student form submissions
  */
 
+import { PayanaDistrictsResponse, SelectListItemDto } from '@/types/payana';
 import api from './client';
-import { normalizeApiResponse, normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
-import { normalizePayanaDropdowns, NormalizedDropdowns } from './transformers/normalizeDropdowns';
+import { normalizeApiError, normalizeApiResponse, NormalizedApiResponse } from './transformers/normalizeApiResponse';
+import { NormalizedDropdowns, normalizePayanaDropdowns } from './transformers/normalizeDropdowns';
+
+/** Route prefix per PAYANA STUDENTS API CONTRACT (API_BASE_URL already ends with /api). */
+const BASE_URL = '/payanastudents';
 
 /**
  * Creates a new Payana Student application
- * POST /api/payanastudents/create
- * Note: This endpoint expects JSON, not FormData
+ * POST /api/payana-students/create (multipart/form-data, public)
  */
 export async function createPayanaStudent(
-  payload: Record<string, any>
-): Promise<NormalizedApiResponse<any>> {
-  console.log(`[createPayanaStudent] Sending JSON request to /api/payanastudents/create`);
-  console.log(`[createPayanaStudent] Payload keys:`, Object.keys(payload));
+  formData: FormData
+): Promise<NormalizedApiResponse<undefined>> {
+  console.log(`[createPayanaStudent] Sending multipart request to ${BASE_URL}/create`);
 
   try {
-    const response = await api.post('/payanastudents/create', payload, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await api.post(`${BASE_URL}/create`, formData);
 
     console.log(`[createPayanaStudent] Response status:`, response.status);
     console.log(`[createPayanaStudent] Response data:`, response.data);
 
-    return normalizeApiResponse(response.data);
+    return normalizeApiResponse<undefined>(response.data);
   } catch (error: any) {
     console.error(`[createPayanaStudent] API Error:`, {
       status: error.response?.status,
@@ -40,14 +38,33 @@ export async function createPayanaStudent(
 }
 
 /**
+ * Gets Payana district list
+ * GET /api/payana-students/districts (JWT)
+ */
+export async function getPayanaDistricts(): Promise<NormalizedApiResponse<SelectListItemDto[]>> {
+  try {
+    const response = await api.get(`${BASE_URL}/districts`);
+    const body = response.data as PayanaDistrictsResponse;
+    return {
+      success: true,
+      data: body.data ?? [],
+      message: 'Success',
+    };
+  } catch (error: any) {
+    console.error('[getPayanaDistricts] Error:', error);
+    return normalizeApiError(error);
+  }
+}
+
+/**
  * Gets Payana dropdown data
- * GET /payanastudents/dropdowns
+ * GET /api/payana-students/dropdowns (public)
  */
 export async function getPayanaDropdowns(): Promise<
   NormalizedApiResponse<NormalizedDropdowns>
 > {
   try {
-    const response = await api.get('/payanastudents/dropdowns');
+    const response = await api.get(`${BASE_URL}/dropdowns`);
     console.log('[getPayanaDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
     
     // Handle both wrapped (data.Data) and unwrapped (data) responses

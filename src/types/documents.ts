@@ -38,17 +38,11 @@ export interface PUCDocuments extends ProfessionalDocuments {
   houseVideo?: UploadedDocument;
 }
 
-// Semi Professional form documents (9 total per new API contract)
+// Semi Professional form documents (3 per backend contract)
 export interface SemiProfessionalDocuments {
-  studentSelfie?: UploadedDocument;
-  cetRankSheet?: UploadedDocument;
-  ptRankSheet?: UploadedDocument;
-  dwellingUnitPhoto?: UploadedDocument;
-  marksSheet12?: UploadedDocument;
-  houseVideo?: UploadedDocument;
-  electricityBill?: UploadedDocument;
+  pucMarksCard?: UploadedDocument;
   incomeCertificate?: UploadedDocument;
-  rationCard?: UploadedDocument;
+  aadharCard?: UploadedDocument;
 }
 
 // Union type for all documents

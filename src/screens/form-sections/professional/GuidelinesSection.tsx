@@ -63,25 +63,59 @@ export default function GuidelinesSection({ navigation }: any) {
           <View style={styles.guidelineItem}>
             <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              Student must be a resident of Karnataka
+              The student should have appeared for the <Text style={styles.bold}>PUC II examination for the first time in 2026</Text>
             </Text>
           </View>
           <View style={styles.guidelineItem}>
             <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              Annual family income should not exceed ₹2,00,000
+              Must be aspiring to join a <Text style={styles.bold}>Medical or Engineering course</Text>
             </Text>
           </View>
           <View style={styles.guidelineItem}>
             <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              Student must have secured minimum 60% in previous examination
+              This application is <Text style={styles.bold}>only for students from Karnataka</Text>
             </Text>
           </View>
           <View style={styles.guidelineItem}>
             <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              Must be studying in a recognized institution
+              Should have scored <Text style={styles.bold}>80%</Text> and above in the PUC II examination
+            </Text>
+          </View>
+          <View style={styles.guidelineItem}>
+            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+            <Text style={styles.guidelineText}>
+              For Engineering aspirants: Should have secured <Text style={styles.bold}>a CET rank below 25,000</Text>
+            </Text>
+          </View>
+          <View style={styles.guidelineItem}>
+            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+            <Text style={styles.guidelineText}>
+              For Medical aspirants: Should have secured a <Text style={styles.bold}>NEET Karnataka rank below 3,000 and All India rank below 60,000</Text>
+            </Text>
+          </View>
+          <View style={styles.guidelineItem}>
+            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+            <Text style={styles.guidelineText}>
+              The <Text style={styles.bold}>total family income</Text> should be <Text style={styles.bold}>less than ₹15,000/- per month</Text>
+            </Text>
+          </View>
+          <View style={styles.guidelineItem}>
+            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+            <Text style={styles.guidelineText}>
+              <Text style={styles.bold}>Parents must be residents of Karnataka</Text>
+            </Text>
+          </View>
+        </FormCard>
+
+        {/* Deadline */}
+        <FormCard>
+          <View style={styles.guidelineItem}>
+            <Ionicons name="calendar" size={20} color={colors.warning} style={styles.icon} />
+            <Text style={styles.guidelineText}>
+              <Text style={styles.bold}>Last date to apply: 30 Jul 2026</Text>
             </Text>
           </View>
         </FormCard>
@@ -241,6 +275,9 @@ const styles = StyleSheet.create({
     fontSize: platform.normalize.fontSize.body,
     lineHeight: platform.normalize.lineHeight.body,
     color: colors.textPrimary,
+  },
+  bold: {
+    fontWeight: '700',
   },
   documentTitle: {
     fontSize: platform.normalize.fontSize.body,

@@ -11,7 +11,7 @@ import { z } from 'zod';
 
 export const basicDetailsSchema = z.object({
   studentID: z.number(),
-  source: z.enum(['PUC', 'Professional', 'Payana']),
+  source: z.enum(['PUC', 'Professional', 'Payana', 'SemiProfessional']),
   studentName: z.string().min(1, 'Student name is required'),
   courseInstitution: z.string().optional(),
   address: z.string().min(1, 'Address is required'),

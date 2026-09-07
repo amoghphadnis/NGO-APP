@@ -3,13 +3,15 @@
  * Sections A-L covering comprehensive household assessment
  */
 
+import { DocumentFile } from './documents';
+
 // ============================================================================
 // Section A: Basic Details
 // ============================================================================
 
 export interface HouseVisitBasicDetails {
   studentID: number;
-  source: 'PUC' | 'Professional' | 'Payana';
+  source: 'PUC' | 'Professional' | 'Payana' | 'SemiProfessional';
   studentName: string;
   courseInstitution: string;
   address: string;
@@ -176,10 +178,31 @@ export interface HouseVisitFormData {
 }
 
 // ============================================================================
+// Volunteer Approval Status
+// ============================================================================
+
+export enum VolunteerApprovalStatus {
+  Pending = 'Pending',
+  Selected = 'Selected',
+  Rejected = 'Rejected',
+}
+
+export const VOLUNTEER_APPROVAL_OPTIONS = Object.values(VolunteerApprovalStatus);
+
+// ============================================================================
 // API Types
 // ============================================================================
 
-export interface HouseVisitCreatePayload {
+export interface FamilyMemberDto {
+  Name: string;
+  Relation: string;
+  Age: string;
+  Education: string;
+  Occupation: string;
+  MonthlyIncome: string;
+}
+
+export interface HouseVisitMultipartPayload {
   StudentID: number;
   Source: string;
   StudentName: string;
@@ -231,16 +254,13 @@ export interface HouseVisitCreatePayload {
   SupervisorJustification: string;
   DeclarationConfirmation: string;
   DeclarationDate: string;
+  VolunteerApprovalStatus?: VolunteerApprovalStatus;
+  HousePhoto?: DocumentFile;
+  UploadedFiles?: DocumentFile[];
 }
 
-export interface FamilyMemberDto {
-  Name: string;
-  Relation: string;
-  Age: string;
-  Education: string;
-  Occupation: string;
-  MonthlyIncome: string;
-}
+/** @deprecated use HouseVisitMultipartPayload instead */
+export type HouseVisitCreatePayload = HouseVisitMultipartPayload;
 
 export interface HouseVisitApiResponse {
   success: boolean;
@@ -255,5 +275,5 @@ export interface HouseVisitApiResponse {
 
 export interface HouseVisitRouteParams {
   studentId: string;
-  source: 'puc' | 'professional' | 'payana';
+  source: 'puc' | 'professional' | 'payana' | 'semiProfessional';
 }

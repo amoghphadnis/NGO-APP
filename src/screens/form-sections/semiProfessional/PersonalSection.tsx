@@ -22,7 +22,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
   const [genderOptions, setGenderOptions] = useState<Option<number>[]>([]);
   const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
   const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
-  const [areaTypeOptions, setAreaTypeOptions] = useState<Option<number>[]>([]);
+  const [placeOptions, setPlaceOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
@@ -42,9 +42,9 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
           value: Number(d.value),
           label: d.label
         })) || []);
-        setAreaTypeOptions(response.data.areaTypes?.map((a: any) => ({
-          value: Number(a.value),
-          label: a.label
+        setPlaceOptions(response.data.places?.map((p: any) => ({
+          value: Number(p.value),
+          label: p.label
         })) || []);
       }
       setLoadingDropdowns(false);
@@ -57,14 +57,13 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
     studentName: '',
     dateOfBirth: '',
     contactNumber: '',
-    alternateNumber: '',
-    residentialAddress: '',
-    googleMapLink: '',
-    areaTypeID: 0,
-    districtID: 0,
-    otherDistrict: '',
     genderID: 0,
     casteCategoryID: 0,
+    districtID: 0,
+    otherDistrict: '',
+    taluk: '',
+    address: '',
+    placeID: 0,
   };
 
   const { control, handleSubmit, formState, watch } = useForm<SemiProfPersonalFormValues>({
@@ -73,14 +72,13 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
       studentName: personalData.studentName ?? '',
       dateOfBirth: personalData.dateOfBirth ?? '',
       contactNumber: personalData.contactNumber ?? '',
-      alternateNumber: personalData.alternateNumber ?? '',
-      residentialAddress: personalData.residentialAddress ?? '',
-      googleMapLink: personalData.googleMapLink ?? '',
-      areaTypeID: personalData.areaTypeID ?? 0,
-      districtID: personalData.districtID ?? 0,
-      otherDistrict: personalData.otherDistrict ?? '',
       genderID: personalData.genderID ?? 0,
       casteCategoryID: personalData.casteCategoryID ?? 0,
+      districtID: personalData.districtID ?? 0,
+      otherDistrict: personalData.otherDistrict ?? '',
+      taluk: personalData.taluk ?? '',
+      address: personalData.address ?? '',
+      placeID: personalData.placeID ?? 0,
     },
     resolver: zodResolver(semiProfPersonalSchema),
     mode: 'onChange',
@@ -185,22 +183,6 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
 
         <Controller
           control={control}
-          name="alternateNumber"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Alternate Number"
-              value={value ?? ''}
-              onChangeText={onChange}
-              placeholder="Enter alternate number (optional)"
-              keyboardType="phone-pad"
-              maxLength={10}
-              error={formState.errors.alternateNumber?.message}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
           name="genderID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
@@ -244,15 +226,15 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
       <FormCard>
         <Controller
           control={control}
-          name="areaTypeID"
+          name="placeID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Area Type"
+              label="Place"
               value={value}
-              options={areaTypeOptions}
+              options={placeOptions}
               onChange={onChange}
-              placeholder="Select area type"
-              error={formState.errors.areaTypeID?.message}
+              placeholder="Select place"
+              error={formState.errors.placeID?.message}
               required
               disabled={loadingDropdowns}
             />
@@ -295,17 +277,14 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
 
         <Controller
           control={control}
-          name="residentialAddress"
+          name="taluk"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Residential Address"
+              label="Taluk"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter complete residential address"
-              multiline
-              numberOfLines={3}
-              error={formState.errors.residentialAddress?.message}
-              helperText="Include house number, street name, and landmarks"
+              placeholder="Enter taluk name"
+              error={formState.errors.taluk?.message}
               required
             />
           )}
@@ -313,18 +292,18 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
 
         <Controller
           control={control}
-          name="googleMapLink"
+          name="address"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Google Map Link"
-              value={value ?? ''}
+              label="Address"
+              value={value}
               onChangeText={onChange}
-              placeholder="Paste Google Maps link (optional)"
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="url"
-              error={formState.errors.googleMapLink?.message}
-              helperText="Optional: Link to your residence location"
+              placeholder="Enter complete address"
+              multiline
+              numberOfLines={3}
+              error={formState.errors.address?.message}
+              helperText="Include house number, street name, and landmarks"
+              required
             />
           )}
         />

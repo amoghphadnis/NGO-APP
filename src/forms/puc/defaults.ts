@@ -1,6 +1,6 @@
 /**
- * PUC Form Default Values
- * Defines default values for PUC form fields
+ * PUC Format 1.1 Form Default Values
+ * Defines default values for PUC form fields per the Format 1.1 contract
  */
 
 export const PUC_FORM_DEFAULTS = {
@@ -8,39 +8,52 @@ export const PUC_FORM_DEFAULTS = {
     accepted: false,
   },
   personal: {
-    name: '',
-    dateOfBirth: '',
-    gender: '',
-    caste: '',
+    StudentName: '',
+    DateOfBirth: '',
+    Gender: 0,
+    Caste: 0,
+    Place: 0,
   },
   contact: {
-    email: '',
-    phone: '',
+    Email: '',
+    ContactNumber: '',
+    AlternateNumber: '',
   },
   address: {
-    pincode: '',
-    district: '',
-    otherDistrict: '',
-    taluk: '',
-    place: '',
-    address: '',
+    District: 0,
+    OtherDistrict: '',
+    Taluk: '',
+    ResidentialAddress: '',
   },
   family: {
-    fatherOccupationID: undefined as number | undefined,
-    motherOccupationID: undefined as number | undefined,
-    familyMembers: 1,
-    annualIncome: '',
-    monthlyRent: '',
-    residenceType: 'OWNED' as const,
+    FatherOccupation: 0,
+    MotherOccupation: 0,
+    TotalFamilyMembers: 1,
+    FamilyAnnualIncome: 0,
+  },
+  academic: {
+    SSLCPercentage: 0,
+    CourseJoined: 0,
+    CollegeName: '',
+    CollegeType: 0,
+    CollegeFees: 0,
+    CollegeContactNumber: '',
+    Achievement: '',
+  },
+  bank: {
+    ParentsBankBalance: 0,
+    AccountHolderName: '',
+    AccountNumber: '',
+    IFSCCode: '',
+    BankName: '',
+    BranchName: '',
   },
   documents: {
-    sslcMarksCard: undefined,
-    studentPhoto: undefined,
-    electricityBill: undefined,
-    rationCard: undefined,
-    incomeCert: undefined,
-    familyPhoto: undefined,
-    houseVideo: undefined,
+    StudentSelfie: undefined,
+    SSLCMarksCard: undefined,
+    FeeReceipts: undefined,
+    BankPassbook: undefined,
+    AadhaarCard: undefined,
   },
   review: {
     declarationAccepted: false,

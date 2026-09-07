@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
 import {
   Dimensions,
   Image,
@@ -23,21 +22,6 @@ import { navigateToDashboard } from '@/utils/navigateToDashboard';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
-
-const BOTTOM_NAV_ITEMS: {
-  id: string;
-  label: string;
-  icon: IoniconsName;
-  activeIcon: IoniconsName;
-  route: string;
-}[] = [
-  { id: 'home', label: 'Home', icon: 'home-outline', activeIcon: 'home', route: '/' },
-  { id: 'notifications', label: 'Notifications', icon: 'notifications-outline', activeIcon: 'notifications', route: '/notifications' },
-  { id: 'applications', label: 'My Applications', icon: 'document-text-outline', activeIcon: 'document-text', route: '/my-applications' },
-  { id: 'help', label: 'Help', icon: 'help-circle-outline', activeIcon: 'help-circle', route: '/help' },
-];
-
 export default function FormSelectionScreen() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
@@ -57,21 +41,6 @@ export default function FormSelectionScreen() {
     } else {
       (router.push as any)('/login');
     }
-  };
-
-  const handleApplyNow = () => {
-    // Scroll to the new scholarships section is not implemented; direct navigation is sufficient
-    // Find the first new scholarship item and navigate
-    const firstSection = homeSections.find((s) => s.id === 'new-scholarships');
-    if (firstSection && firstSection.items.length > 0) {
-      const firstItem = firstSection.items[0] as ScholarshipCardItem;
-      handleFormSelect(firstItem.formType);
-    }
-  };
-
-  const handleNavPress = (route: string) => {
-    if (route === '/') return; // already on home
-    (router.push as any)(route);
   };
 
   const renderSection = (section: HomeSection) => {
@@ -231,36 +200,7 @@ export default function FormSelectionScreen() {
         </View>
 
         <AppFooter />
-
-        {/* Bottom spacing to account for fixed bottom nav */}
-        <View style={styles.bottomSpacer} />
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        {BOTTOM_NAV_ITEMS.map((item) => {
-          const isActive = item.route === '/';
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.bottomNavItem}
-              onPress={() => handleNavPress(item.route)}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={isActive ? item.activeIcon : item.icon}
-                size={24}
-                color={isActive ? colors.primary : colors.textSecondary}
-              />
-              <Text
-                style={[styles.bottomNavLabel, isActive && styles.bottomNavLabelActive]}
-              >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
     </SafeAreaView>
   );
 }
@@ -296,8 +236,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    width: '100%',
-    height: '100%',
+    width: '105%',
+    height: '105%',
     resizeMode: 'cover',
   },
   heroGradientOverlay: {
@@ -418,16 +358,14 @@ const styles = StyleSheet.create({
 
   // Scholarship Cards
   cardsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     gap: spacing.md,
   },
   scholarshipCard: {
     backgroundColor: colors.card,
     borderRadius: 16,
-    padding: spacing.sm,
-    width: '47.5%',
+    padding: spacing.md,
+    width: '100%',
     ...platform.elevation.card,
   },
   scholarshipCardHeader: {
@@ -453,7 +391,6 @@ const styles = StyleSheet.create({
   },
   chevron: {
     marginLeft: spacing.xs,
-    display: 'none',
   },
   scholarshipDescription: {
     fontSize: platform.normalize.fontSize.body,

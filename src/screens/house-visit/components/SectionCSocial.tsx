@@ -1,14 +1,13 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Control, Controller } from 'react-hook-form';
 import VPInputField from '@/components/common/VPInputField';
-import { HouseVisitFormValues } from '@/validation/houseVisitSchemas';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
+import { HouseVisitFormValues } from '@/validation/houseVisitSchemas';
+import { Control, Controller } from 'react-hook-form';
+import { StyleSheet, Text, View } from 'react-native';
 
 const RATION_OPTIONS = ['BPL', 'PHH', 'NPHH', 'APL'];
 const DIGITAL_OPTIONS = ['Smartphone', 'Keypad', 'iPhone', 'Laptop / Tablet'];
-const LIVING_OPTIONS = ['Poor', 'Average', 'Satisfactory'];
+const LIVING_OPTIONS = ['Poor', 'Average', 'Satisfactory'] as const;
 
 interface Props {
   control: Control<HouseVisitFormValues>;

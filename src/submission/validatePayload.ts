@@ -1,9 +1,9 @@
 import { FormType } from '@/forms/shared/types';
-import { professionalFormSchema } from '@/validation/professionalSchemas';
-import { pucFormSchema } from '@/validation/pucSchemas';
-import { semiProfessionalFormSchema } from '@/validation/semiProfessionalSchemas';
+import { PayanaFormValues, ProfessionalFormValues, PucFormValues, SemiProfessionalFormValues } from '@/types/forms';
 import { payanaFormSchema } from '@/validation/payanaSchemas';
-import { ProfessionalFormValues, PucFormValues, SemiProfessionalFormValues, PayanaFormValues } from '@/types/forms';
+import { professionalFormSchema } from '@/validation/professionalSchemas';
+import { pucFormat11FormSchema } from '@/validation/pucFormat11Schemas';
+import { semiProfessionalFormSchema } from '@/validation/semiProfessionalSchemas';
 
 export interface ValidationResult {
   success: boolean;
@@ -55,7 +55,7 @@ export function validatePayload(
     };
   }
 
-  const result = pucFormSchema.safeParse(formData);
+  const result = pucFormat11FormSchema.safeParse(formData);
   console.log(`[validatePayload] PUC validation:`, result.success ? 'passed' : 'failed');
   if (result.success) {
     return { success: true };

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { getPUCDropdowns } from '@/api/pucApi';
@@ -8,12 +8,11 @@ import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import VPInputField from '@/components/common/VPInputField';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import { isPUCForm } from '@/types/forms';
 import { PucCategoryHousingFormValues, pucCategoryHousingSchema } from '@/validation/pucSchemas';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function CategorySection({ navigation }: any) {
-  const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
+  const { updateSectionData, markStepComplete, updateValidationState } = useFormEngineStore();
 
   const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
   const [houseTypeOptions, setHouseTypeOptions] = useState<Option<number>[]>([]);
@@ -46,12 +45,7 @@ export default function CategorySection({ navigation }: any) {
     loadDropdowns();
   }, []);
 
-  const categoryData = isPUCForm(formData) ? formData.category ?? {
-    casteCategoryID: 0,
-    houseTypeID: 0,
-    monthlyRent: '',
-    referenceSourceID: 0,
-  } : {
+  const categoryData = {
     casteCategoryID: 0,
     houseTypeID: 0,
     monthlyRent: '',

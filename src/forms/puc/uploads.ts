@@ -3,7 +3,7 @@
  * Defines upload rules and validation for PUC form documents
  */
 
-import { PUC_FILE_KEYS } from './fileKeys';
+import { PUC_FILE_KEYS, PUC_FORMAT11_FILE_KEYS } from './fileKeys';
 
 export interface UploadRule {
   key: string;
@@ -62,6 +62,49 @@ export const PUC_UPLOAD_RULES: UploadRule[] = [
     required: false,
     maxSize: 10 * 1024 * 1024, // 10MB for video
     acceptedTypes: ['video/mp4', 'video/quicktime', 'video/x-msvideo'],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// PUC Format 1.1 contract upload rules (5 mandatory documents)
+// Accepted: PDF, JPG, JPEG, PNG
+// ---------------------------------------------------------------------------
+
+export const PUC_FORMAT11_UPLOAD_RULES: UploadRule[] = [
+  {
+    key: PUC_FORMAT11_FILE_KEYS.STUDENT_SELFIE,
+    label: 'Student Selfie',
+    required: true,
+    maxSize: 2 * 1024 * 1024,
+    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
+  },
+  {
+    key: PUC_FORMAT11_FILE_KEYS.SSLC_MARKS_CARD,
+    label: 'SSLC Marks Card',
+    required: true,
+    maxSize: 2 * 1024 * 1024,
+    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
+  },
+  {
+    key: PUC_FORMAT11_FILE_KEYS.FEE_RECEIPTS,
+    label: 'Fee Receipts',
+    required: true,
+    maxSize: 2 * 1024 * 1024,
+    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
+  },
+  {
+    key: PUC_FORMAT11_FILE_KEYS.BANK_PASSBOOK,
+    label: 'Bank Passbook',
+    required: true,
+    maxSize: 2 * 1024 * 1024,
+    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
+  },
+  {
+    key: PUC_FORMAT11_FILE_KEYS.AADHAAR_CARD,
+    label: 'Aadhaar Card',
+    required: true,
+    maxSize: 2 * 1024 * 1024,
+    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
   },
 ];
 

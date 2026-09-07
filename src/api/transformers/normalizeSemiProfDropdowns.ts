@@ -11,8 +11,10 @@ export interface NormalizedSemiProfDropdowns {
   casteCategories: NormalizedDropdownOption[];
   fatherOccupations: NormalizedDropdownOption[];
   motherOccupations: NormalizedDropdownOption[];
-  areaTypes: NormalizedDropdownOption[];
-  houseTypes: NormalizedDropdownOption[];
+  places: NormalizedDropdownOption[];
+  collegeTypes: NormalizedDropdownOption[];
+  semiProfessionalCourses: NormalizedDropdownOption[];
+  lastDate?: string;
 }
 
 /**
@@ -21,22 +23,52 @@ export interface NormalizedSemiProfDropdowns {
 export function normalizeSemiProfessionalDropdowns(apiResponse: any): NormalizedSemiProfDropdowns {
   console.log('[normalizeSemiProfDropdowns] Raw API response:', JSON.stringify(apiResponse, null, 2));
 
-  const districts = apiResponse.districts || apiResponse.Districts || apiResponse.DistrictList || [];
-  const genders = apiResponse.genders || apiResponse.Genders || apiResponse.GenderList || [];
-  const casteCategories = apiResponse.casteCategories || apiResponse.CasteCategories || apiResponse.CasteList || [];
-  const fatherOccupations = apiResponse.fatherOccupations || apiResponse.FatherOccupations || apiResponse.FatherOccupationList || [];
-  const motherOccupations = apiResponse.motherOccupations || apiResponse.MotherOccupations || apiResponse.MotherOccupationList || [];
-  const areaTypes = apiResponse.areaTypes || apiResponse.AreaTypes || apiResponse.AreaList || apiResponse.areas || [];
-  const houseTypes = apiResponse.houseTypes || apiResponse.HouseTypes || apiResponse.HouseList || apiResponse.houses || [];
+  // The contract wraps master lists inside a `Masters` object; fall back to the root object
+  const masters = apiResponse.Masters || apiResponse;
+
+  const raw = {
+    districts: masters.DistrictList || masters.Districts || masters.districts || [],
+    genders: masters.GenderList || masters.Genders || masters.genders || [],
+    casteCategories:
+      masters.CasteList ||
+      masters.CasteCategories ||
+      masters.casteCategories ||
+      masters.Castes ||
+      masters.castes ||
+      [],
+    fatherOccupations:
+      masters.FatherOccupationList ||
+      masters.FatherOccupations ||
+      masters.fatherOccupations ||
+      masters.FatherOcc ||
+      masters.fatherOcc ||
+      [],
+    motherOccupations:
+      masters.MotherOccupationList ||
+      masters.MotherOccupations ||
+      masters.motherOccupations ||
+      masters.MotherOcc ||
+      masters.motherOcc ||
+      [],
+    places: masters.PlaceList || masters.Places || masters.places || [],
+    collegeTypes: masters.CollegeTypeList || masters.CollegeTypes || masters.collegeTypes || [],
+    semiProfessionalCourses:
+      masters.SemiProfessionalCourseList ||
+      masters.SemiProfessionalCourses ||
+      masters.semiProfessionalCourses ||
+      [],
+  };
 
   const normalized: NormalizedSemiProfDropdowns = {
-    districts: normalizeGenericDropdown(districts),
-    genders: normalizeGenericDropdown(genders),
-    casteCategories: normalizeGenericDropdown(casteCategories),
-    fatherOccupations: normalizeGenericDropdown(fatherOccupations),
-    motherOccupations: normalizeGenericDropdown(motherOccupations),
-    areaTypes: normalizeGenericDropdown(areaTypes),
-    houseTypes: normalizeGenericDropdown(houseTypes),
+    lastDate: apiResponse.LastDate,
+    districts: normalizeGenericDropdown(raw.districts),
+    genders: normalizeGenericDropdown(raw.genders),
+    casteCategories: normalizeGenericDropdown(raw.casteCategories),
+    fatherOccupations: normalizeGenericDropdown(raw.fatherOccupations),
+    motherOccupations: normalizeGenericDropdown(raw.motherOccupations),
+    places: normalizeGenericDropdown(raw.places),
+    collegeTypes: normalizeGenericDropdown(raw.collegeTypes),
+    semiProfessionalCourses: normalizeGenericDropdown(raw.semiProfessionalCourses),
   };
 
   console.log('[normalizeSemiProfDropdowns] Normalized:', JSON.stringify(normalized, null, 2));
@@ -48,8 +80,10 @@ function normalizeGenericDropdown(data: any[]): NormalizedDropdownOption[] {
     console.log('[normalizeSemiProfDropdowns] Data is not an array:', data);
     return [];
   }
-  return data.map((item) => ({
-    value: item.id ?? item.Id ?? item.ID ?? item.value,
-    label: item.name ?? item.Name ?? item.label ?? '',
-  }));
+  return data
+    .map((item) => ({
+      value: item.Id ?? item.ID ?? item.id ?? item.value,
+      label: item.Name ?? item.name ?? item.label ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }

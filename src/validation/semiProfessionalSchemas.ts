@@ -1,20 +1,19 @@
 import { UploadedDocument } from '@/types/documents';
 import { z } from 'zod';
 
-// Semi Professional Personal schema (Applicant's Information: personal + contact + address)
+// Semi Professional Personal schema
 export const semiProfPersonalSchema = z.object({
   email: z.string().email({ message: 'Valid email is required' }),
   studentName: z.string().min(1, { message: 'Student name is required' }),
   dateOfBirth: z.string().min(1, { message: 'Date of birth is required' }),
   contactNumber: z.string().min(10, { message: 'Valid 10-digit contact number required' }).max(10),
-  alternateNumber: z.string().optional(),
-  residentialAddress: z.string().min(1, { message: 'Residential address is required' }),
-  googleMapLink: z.string().optional(),
-  areaTypeID: z.number().min(1, { message: 'Area type is required' }),
-  districtID: z.number().min(1, { message: 'District is required' }),
-  otherDistrict: z.string().optional(),
   genderID: z.number().min(1, { message: 'Gender is required' }),
   casteCategoryID: z.number().min(1, { message: 'Caste category is required' }),
+  districtID: z.number().min(1, { message: 'District is required' }),
+  otherDistrict: z.string().optional(),
+  taluk: z.string().min(1, { message: 'Taluk is required' }),
+  address: z.string().min(1, { message: 'Address is required' }),
+  placeID: z.number().min(1, { message: 'Place is required' }),
 }).refine(
   (data) => {
     if (data.districtID === 11) {
@@ -28,16 +27,12 @@ export const semiProfPersonalSchema = z.object({
   }
 );
 
-// Semi Professional Family schema (Family Details: family + housing)
+// Semi Professional Family schema
 export const semiProfFamilySchema = z.object({
-  fatherName: z.string().min(1, { message: 'Father name is required' }),
-  motherName: z.string().min(1, { message: 'Mother name is required' }),
   fatherOccupationID: z.number().min(1, { message: 'Father occupation is required' }),
   motherOccupationID: z.number().min(1, { message: 'Mother occupation is required' }),
   familyMembers: z.number().min(1, { message: 'At least 1 family member required' }),
-  houseTypeID: z.number().min(1, { message: 'House type is required' }),
-  monthlyRent: z.number().optional(),
-  familyIncome: z.number().positive({ message: 'Family income must be positive' }),
+  annualIncome: z.number().positive({ message: 'Annual income must be positive' }),
 });
 
 // Semi Professional Academic schema
@@ -45,23 +40,17 @@ export const semiProfAcademicSchema = z.object({
   puPercentage: z.number()
     .min(0, { message: 'Percentage must be at least 0' })
     .max(100, { message: 'Percentage cannot exceed 100' }),
-  cetRank: z.number().optional(),
-  ptRank: z.number().optional(),
-  courseApplying: z.string().min(1, { message: 'Course applying is required' }),
-  courseStream: z.string().min(1, { message: 'Course stream is required' }),
+  semiProfessionalCourseID: z.number().min(1, { message: 'Course is required' }),
+  collegeName: z.string().min(1, { message: 'College name is required' }),
+  collegeTypeID: z.number().min(1, { message: 'College type is required' }),
+  collegeFees: z.number().min(0, { message: 'College fees must be at least 0' }),
 });
 
-// Semi Professional Document schema (9 documents, all optional)
+// Semi Professional Document schema (3 documents)
 export const semiProfDocumentSchema = z.object({
-  studentSelfie: z.custom<UploadedDocument>().optional(),
-  cetRankSheet: z.custom<UploadedDocument>().optional(),
-  ptRankSheet: z.custom<UploadedDocument>().optional(),
-  dwellingUnitPhoto: z.custom<UploadedDocument>().optional(),
-  marksSheet12: z.custom<UploadedDocument>().optional(),
-  houseVideo: z.custom<UploadedDocument>().optional(),
-  electricityBill: z.custom<UploadedDocument>().optional(),
+  pucMarksCard: z.custom<UploadedDocument>().optional(),
   incomeCertificate: z.custom<UploadedDocument>().optional(),
-  rationCard: z.custom<UploadedDocument>().optional(),
+  aadharCard: z.custom<UploadedDocument>().optional(),
 });
 
 // Complete Semi Professional form schema

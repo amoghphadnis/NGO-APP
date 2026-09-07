@@ -15,7 +15,7 @@ export async function createProfessionalStudent(
   formData: FormData
 ): Promise<NormalizedApiResponse<any>> {
   try {
-    const response = await api.post('/api/VP_NewProfessional/submit', formData);
+    const response = await api.post('/VP_NewProfessional/submit', formData);
 
     return normalizeApiResponse(response.data);
   } catch (error: any) {
@@ -37,7 +37,7 @@ export async function getProfessionalDropdowns(): Promise<
   NormalizedApiResponse<NormalizedDropdowns>
 > {
   try {
-    const response = await api.get('/api/VP_NewProfessional/dropdowns');
+    const response = await api.get('/VP_NewProfessional/dropdowns');
     
     // Handle both wrapped (data.Data) and unwrapped (data) responses
     const dropdownData = response.data.Data || response.data;

@@ -15,50 +15,8 @@ export interface UploadRule {
 
 export const SEMI_PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
   {
-    key: SEMI_PROFESSIONAL_FILE_KEYS.STUDENT_SELFIE,
-    label: 'Student Selfie/Photograph',
-    required: false,
-    maxSize: 2 * 1024 * 1024,
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
-  },
-  {
-    key: SEMI_PROFESSIONAL_FILE_KEYS.CET_RANK_SHEET,
-    label: 'CET Rank Sheet',
-    required: false,
-    maxSize: 2 * 1024 * 1024,
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
-  },
-  {
-    key: SEMI_PROFESSIONAL_FILE_KEYS.PT_RANK_SHEET,
-    label: 'PT Rank Sheet',
-    required: false,
-    maxSize: 2 * 1024 * 1024,
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
-  },
-  {
-    key: SEMI_PROFESSIONAL_FILE_KEYS.DWELLING_UNIT_PHOTO,
-    label: 'Dwelling Unit Photo',
-    required: false,
-    maxSize: 2 * 1024 * 1024,
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
-  },
-  {
-    key: SEMI_PROFESSIONAL_FILE_KEYS.MARKS_SHEET_12,
-    label: '12th Marks Sheet',
-    required: false,
-    maxSize: 2 * 1024 * 1024,
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
-  },
-  {
-    key: SEMI_PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO,
-    label: 'House Video',
-    required: false,
-    maxSize: 2 * 1024 * 1024,
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
-  },
-  {
-    key: SEMI_PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL,
-    label: 'Electricity Bill',
+    key: SEMI_PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD,
+    label: 'PUC Marks Card',
     required: false,
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
@@ -71,8 +29,8 @@ export const SEMI_PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
   },
   {
-    key: SEMI_PROFESSIONAL_FILE_KEYS.RATION_CARD,
-    label: 'Ration Card',
+    key: SEMI_PROFESSIONAL_FILE_KEYS.AADHAR_CARD,
+    label: 'Aadhar Card',
     required: false,
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],

@@ -29,8 +29,8 @@ export default function ReviewSection({ navigation }: any) {
 
   const isFormComplete = () => {
     const hasPersonal = spFormData.personal?.studentName && spFormData.personal?.email;
-    const hasFamily = spFormData.family?.familyMembers > 0;
-    const hasAcademic = spFormData.academic?.courseApplying && spFormData.academic?.courseStream;
+    const hasFamily = spFormData.family?.familyMembers > 0 && spFormData.family?.fatherOccupationID > 0;
+    const hasAcademic = spFormData.academic?.semiProfessionalCourseID > 0 && spFormData.academic?.collegeName;
     return hasPersonal && hasFamily && hasAcademic;
   };
 
@@ -120,14 +120,13 @@ export default function ReviewSection({ navigation }: any) {
             "Email": spFormData.personal?.email,
             "Date of Birth": spFormData.personal?.dateOfBirth,
             "Contact": spFormData.personal?.contactNumber,
-            "Alternate Number": spFormData.personal?.alternateNumber || undefined,
             "Gender ID": spFormData.personal?.genderID,
             "Caste Category ID": spFormData.personal?.casteCategoryID,
-            "Area Type ID": spFormData.personal?.areaTypeID,
+            "Place ID": spFormData.personal?.placeID,
             "District ID": spFormData.personal?.districtID,
             "Other District": spFormData.personal?.otherDistrict || undefined,
-            "Residential Address": spFormData.personal?.residentialAddress,
-            "Google Map Link": spFormData.personal?.googleMapLink || undefined,
+            "Taluk": spFormData.personal?.taluk,
+            "Address": spFormData.personal?.address,
           },
           "person",
           () => navigation.navigate('personal')
@@ -137,14 +136,10 @@ export default function ReviewSection({ navigation }: any) {
         {renderSection(
           "Family Details",
           {
-            "Father's Name": spFormData.family?.fatherName,
-            "Mother's Name": spFormData.family?.motherName,
             "Father Occupation ID": spFormData.family?.fatherOccupationID,
             "Mother Occupation ID": spFormData.family?.motherOccupationID,
             "Family Members": spFormData.family?.familyMembers,
-            "House Type ID": spFormData.family?.houseTypeID,
-            "Monthly Rent": spFormData.family?.monthlyRent ? `₹${spFormData.family.monthlyRent}` : undefined,
-            "Family Income": spFormData.family?.familyIncome ? `₹${spFormData.family.familyIncome}` : undefined,
+            "Annual Income": spFormData.family?.annualIncome ? `₹${spFormData.family.annualIncome}` : undefined,
           },
           "people",
           () => navigation.navigate('family')
@@ -155,10 +150,10 @@ export default function ReviewSection({ navigation }: any) {
           "Academic Details",
           {
             "PU Percentage": spFormData.academic?.puPercentage ? `${spFormData.academic.puPercentage}%` : undefined,
-            "CET Rank": spFormData.academic?.cetRank || undefined,
-            "PT Rank": spFormData.academic?.ptRank || undefined,
-            "Course Applying": spFormData.academic?.courseApplying,
-            "Course Stream": spFormData.academic?.courseStream,
+            "Course ID": spFormData.academic?.semiProfessionalCourseID,
+            "College Name": spFormData.academic?.collegeName,
+            "College Type ID": spFormData.academic?.collegeTypeID,
+            "College Fees": spFormData.academic?.collegeFees ? `₹${spFormData.academic.collegeFees}` : undefined,
           },
           "school",
           () => navigation.navigate('academic')
@@ -179,15 +174,9 @@ export default function ReviewSection({ navigation }: any) {
 
           <View style={styles.sectionContent}>
             {[
-              { label: 'Student Selfie', key: 'studentSelfie' },
-              { label: 'CET Rank Sheet', key: 'cetRankSheet' },
-              { label: 'PT Rank Sheet', key: 'ptRankSheet' },
-              { label: 'Dwelling Unit Photo', key: 'dwellingUnitPhoto' },
-              { label: '12th Marks Sheet', key: 'marksSheet12' },
-              { label: 'House Video', key: 'houseVideo' },
-              { label: 'Electricity Bill', key: 'electricityBill' },
+              { label: 'PUC Marks Card', key: 'pucMarksCard' },
               { label: 'Income Certificate', key: 'incomeCertificate' },
-              { label: 'Ration Card', key: 'rationCard' },
+              { label: 'Aadhar Card', key: 'aadharCard' },
             ].map((doc) => (
               <View key={doc.key} style={styles.documentRow}>
                 <Text style={styles.documentLabel}>{doc.label}:</Text>

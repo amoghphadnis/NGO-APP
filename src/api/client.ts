@@ -75,18 +75,65 @@ async function fetchWithTimeout(
  * Paths that require Bearer token authentication
  */
 const BEARER_REQUIRED_PATHS = [
+  // Legacy paths
   '/welcomedashboard',
   '/pucstudents',
   '/professionalstudents',
   '/payanastudents',
   '/semiprofessionalstudent',
   '/semiprofessional',
+  // Contract paths (API_BASE_URL already ends with /api)
+  '/payana-students/list',
+  '/payana-students/districts',
+  '/assign-volunteer-house-visit',
+  '/payana-volunteer-assignment',
+  '/professional-volunteer-assignment',
+  '/semi-professional-volunteer-assignment',
+  '/semi-professional-courses',
+  '/edit-format1-1-puc-student',
+  '/edit-new-professional-student',
+  '/edit-payana-students',
+  '/editpuc-house-visits',
+  '/edit-professional-house-visits',
+  '/edit-payana-house-visits',
+  '/edit-semi-professional-house-visits',
+  '/student-approval-grid',
+  '/professional-student-approval',
+  '/semi-professional-student-approval',
+  '/new-professional-approval',
+  '/payana-student-grid',
+  '/format1-1-puc',
+  '/students/getall',
+  '/students/get/',
+  '/students/approve',
+  '/students/reject',
+  '/students/genders',
+  '/students/districts',
+  '/students/areas',
+  '/branch-executive-district-mapping',
+  '/renewal-puc',
+  '/edit-professional-renewal',
+  // Legacy callers that still prefix /api explicitly
+  '/api/assign-volunteer-house-visit',
+  '/api/edit-',
+  '/api/semi-professional-courses',
+  '/api/student-approval-grid',
+];
+
+/**
+ * Contract endpoints under a JWT-required prefix that are explicitly public.
+ */
+const PUBLIC_PATH_OVERRIDES = [
+  '/edit-format1-1-puc-student/dropdowns',
 ];
 
 /**
  * Check if a path requires Bearer token
  */
 function requiresBearerToken(path: string): boolean {
+  if (PUBLIC_PATH_OVERRIDES.some(prefix => path.startsWith(prefix))) {
+    return false;
+  }
   return BEARER_REQUIRED_PATHS.some(prefix => path.startsWith(prefix));
 }
 
@@ -170,7 +217,7 @@ async function request(
 
   if (!response.ok) {
     const message =
-      (typeof data === 'object' && data?.Message) ||
+      (typeof data === 'object' && (data?.Message || data?.message)) ||
       getStatusMessage(response.status) ||
       'Request failed';
     throw new ApiError(message, response.status, data);

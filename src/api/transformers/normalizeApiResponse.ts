@@ -24,27 +24,44 @@ export interface NormalizedApiError {
 export type NormalizedApiResponse<T> = NormalizedApiSuccess<T> | NormalizedApiError;
 
 /**
+ * Contract-style response shape: { success, message, data? }
+ */
+export interface ContractApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+}
+
+type RawApiResponse<T> = Partial<StandardApiResponse<T>> & Partial<ContractApiResponse<T>>;
+
+/**
  * Normalizes standard API response to consistent format
- * Handles cases where backend returns Status: false but message indicates success
+ * Handles both legacy { Status, Message, Data } and contract { success, message, data } shapes,
+ * and cases where the flag is false but the message indicates success.
  */
 export function normalizeApiResponse<T>(
-  response: StandardApiResponse<T>
+  response: StandardApiResponse<T> | ContractApiResponse<T> | RawApiResponse<T> | null | undefined
 ): NormalizedApiResponse<T> {
-  const isSuccessMessage = response.Message?.toLowerCase().includes('success') ||
-                           response.Message?.toLowerCase().includes('saved');
+  const raw: RawApiResponse<T> = (response ?? {}) as RawApiResponse<T>;
+  const flag = raw.success ?? raw.Status ?? false;
+  const message = raw.message ?? raw.Message ?? '';
+  const data = (raw.data ?? raw.Data) as T;
 
-  if (response.Status || isSuccessMessage) {
+  const lowered = message.toLowerCase();
+  const isSuccessMessage = lowered.includes('success') || lowered.includes('saved');
+
+  if (flag || isSuccessMessage) {
     return {
       success: true,
-      data: response.Data,
-      message: response.Message || 'Success',
+      data,
+      message: message || 'Success',
     };
   }
 
   return {
     success: false,
-    error: response.Message || 'Request failed',
-    message: response.Message || 'Request failed',
+    error: message || 'Request failed',
+    message: message || 'Request failed',
   };
 }
 
@@ -56,7 +73,7 @@ export function normalizeApiError(error: any): NormalizedApiError {
   // Handle ApiError with response (HTTP error status)
   if (error.response) {
     const status = error.response.status;
-    const message = error.response.data?.Message || error.message || 'Request failed';
+    const message = error.response.data?.Message || error.response.data?.message || error.message || 'Request failed';
 
     let errorMessage = message;
     if (status === 400) errorMessage = 'Invalid request data';

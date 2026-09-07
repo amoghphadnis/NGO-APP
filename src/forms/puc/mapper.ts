@@ -1,172 +1,103 @@
 /**
- * PUC Form Mapper
- * Converts PUC form state to backend API contract
- * Handles multipart/form-data serialization
+ * PUC Format 1.1 Form Mapper
+ * Converts PUC form state to the backend API contract.
+ * POST /api/VP_Format1_1PUC  (multipart/form-data)
+ *
+ * All scalar fields are sent as strings; the backend parses them
+ * via model binding.  File fields use the exact contract key names.
  */
 
-import dayjs from 'dayjs';
-import { PUC_FILE_KEYS } from './fileKeys';
-import { PucFormValues } from '@/types/forms';
 import { appendFileToFormData } from '@/submission/attachFiles';
+import { PucFormat11FormValues } from '@/validation/pucFormat11Schemas';
+import dayjs from 'dayjs';
+import { PUC_FORMAT11_FILE_KEYS } from './fileKeys';
 
-/**
- * Formats date to YYYY-MM-DD for API
- */
 function formatDate(date: string): string {
   return dayjs(date).format('YYYY-MM-DD');
 }
 
-/**
- * Converts value to string safely
- */
-function toString(value: string | number | undefined): string {
-  if (value === undefined || value === null) {
-    return '';
-  }
+function toString(value: string | number | undefined | null): string {
+  if (value === undefined || value === null) return '';
   return String(value);
 }
 
+function appendIfPresent(
+  fd: FormData,
+  key: string,
+  value: string | number | undefined | null,
+): void {
+  if (value === undefined || value === null || value === '') return;
+  fd.append(key, toString(value));
+}
+
 /**
- * Maps PUC form data to backend API contract
+ * Maps PUC Format 1.1 form data to the multipart contract.
+ * Required fields are always sent; optional fields are sent only when present.
  */
-export function pucMapper(formData: PucFormValues): FormData {
+export function pucMapper(formData: PucFormat11FormValues): FormData {
   const fd = new FormData();
 
-  // Personal Information
-  if (formData.personal.name) {
-    fd.append('StudentName', formData.personal.name);
+  // ── Personal ──────────────────────────────────────────────────────────
+  fd.append('StudentName', formData.personal.StudentName);
+  if (formData.personal.DateOfBirth) {
+    fd.append('DateOfBirth', formatDate(formData.personal.DateOfBirth));
   }
+  fd.append('Gender', toString(formData.personal.Gender || 0));
+  fd.append('Caste', toString(formData.personal.Caste || 0));
+  fd.append('Place', toString(formData.personal.Place || 0));
 
-  if (formData.personal.dateOfBirth) {
-    fd.append('DateOfBirth', formatDate(formData.personal.dateOfBirth));
-  }
+  // ── Contact ───────────────────────────────────────────────────────────
+  fd.append('Email', formData.contact.Email);
+  fd.append('ContactNumber', formData.contact.ContactNumber);
+  appendIfPresent(fd, 'AlternateNumber', formData.contact.AlternateNumber);
 
-  // GenderID is required - always send it (default to 0 if not selected)
-  fd.append('GenderID', toString(formData.personal.genderID || 0));
+  // ── Address ───────────────────────────────────────────────────────────
+  fd.append('District', toString(formData.address.District || 0));
+  appendIfPresent(fd, 'OtherDistrict', formData.address.OtherDistrict);
+  fd.append('Taluk', formData.address.Taluk);
+  fd.append('ResidentialAddress', formData.address.ResidentialAddress);
 
-  // CasteCategoryID is required - always send it (default to 0 if not selected)
-  fd.append('CasteCategoryID', toString(formData.personal.casteCategoryID || 0));
+  // ── Family ────────────────────────────────────────────────────────────
+  fd.append('FatherOccupation', toString(formData.family.FatherOccupation || 0));
+  fd.append('MotherOccupation', toString(formData.family.MotherOccupation || 0));
+  fd.append('TotalFamilyMembers', toString(formData.family.TotalFamilyMembers || 0));
+  fd.append('FamilyAnnualIncome', toString(formData.family.FamilyAnnualIncome || 0));
 
-  // Contact Information
-  if (formData.contact.email) {
-    fd.append('Email', formData.contact.email);
-  }
+  // ── Academic ──────────────────────────────────────────────────────────
+  fd.append('SSLCPercentage', toString(formData.academic.SSLCPercentage || 0));
+  fd.append('CourseJoined', toString(formData.academic.CourseJoined || 0));
+  fd.append('CollegeName', formData.academic.CollegeName);
+  fd.append('CollegeType', toString(formData.academic.CollegeType || 0));
+  fd.append('CollegeFees', toString(formData.academic.CollegeFees || 0));
+  fd.append('CollegeContactNumber', formData.academic.CollegeContactNumber);
+  appendIfPresent(fd, 'Achievement', formData.academic.Achievement);
 
-  if (formData.contact.phone) {
-    fd.append('ContactNumber', formData.contact.phone);
-  }
+  // ── Bank ──────────────────────────────────────────────────────────────
+  fd.append('ParentsBankBalance', toString(formData.bank.ParentsBankBalance || 0));
+  fd.append('AccountHolderName', formData.bank.AccountHolderName);
+  fd.append('AccountNumber', formData.bank.AccountNumber);
+  fd.append('IFSCCode', formData.bank.IFSCCode);
+  fd.append('BankName', formData.bank.BankName);
+  fd.append('BranchName', formData.bank.BranchName);
 
-  if (formData.contact.alternatePhone) {
-    fd.append('AlternateNumber', formData.contact.alternatePhone);
-  }
+  // ── Documents (all 5 required by contract) ────────────────────────────
+  const fileMappings: Record<string, keyof typeof PUC_FORMAT11_FILE_KEYS> = {
+    StudentSelfie: 'STUDENT_SELFIE',
+    SSLCMarksCard: 'SSLC_MARKS_CARD',
+    FeeReceipts: 'FEE_RECEIPTS',
+    BankPassbook: 'BANK_PASSBOOK',
+    AadhaarCard: 'AADHAAR_CARD',
+  };
 
-  // Address Information
-  // DistrictID is required - always send it
-  fd.append('DistrictID', toString(formData.address.districtID || 0));
-
-  if (formData.address.otherDistrict) {
-    fd.append('OtherDistrict', formData.address.otherDistrict);
-  }
-
-  if (formData.address.taluk) {
-    fd.append('Taluka', formData.address.taluk);
-  }
-
-  if (formData.address.address) {
-    fd.append('Address', formData.address.address);
-  }
-
-  if (formData.address.pincode) {
-    fd.append('Pincode', formData.address.pincode);
-  }
-
-  // AreaTypeID is optional
-  if (formData.address.areaID) {
-    fd.append('AreaTypeID', toString(formData.address.areaID));
-  }
-
-  // Family Information
-  if (formData.family.fatherName) {
-    fd.append('FatherName', formData.family.fatherName);
-  }
-
-  if (formData.family.motherName) {
-    fd.append('MotherName', formData.family.motherName);
-  }
-
-  // FatherOccupationID is required - always send it
-  fd.append('FatherOccupationID', toString((formData.family as any).fatherOccupationID || 0));
-
-  // MotherOccupationID is required - always send it
-  fd.append('MotherOccupationID', toString((formData.family as any).motherOccupationID || 0));
-
-  if (formData.family.familyMembers) {
-    fd.append('FamilyMembers', toString(formData.family.familyMembers));
-  }
-
-  if (formData.family.annualIncome) {
-    fd.append('FamilyIncome', formData.family.annualIncome);
-  }
-
-  if (formData.family.monthlyRent) {
-    fd.append('MonthlyRent', formData.family.monthlyRent);
-  }
-
-  if (formData.family.residenceType) {
-    fd.append('ResidenceType', formData.family.residenceType);
-  }
-
-  // Category & Housing Information
-  // Note: CasteCategoryID already sent in Personal section
-
-  // HouseTypeID is required - always send it
-  fd.append('HouseTypeID', toString(formData.category.houseTypeID || 0));
-
-  if (formData.category.monthlyRent) {
-    fd.append('MonthlyRent', formData.category.monthlyRent);
-  }
-
-  // ReferenceSourceID is required - always send it
-  fd.append('ReferenceSourceID', toString(formData.category.referenceSourceID || 0));
-
-  // ReferenceSourceOther is required by backend - always send it
-  const referenceOther = (formData.category as any).referenceSourceOther || '';
-  fd.append('ReferenceSourceOther', referenceOther);
-
-  // Academic Information
-  // CourseID is required - always send it
-  fd.append('CourseID', toString(formData.academic.courseID || 0));
-
-  if (formData.academic.collegeName) {
-    fd.append('CollegeName', formData.academic.collegeName);
-  }
-
-  // CollegeTypeID is required - always send it
-  fd.append('CollegeTypeID', toString(formData.academic.collegeTypeID || 0));
-
-  if (formData.academic.expectedFees) {
-    fd.append('ExpectedFees', toString(formData.academic.expectedFees));
-  }
-
-  if (formData.academic.percentage) {
-    fd.append('SecuredPercentage', toString(formData.academic.percentage));
-  }
-
-  if (formData.academic.totalMarks) {
-    fd.append('TotalMarks', toString(formData.academic.totalMarks));
-  }
-
-  // Document Uploads - pass the nested file object
-  appendFileToFormData(fd, PUC_FILE_KEYS.SSLC_MARKS_CARD, formData.documents.sslcMarksCard?.file);
-  appendFileToFormData(fd, PUC_FILE_KEYS.STUDENT_PHOTO, formData.documents.studentPhoto?.file);
-  appendFileToFormData(fd, PUC_FILE_KEYS.ELECTRICITY_BILL, formData.documents.electricityBill?.file);
-  appendFileToFormData(fd, PUC_FILE_KEYS.RATION_CARD, formData.documents.rationCard?.file);
-  appendFileToFormData(fd, PUC_FILE_KEYS.INCOME_CERTIFICATE, formData.documents.incomeCert?.file);
-  appendFileToFormData(fd, PUC_FILE_KEYS.FAMILY_PHOTO, formData.documents.familyPhoto?.file);
-  appendFileToFormData(fd, PUC_FILE_KEYS.HOUSE_VIDEO, formData.documents.houseVideo?.file);
-
-  if (formData.documents.houseVisitLink) {
-    fd.append('HouseVisitLink', formData.documents.houseVisitLink);
+  for (const [docField, keyConst] of Object.entries(fileMappings)) {
+    const apiKey = PUC_FORMAT11_FILE_KEYS[keyConst];
+    const doc = formData.documents?.[docField as keyof typeof formData.documents];
+    const file = doc && typeof doc === 'object' && 'file' in doc ? (doc as { file?: unknown }).file : undefined;
+    if (file) {
+      appendFileToFormData(fd, apiKey, file);
+    } else {
+      console.log(`[pucMapper] Missing required file: ${docField} (API: ${apiKey})`);
+    }
   }
 
   return fd;

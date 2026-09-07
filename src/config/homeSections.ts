@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 
-export type HomeFormType = 'professional' | 'puc' | 'semiProfessional' | 'payana';
+export type HomeFormType = 'professional' | 'puc' | 'semiProfessional';
 
 export interface ScholarshipCardItem {
   id: string;
@@ -58,14 +58,7 @@ export const homeSections: HomeSection[] = [
         description: 'For Diploma, ITI, Nursing, Pharmacy, and similar courses',
         benefits: ['Diploma & ITI', 'Need-based', 'Document verification'],
       },
-      {
-        id: 'payana',
-        title: 'Payana',
-        formType: 'payana',
-        icon: 'star-outline',
-        description: 'For new students applying for Payana financial assistance',
-        benefits: ['Need-based', 'Financial support', 'Complete documentation'],
-      },
+
     ],
   },
 ];

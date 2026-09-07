@@ -46,15 +46,19 @@ export interface NormalizedDropdowns {
  * Normalizes Professional dropdown response
  */
 export function normalizeProfessionalDropdowns(apiResponse: any): NormalizedDropdowns {
-  // Handle both capitalized, lowercase, and *List suffix keys from backend
-  const districts = apiResponse.DistrictList || apiResponse.Districts || apiResponse.districts || [];
-  const genders = apiResponse.GenderList || apiResponse.Genders || apiResponse.genders || [];
-  const castes = apiResponse.CasteList || apiResponse.CasteCategories || apiResponse.Castes || apiResponse.castes || apiResponse.casteCategories || [];
-  const fatherOcc = apiResponse.FatherOccupationList || apiResponse.FatherOcc || apiResponse.fatherOcc || apiResponse.FatherOccupations || apiResponse.fatherOccupations || [];
-  const motherOcc = apiResponse.MotherOccupationList || apiResponse.MotherOcc || apiResponse.motherOcc || apiResponse.MotherOccupations || apiResponse.motherOccupations || [];
-  const areaTypes = apiResponse.AreaList || apiResponse.AreaTypes || apiResponse.areaTypes || [];
-  const houseTypes = apiResponse.HouseList || apiResponse.HouseTypes || apiResponse.houseTypes || apiResponse.Houses || apiResponse.houses || [];
-  const referenceSources = apiResponse.ReferenceList || apiResponse.ReferenceSources || apiResponse.referenceSources || apiResponse.References || apiResponse.references || [];
+  // API may wrap master lists in a `Masters` object or return them directly
+  const masters = apiResponse.Masters || apiResponse;
+
+  const districts = masters.DistrictList || masters.Districts || masters.districts || [];
+  const genders = masters.GenderList || masters.Genders || masters.genders || [];
+  const castes = masters.CasteList || masters.CasteCategories || masters.Castes || masters.castes || masters.casteCategories || [];
+  const fatherOcc = masters.FatherOccupationList || masters.FatherOcc || masters.fatherOcc || masters.FatherOccupations || masters.fatherOccupations || [];
+  const motherOcc = masters.MotherOccupationList || masters.MotherOcc || masters.motherOcc || masters.MotherOccupations || masters.motherOccupations || [];
+  const areaTypes = masters.AreaList || masters.AreaTypes || masters.areaTypes || [];
+  const houseTypes = masters.HouseList || masters.HouseTypes || masters.houseTypes || masters.Houses || masters.houses || [];
+  const referenceSources = masters.ReferenceList || masters.ReferenceSources || masters.referenceSources || masters.References || masters.references || [];
+  const courses = masters.CourseList || masters.Courses || masters.courses || [];
+  const collegeTypes = masters.CollegeTypeList || masters.CollegeTypes || masters.collegeTypes || [];
 
   return {
     districts: normalizeDistricts(districts),
@@ -65,6 +69,8 @@ export function normalizeProfessionalDropdowns(apiResponse: any): NormalizedDrop
     areaTypes: areaTypes.length > 0 ? normalizeAreaTypes(areaTypes) : undefined,
     houseTypes: houseTypes.length > 0 ? normalizeHouseTypes(houseTypes) : undefined,
     referenceSources: referenceSources.length > 0 ? normalizeReferenceSources(referenceSources) : undefined,
+    courses: courses.length > 0 ? normalizeCourses(courses) : undefined,
+    collegeTypes: collegeTypes.length > 0 ? normalizeCollegeTypes(collegeTypes) : undefined,
   };
 }
 
@@ -79,7 +85,7 @@ export function normalizePUCDropdowns(apiResponse: any): NormalizedDropdowns {
   const genders = apiResponse.GenderList || apiResponse.Genders || apiResponse.genders || [];
   const castes = apiResponse.CasteList || apiResponse.CasteCategories || apiResponse.castes || apiResponse.Castes || [];
   const courses = apiResponse.CourseList || apiResponse.Courses || apiResponse.courses || [];
-  const places = apiResponse.Places || apiResponse.places || [];
+  const places = apiResponse.PlaceList || apiResponse.Places || apiResponse.places || [];
   const collegeTypes = apiResponse.CollegeTypeList || apiResponse.CollegeTypes || apiResponse.collegeTypes || [];
   const areaTypes = apiResponse.AreaList || apiResponse.AreaTypes || apiResponse.areaTypes || apiResponse.areas || [];
   const fatherOcc = apiResponse.FatherOccupationList || apiResponse.FatherOccupations || apiResponse.fatherOccupations || apiResponse.FatherOcc || apiResponse.fatherOcc || [];
@@ -116,8 +122,8 @@ function normalizeDistricts(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.DistrictID ?? item.Id ?? item.id ?? item.value ?? item.DistrictId,
-      label: item.DistrictName ?? item.Name ?? item.name ?? item.label ?? '',
+      value: item.DistrictID ?? item.Id ?? item.id ?? item.value ?? item.DistrictId ?? item.Value,
+      label: item.DistrictName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -129,8 +135,8 @@ function normalizeGenders(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.GenderID ?? item.Id ?? item.id ?? item.value ?? item.GenderId,
-      label: item.GenderName ?? item.Name ?? item.name ?? item.label ?? '',
+      value: item.GenderID ?? item.Id ?? item.id ?? item.value ?? item.GenderId ?? item.Value,
+      label: item.GenderName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -142,8 +148,8 @@ function normalizeCastes(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.CasteCategoryID ?? item.Id ?? item.id ?? item.value ?? item.CasteCategoryId,
-      label: item.CasteCategoryName ?? item.Name ?? item.name ?? item.label ?? '',
+      value: item.CasteCategoryID ?? item.Id ?? item.id ?? item.value ?? item.CasteCategoryId ?? item.Value,
+      label: item.CasteCategoryName ?? item.CategoryName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -155,8 +161,8 @@ function normalizeCourses(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.CourseTypeID ?? item.Id ?? item.id ?? item.value ?? item.CourseTypeId,
-      label: item.CourseTypeName ?? item.Name ?? item.name ?? item.label ?? '',
+      value: item.CourseTypeID ?? item.CourseID ?? item.Id ?? item.id ?? item.value ?? item.CourseTypeId ?? item.Value,
+      label: item.CourseTypeName ?? item.CourseName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -168,8 +174,8 @@ function normalizePlaces(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.PlaceID ?? item.Id ?? item.id ?? item.value ?? item.PlaceId,
-      label: item.PlaceName ?? item.Name ?? item.name ?? item.label ?? '',
+      value: item.PlaceID ?? item.Id ?? item.id ?? item.value ?? item.PlaceId ?? item.Value,
+      label: item.PlaceName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -181,8 +187,8 @@ function normalizeOccupations(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.OccupationID ?? item.Id ?? item.id ?? item.value ?? item.OccupationId,
-      label: item.OccupationName ?? item.Name ?? item.name ?? item.label ?? '',
+      value: item.OccupationID ?? item.FatherOccupationID ?? item.MotherOccupationID ?? item.Id ?? item.id ?? item.value ?? item.OccupationId ?? item.Value,
+      label: item.OccupationName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -194,8 +200,8 @@ function normalizeCollegeTypes(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.CollegeTypeID ?? item.Id ?? item.id ?? item.value ?? item.CollegeTypeId,
-      label: item.CollegeTypeName ?? item.Name ?? item.name ?? item.label ?? '',
+      value: item.CollegeTypeID ?? item.Id ?? item.id ?? item.value ?? item.CollegeTypeId ?? item.Value,
+      label: item.CollegeTypeName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -207,8 +213,8 @@ function normalizeAreaTypes(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.AreaTypeID ?? item.Id ?? item.id ?? item.value ?? item.AreaTypeId,
-      label: item.AreaTypeName ?? item.Name ?? item.name ?? item.label ?? '',
+      value: item.AreaTypeID ?? item.Id ?? item.id ?? item.value ?? item.AreaTypeId ?? item.Value,
+      label: item.AreaTypeName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -220,8 +226,8 @@ function normalizeHouseTypes(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.HouseTypeID ?? item.HouseTypeId ?? item.Id ?? item.id ?? item.value,
-      label: item.HouseTypeName ?? item.Name ?? item.name ?? item.label ?? '',
+      value: item.HouseTypeID ?? item.HouseTypeId ?? item.Id ?? item.id ?? item.value ?? item.Value,
+      label: item.HouseTypeName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -233,8 +239,8 @@ function normalizeReferenceSources(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.ReferenceSourceID ?? item.ReferenceSourceId ?? item.Id ?? item.id ?? item.value,
-      label: item.SourceName ?? item.ReferenceSourceName ?? item.Name ?? item.name ?? item.label ?? '',
+      value: item.ReferenceSourceID ?? item.ReferenceSourceId ?? item.Id ?? item.id ?? item.value ?? item.Value,
+      label: item.SourceName ?? item.ReferenceSourceName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }

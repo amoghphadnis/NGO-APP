@@ -17,7 +17,7 @@ trigger: always_on
 ### B. Local Gradle Credentials (`android/gradle.properties`)
 * Do not allow Expo to completely wipe out production credentials. Ensure these exact keys are always appended to the file if it gets regenerated:
 ```properties
-  RELEASE_STORE_FILE=e:/Personal APP/NGO-APP/android/app/release.keystore
+  RELEASE_STORE_FILE=F:/NGO APP/VPApp/android/app/release.keystore
   RELEASE_KEY_ALIAS=vpapp-release
   RELEASE_STORE_PASSWORD=VPApp@Release2026
   RELEASE_KEY_PASSWORD=VPApp@Release2026

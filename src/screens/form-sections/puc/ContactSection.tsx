@@ -1,40 +1,39 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, Text, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import VPInputField from '@/components/common/VPInputField';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { isPUCForm } from '@/types/forms';
-import { contactDetailsSchema, ContactDetailsFormValues } from '@/validation/sharedSchemas';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { isPUCForm } from '@/types/forms';
+import { PucFormat11ContactFormValues, pucFormat11ContactSchema } from '@/validation/pucFormat11Schemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function ContactSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const contactData = isPUCForm(formData) 
-    ? formData.contact 
-    : { email: '', phone: '', alternatePhone: '' };
+  const contactData = isPUCForm(formData)
+    ? formData.contact
+    : { Email: '', ContactNumber: '', AlternateNumber: '' };
 
-  const { control, handleSubmit, watch, formState } = useForm<ContactDetailsFormValues>({
+  const { control, handleSubmit, watch, formState } = useForm<PucFormat11ContactFormValues>({
     defaultValues: {
-      email: contactData.email,
-      phone: contactData.phone,
-      alternatePhone: contactData.alternatePhone,
+      Email: contactData.Email,
+      ContactNumber: contactData.ContactNumber,
+      AlternateNumber: contactData.AlternateNumber,
     },
-    resolver: zodResolver(contactDetailsSchema),
+    resolver: zodResolver(pucFormat11ContactSchema),
     mode: 'onChange',
   });
 
-  const watchedEmail = watch('email');
-  const emailSuccess = !!watchedEmail && !formState.errors.email;
+  const watchedEmail = watch('Email');
+  const emailSuccess = !!watchedEmail && !formState.errors.Email;
 
-  const onSubmit = (data: ContactDetailsFormValues) => {
+  const onSubmit = (data: PucFormat11ContactFormValues) => {
     updateSectionData('contact', data);
     updateValidationState('contact', { isValid: true, data });
     markStepComplete(2);
@@ -51,7 +50,6 @@ export default function ContactSection({ navigation }: any) {
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
     >
-      {/* Contact Details Section */}
       <FormSectionHeader
         icon="mail"
         title="Contact Details"
@@ -62,7 +60,7 @@ export default function ContactSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="email"
+          name="Email"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Email Address"
@@ -72,7 +70,7 @@ export default function ContactSection({ navigation }: any) {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              error={formState.errors.email?.message}
+              error={formState.errors.Email?.message}
               successText={emailSuccess ? 'Email format looks good' : undefined}
               required
             />
@@ -81,7 +79,7 @@ export default function ContactSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="phone"
+          name="ContactNumber"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Contact Number"
@@ -90,7 +88,7 @@ export default function ContactSection({ navigation }: any) {
               placeholder="Enter 10-digit mobile number"
               keyboardType="phone-pad"
               maxLength={10}
-              error={formState.errors.phone?.message}
+              error={formState.errors.ContactNumber?.message}
               helperText="We'll use this number for important updates"
               required
             />
@@ -99,7 +97,7 @@ export default function ContactSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="alternatePhone"
+          name="AlternateNumber"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Alternate Number"
@@ -108,39 +106,13 @@ export default function ContactSection({ navigation }: any) {
               placeholder="Enter alternate 10-digit number"
               keyboardType="phone-pad"
               maxLength={10}
-              error={formState.errors.alternatePhone?.message}
+              error={formState.errors.AlternateNumber?.message}
               helperText="Optional alternate contact number"
             />
           )}
         />
       </FormCard>
 
-      {/* Communication Preferences */}
-      <FormSectionHeader
-        icon="notifications"
-        title="Communication Preferences"
-        subtitle="How would you like to receive updates?"
-      />
-      
-      <FormCard>
-        <View style={styles.preferenceItem}>
-          <Text style={styles.preferenceText}>
-            • Application status updates via SMS and email
-          </Text>
-        </View>
-        <View style={styles.preferenceItem}>
-          <Text style={styles.preferenceText}>
-            • Important announcements via email
-          </Text>
-        </View>
-        <View style={styles.preferenceItem}>
-          <Text style={styles.preferenceText}>
-            • Document verification reminders via SMS
-          </Text>
-        </View>
-      </FormCard>
-
-      {/* Privacy Notice */}
       <FormCard>
         <View style={styles.infoBanner}>
           <Text style={styles.infoIcon}>🔒</Text>
@@ -154,14 +126,6 @@ export default function ContactSection({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  preferenceItem: {
-    marginBottom: spacing.sm,
-  },
-  preferenceText: {
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textPrimary,
-  },
   infoBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',

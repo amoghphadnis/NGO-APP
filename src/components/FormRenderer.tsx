@@ -15,10 +15,11 @@ import SuccessSection from '../screens/form-sections/professional/SuccessSection
 // Import PUC-specific form section components
 import PucAcademicSection from '../screens/form-sections/puc/AcademicSection';
 import PucAddressSection from '../screens/form-sections/puc/AddressSection';
-import PucCategorySection from '../screens/form-sections/puc/CategorySection';
+import PucBankSection from '../screens/form-sections/puc/BankSection';
 import PucContactSection from '../screens/form-sections/puc/ContactSection';
 import PucDocumentSection from '../screens/form-sections/puc/DocumentSection';
 import PucFamilySection from '../screens/form-sections/puc/FamilySection';
+import PucGuidelinesSection from '../screens/form-sections/puc/GuidelinesSection';
 import PucPersonalSection from '../screens/form-sections/puc/PersonalSection';
 
 // Import Semi Professional-specific form section components
@@ -62,13 +63,13 @@ const professionalComponentMap: Record<string, React.ComponentType<any>> = {
 };
 
 const pucComponentMap: Record<string, React.ComponentType<any>> = {
-  guidelines: GuidelinesSection,
+  guidelines: PucGuidelinesSection,
   personal: PucPersonalSection,
   contact: PucContactSection,
   address: PucAddressSection,
   family: PucFamilySection,
-  category: PucCategorySection,
   academic: PucAcademicSection,
+  bank: PucBankSection,
   documents: PucDocumentSection,
   review: ReviewSection,
   success: SuccessSection,

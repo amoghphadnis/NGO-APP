@@ -1,6 +1,6 @@
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -13,171 +13,85 @@ import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { isPUCForm } from '@/types/forms';
-import { PucFamilyDetailsFormValues, pucFamilyDetailsSchema } from '@/validation/pucSchemas';
+import { PucFormat11FamilyFormValues, pucFormat11FamilySchema } from '@/validation/pucFormat11Schemas';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function FamilySection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const [fatherOccupationOptions, setFatherOccupationOptions] = useState<Option<number>[]>([]);
-  const [motherOccupationOptions, setMotherOccupationOptions] = useState<Option<number>[]>([]);
+  const [fatherOccOptions, setFatherOccOptions] = useState<Option<number>[]>([]);
+  const [motherOccOptions, setMotherOccOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
     async function loadDropdowns() {
       const response = await getPUCDropdowns();
-      console.log('[FamilySection] Dropdown response:', response);
       if (response.success && response.data) {
-        setFatherOccupationOptions(response.data.fatherOcc?.map((o: any) => ({
+        setFatherOccOptions(response.data.fatherOcc?.map((o: any) => ({
           value: Number(o.value),
           label: o.label
         })) || []);
-        setMotherOccupationOptions(response.data.motherOcc?.map((o: any) => ({
+        setMotherOccOptions(response.data.motherOcc?.map((o: any) => ({
           value: Number(o.value),
           label: o.label
         })) || []);
-        console.log('[FamilySection] Father occupation options:', response.data.fatherOcc);
-        console.log('[FamilySection] Mother occupation options:', response.data.motherOcc);
       }
       setLoadingDropdowns(false);
     }
     loadDropdowns();
   }, []);
 
-  const familyData = isPUCForm(formData) ? formData.family ?? {
-    fatherName: '',
-    motherName: '',
-    fatherOccupationID: undefined,
-    motherOccupationID: undefined,
-    familyMembers: 1,
-    familyComposition: [],
-    annualIncome: '',
-    monthlyRent: '',
-    residenceType: undefined,
-  } : {
-    fatherName: '',
-    motherName: '',
-    fatherOccupationID: undefined,
-    motherOccupationID: undefined,
-    familyMembers: 1,
-    familyComposition: [],
-    annualIncome: '',
-    monthlyRent: '',
-    residenceType: undefined,
-  };
+  const familyData = isPUCForm(formData)
+    ? formData.family
+    : { FatherOccupation: 0, MotherOccupation: 0, TotalFamilyMembers: 1, FamilyAnnualIncome: 0 };
 
-  const { control, handleSubmit, formState } = useForm<PucFamilyDetailsFormValues>({
+  const { control, handleSubmit, formState } = useForm<PucFormat11FamilyFormValues>({
     defaultValues: {
-      fatherName: familyData.fatherName,
-      motherName: familyData.motherName,
-      fatherOccupationID: familyData.fatherOccupationID,
-      motherOccupationID: familyData.motherOccupationID,
-      familyMembers: familyData.familyMembers,
-      familyComposition: familyData.familyComposition,
-      annualIncome: familyData.annualIncome,
-      monthlyRent: familyData.monthlyRent,
-      residenceType: familyData.residenceType,
+      FatherOccupation: familyData.FatherOccupation || 0,
+      MotherOccupation: familyData.MotherOccupation || 0,
+      TotalFamilyMembers: familyData.TotalFamilyMembers || 1,
+      FamilyAnnualIncome: familyData.FamilyAnnualIncome || 0,
     },
-    resolver: zodResolver(pucFamilyDetailsSchema),
+    resolver: zodResolver(pucFormat11FamilySchema),
     mode: 'onChange',
   });
 
-  const onSubmit = (data: PucFamilyDetailsFormValues) => {
+  const onSubmit = (data: PucFormat11FamilyFormValues) => {
     updateSectionData('family', data);
     updateValidationState('family', { isValid: true, data });
     markStepComplete(4);
-    navigation.navigate('category');
+    navigation.navigate('academic');
   };
 
   const isNextDisabled = !formState.isValid || loadingDropdowns;
 
   return (
     <FormScreenLayout
-      title="Family Details"
+      title="Family Information"
       step={5}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
     >
-      {/* Family Information */}
       <FormSectionHeader
         icon="people"
-        title="Family Information"
+        title="Family Details"
         subtitle="Tell us about your family"
         showRequired
       />
-      
+
       <FormCard>
         <Controller
           control={control}
-          name="fatherName"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Father Name"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter father's full name"
-              error={formState.errors.fatherName?.message}
-              required
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="motherName"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Mother Name"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter mother's full name"
-              error={formState.errors.motherName?.message}
-              required
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="familyMembers"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Family Members"
-              value={value === undefined || value === null ? '' : String(value)}
-              onChangeText={(text) => {
-                const cleanText = text.replace(/[^0-9]/g, '');
-                const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
-                onChange(num);
-              }}
-              placeholder="Enter number of family members"
-              keyboardType="numeric"
-              error={formState.errors.familyMembers?.message}
-              required
-            />
-          )}
-        />
-      </FormCard>
-
-      {/* Occupation Details */}
-      <FormSectionHeader
-        icon="briefcase"
-        title="Occupation Details"
-        subtitle="Parent/guardian occupation"
-      />
-      
-      <FormCard>
-        <Controller
-          control={control}
-          name="fatherOccupationID"
+          name="FatherOccupation"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Father Occupation"
+              label="Father's Occupation"
               value={value}
               onChange={onChange}
-              options={fatherOccupationOptions}
+              options={fatherOccOptions}
               placeholder="Select father's occupation"
-              error={formState.errors.fatherOccupationID?.message}
+              error={formState.errors.FatherOccupation?.message}
               required
               disabled={loadingDropdowns}
             />
@@ -186,61 +100,64 @@ export default function FamilySection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="motherOccupationID"
+          name="MotherOccupation"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Mother Occupation"
+              label="Mother's Occupation"
               value={value}
               onChange={onChange}
-              options={motherOccupationOptions}
+              options={motherOccOptions}
               placeholder="Select mother's occupation"
-              error={formState.errors.motherOccupationID?.message}
+              error={formState.errors.MotherOccupation?.message}
               required
               disabled={loadingDropdowns}
             />
           )}
         />
-      </FormCard>
 
-      {/* Income Details */}
-      <FormSectionHeader
-        icon="cash"
-        title="Income Details"
-        subtitle="Annual family income"
-        showRequired
-      />
-      
-      <FormCard>
         <Controller
           control={control}
-          name="annualIncome"
+          name="TotalFamilyMembers"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Annual Family Income"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter annual income in rupees"
+              label="Total Family Members"
+              value={String(value)}
+              onChangeText={(text) => onChange(Number(text))}
+              placeholder="Enter total family members"
               keyboardType="numeric"
-              error={formState.errors.annualIncome?.message}
-              helperText="Enter total annual income of all family members"
+              error={formState.errors.TotalFamilyMembers?.message}
+              helperText="Including parents, yourself, and all dependents"
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="FamilyAnnualIncome"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Family Annual Income"
+              value={String(value)}
+              onChangeText={(text) => onChange(Number(text))}
+              placeholder="Enter annual family income"
+              keyboardType="numeric"
+              error={formState.errors.FamilyAnnualIncome?.message}
+              helperText="Total annual income from all sources"
               required
             />
           )}
         />
       </FormCard>
 
-      {/* Guidelines */}
       <FormCard>
         <View style={styles.infoContainer}>
-          <Text style={styles.infoTitle}>Income Guidelines:</Text>
+          <Text style={styles.infoTitle}>Note:</Text>
           <Text style={styles.infoText}>
-            • Provide accurate income information
+            • Family income is used to determine scholarship eligibility
           </Text>
           <Text style={styles.infoText}>
-            • Income certificates may be required for verification
-          </Text>
-          <Text style={styles.infoText}>
-            • Include income from all sources
+            • Include income from all earning members of the family
           </Text>
         </View>
       </FormCard>

@@ -52,71 +52,123 @@ export default function GuidelinesSection({ navigation }: any) {
       nextLabel="Accept & Continue"
     >
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Instructions */}
+        {/* Eligibility Criteria */}
         <FormSectionHeader
-          icon="information-circle"
-          title="Instructions"
-          subtitle="Please read carefully before filling the form"
+          icon="checkmark-circle"
+          title="Eligibility Criteria"
+          subtitle="Please ensure you meet these requirements"
         />
 
         <FormCard>
           <View style={styles.guidelineItem}>
             <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              Fields marked with * are <Text style={styles.bold}>mandatory</Text> and must be filled.
+              The student should have appeared for the <Text style={styles.bold}>PUC II / 12 Grade examination for the first time in 2026</Text>
             </Text>
           </View>
           <View style={styles.guidelineItem}>
             <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              Provide <Text style={styles.bold}>accurate personal, academic, and family details</Text>.
+              Applicants must be aspiring to enroll in a Semi-Professional course such as <Text style={styles.bold}>B.Sc-Nursing, GNM- Nursing, Physiotherapy, B.Sc- Agriculture, Veterinary Science &amp; Horticulture</Text>
             </Text>
           </View>
           <View style={styles.guidelineItem}>
             <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              Select appropriate options from dropdowns. If "Other" is selected, fill the additional field.
+              This application is <Text style={styles.bold}>only for students from Karnataka</Text>
             </Text>
           </View>
           <View style={styles.guidelineItem}>
             <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              Ensure <Text style={styles.bold}>mobile number and email</Text> are correct for communication.
+              Should have scored <Text style={styles.bold}>80%</Text> and above in the PUC II examination
+            </Text>
+          </View>
+          <View style={styles.guidelineItem}>
+            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+            <Text style={styles.guidelineText}>
+              The <Text style={styles.bold}>total family income</Text> should be <Text style={styles.bold}>less than ₹15,000/- per month</Text>
+            </Text>
+          </View>
+          <View style={styles.guidelineItem}>
+            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+            <Text style={styles.guidelineText}>
+              <Text style={styles.bold}>Parents must be residents of Karnataka</Text>
             </Text>
           </View>
         </FormCard>
 
-        {/* Document Upload Guidelines */}
+        {/* Deadline */}
+        <FormCard>
+          <View style={styles.guidelineItem}>
+            <Ionicons name="calendar" size={20} color={colors.warning} style={styles.icon} />
+            <Text style={styles.guidelineText}>
+              <Text style={styles.bold}>Last date to apply: 30 Jun 2026</Text>
+            </Text>
+          </View>
+        </FormCard>
+
+        {/* Required Documents */}
         <FormSectionHeader
           icon="attach"
-          title="Document Upload Guidelines"
-          subtitle="Keep these documents ready for upload"
+          title="Required Documents (9 Total)"
+          subtitle="Keep these documents ready for upload (PDF/JPG/PNG, max 2MB each)"
         />
 
         <FormCard>
-          <View style={styles.guidelineItem}>
+          <View style={styles.documentItem}>
             <Ionicons name="document" size={20} color={colors.primary} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              Upload clear and valid documents only.
-            </Text>
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>1. PUC II Year Marks Card</Text>
+            </View>
           </View>
-          <View style={styles.guidelineItem}>
-            <Ionicons name="document" size={20} color={colors.primary} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              Allowed formats: <Text style={styles.bold}>PDF, JPG, PNG</Text>.
-            </Text>
+          <View style={styles.documentItem}>
+            <Ionicons name="camera" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>2. Student's Selfie/Photograph</Text>
+            </View>
           </View>
-          <View style={styles.guidelineItem}>
-            <Ionicons name="document" size={20} color={colors.primary} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              Ensure documents are <Text style={styles.bold}>readable and not blurred</Text>.
-            </Text>
+          <View style={styles.documentItem}>
+            <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>3. CET Rank Sheet</Text>
+            </View>
           </View>
-          <View style={styles.guidelineItem}>
-            <Ionicons name="document" size={20} color={colors.primary} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              File size should preferably be <Text style={styles.bold}>less than 2MB</Text>.
-            </Text>
+          <View style={styles.documentItem}>
+            <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>4. Agriculture/Veterinary/Horticulture (PT Rank) Sheet</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="home" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>5. Dwelling Unit Photo</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="videocam" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>6. House Video</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="flash" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>7. Latest Electricity Bill</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="receipt" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>8. Income Certificate</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="card" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>9. Ration Card (Both Sides)</Text>
+            </View>
           </View>
         </FormCard>
 
@@ -172,6 +224,21 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: '700',
+  },
+  documentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  documentContent: {
+    flex: 1,
+    marginLeft: spacing.sm,
+  },
+  documentTitle: {
+    fontSize: platform.normalize.fontSize.body,
+    lineHeight: platform.normalize.lineHeight.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
   checkboxContainer: {
     flexDirection: 'row',

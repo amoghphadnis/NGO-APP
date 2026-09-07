@@ -1,10 +1,5 @@
-import StudentListScreen from '@/screens/volunteer/StudentListScreen';
+import PucApprovalListScreen from '@/screens/approval/PucApprovalListScreen';
 
 export default function ApprovalPUCScreen() {
-  return (
-    <StudentListScreen
-      studentType="puc"
-      title="PUC Students"
-    />
-  );
+  return <PucApprovalListScreen />;
 }

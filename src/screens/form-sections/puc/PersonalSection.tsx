@@ -1,7 +1,7 @@
 import ModalSelectField, { Option } from "@/components/common/ModalSelectField";
 import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
     StyleSheet,
@@ -19,10 +19,7 @@ import { colors } from "@/theme/colors";
 import { platform } from "@/theme/platform";
 import { spacing } from "@/theme/spacing";
 import { isPUCForm } from "@/types/forms";
-import {
-    PersonalDetailsFormValues,
-    personalDetailsSchema,
-} from "@/validation/sharedSchemas";
+import { PucFormat11PersonalFormValues, pucFormat11PersonalSchema } from "@/validation/pucFormat11Schemas";
 import { useFormEngineStore } from "../../../store/useFormEngineStore";
 
 export default function PersonalSection({ navigation }: any) {
@@ -35,12 +32,12 @@ export default function PersonalSection({ navigation }: any) {
 
   const [genderOptions, setGenderOptions] = useState<Option<number>[]>([]);
   const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
+  const [placeOptions, setPlaceOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
     async function loadDropdowns() {
       const response = await getPUCDropdowns();
-      console.log('[PersonalSection] Dropdown response:', response);
       if (response.success && response.data) {
         setGenderOptions(response.data.genders?.map((g: any) => ({
           value: Number(g.value),
@@ -50,8 +47,10 @@ export default function PersonalSection({ navigation }: any) {
           value: Number(c.value),
           label: c.label
         })) || []);
-        console.log('[PersonalSection] Gender options:', response.data.genders);
-        console.log('[PersonalSection] Caste options:', response.data.castes);
+        setPlaceOptions(response.data.places?.map((p: any) => ({
+          value: Number(p.value),
+          label: p.label
+        })) || []);
       }
       setLoadingDropdowns(false);
     }
@@ -60,27 +59,28 @@ export default function PersonalSection({ navigation }: any) {
 
   const personalData = isPUCForm(formData)
     ? formData.personal
-    : { name: "", dateOfBirth: "", genderID: 0, casteCategoryID: 0 };
+    : { StudentName: "", DateOfBirth: "", Gender: 0, Caste: 0, Place: 0 };
 
   const { control, handleSubmit, watch, formState } =
-    useForm<PersonalDetailsFormValues>({
+    useForm<PucFormat11PersonalFormValues>({
       defaultValues: {
-        name: personalData.name,
-        dateOfBirth:
-          typeof personalData.dateOfBirth === "string"
-            ? personalData.dateOfBirth
+        StudentName: personalData.StudentName,
+        DateOfBirth:
+          typeof personalData.DateOfBirth === "string"
+            ? personalData.DateOfBirth
             : "",
-        genderID: personalData.genderID || 0,
-        casteCategoryID: personalData.casteCategoryID || 0,
+        Gender: personalData.Gender || 0,
+        Caste: personalData.Caste || 0,
+        Place: personalData.Place || 0,
       },
-      resolver: zodResolver(personalDetailsSchema),
+      resolver: zodResolver(pucFormat11PersonalSchema),
       mode: "onChange",
     });
 
-  const watchedName = watch("name");
-  const nameSuccess = !!watchedName && !formState.errors.name;
+  const watchedName = watch("StudentName");
+  const nameSuccess = !!watchedName && !formState.errors.StudentName;
 
-  const onSubmit = (data: PersonalDetailsFormValues) => {
+  const onSubmit = (data: PucFormat11PersonalFormValues) => {
     updateSectionData("personal", data);
     updateValidationState("personal", { isValid: true, data });
     markStepComplete(1);
@@ -97,7 +97,6 @@ export default function PersonalSection({ navigation }: any) {
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
     >
-      {/* Basic Information Section */}
       <FormSectionHeader
         icon="person"
         title="Basic Information"
@@ -108,14 +107,14 @@ export default function PersonalSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="name"
+          name="StudentName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Student Name"
               value={value}
               onChangeText={onChange}
               placeholder="Enter your full name"
-              error={formState.errors.name?.message}
+              error={formState.errors.StudentName?.message}
               successText={nameSuccess ? "Name looks good" : undefined}
               required
             />
@@ -124,18 +123,16 @@ export default function PersonalSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="dateOfBirth"
+          name="DateOfBirth"
           render={({ field: { onChange, value } }) => (
             <VPDatePickerField
               label="Date of Birth"
               value={value ? new Date(value) : undefined}
               onChange={(date) => {
-                // If already a string (YYYY-MM-DD format), pass through directly
                 if (typeof date === 'string') {
                   onChange(date);
                   return;
                 }
-                // Otherwise format the Date object
                 const formatted = [
                   date.getFullYear(),
                   String(date.getMonth() + 1).padStart(2, "0"),
@@ -145,20 +142,19 @@ export default function PersonalSection({ navigation }: any) {
                 onChange(formatted);
               }}
               helperText="Enter your date of birth as on certificate"
-              error={formState.errors.dateOfBirth?.message}
+              error={formState.errors.DateOfBirth?.message}
               required
             />
           )}
         />
       </FormCard>
 
-      {/* Demographics Section */}
       <FormSectionHeader icon="people" title="Demographics" showRequired />
 
       <FormCard>
         <Controller
           control={control}
-          name="genderID"
+          name="Gender"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Gender"
@@ -166,7 +162,7 @@ export default function PersonalSection({ navigation }: any) {
               value={value}
               onChange={onChange}
               options={genderOptions}
-              error={formState.errors.genderID?.message}
+              error={formState.errors.Gender?.message}
               required
               disabled={loadingDropdowns}
             />
@@ -175,7 +171,7 @@ export default function PersonalSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="casteCategoryID"
+          name="Caste"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Caste"
@@ -183,7 +179,24 @@ export default function PersonalSection({ navigation }: any) {
               value={value}
               onChange={onChange}
               options={casteOptions}
-              error={formState.errors.casteCategoryID?.message}
+              error={formState.errors.Caste?.message}
+              required
+              disabled={loadingDropdowns}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="Place"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="Place"
+              placeholder="Select place"
+              value={value}
+              onChange={onChange}
+              options={placeOptions}
+              error={formState.errors.Place?.message}
               required
               disabled={loadingDropdowns}
             />
@@ -191,7 +204,6 @@ export default function PersonalSection({ navigation }: any) {
         />
       </FormCard>
 
-      {/* Security Notice */}
       <FormCard>
         <View style={styles.infoBanner}>
           <Ionicons

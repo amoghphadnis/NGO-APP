@@ -10,11 +10,8 @@ import {
     professionalFormSchema,
 } from '@/validation/professionalSchemas';
 import {
-    pucAcademicDetailsSchema,
-    pucCategoryHousingSchema,
-    pucDocumentDetailsSchema,
-    pucFormSchema,
-} from '@/validation/pucSchemas';
+    pucFormat11FormSchema,
+} from '@/validation/pucFormat11Schemas';
 import {
     semiProfessionalFormSchema,
 } from '@/validation/semiProfessionalSchemas';
@@ -38,10 +35,7 @@ export type AcademicDetailsFormValues = z.infer<typeof academicDetailsSchema>;
 export type ProfessionalDocumentDetailsFormValues = z.infer<typeof professionalDocumentDetailsSchema>;
 export type ProfessionalFormValues = z.infer<typeof professionalFormSchema>;
 
-export type PucCategoryHousingFormValues = z.infer<typeof pucCategoryHousingSchema>;
-export type PucAcademicDetailsFormValues = z.infer<typeof pucAcademicDetailsSchema>;
-export type PucDocumentDetailsFormValues = z.infer<typeof pucDocumentDetailsSchema>;
-export type PucFormValues = z.infer<typeof pucFormSchema>;
+export type PucFormValues = z.infer<typeof pucFormat11FormSchema>;
 
 export type PayanaFormValues = z.infer<typeof payanaFormSchema>;
 
@@ -92,7 +86,7 @@ export const isProfessionalForm = (data: FormDataUnion): data is ProfessionalFor
 };
 
 export const isPUCForm = (data: FormDataUnion): data is PucFormValues => {
-  return data && 'category' in data && !('bank' in data) && !('studentAchievements' in data);
+  return data && 'personal' in data && 'bank' in data && !('category' in data) && !('studentAchievements' in data) && !('agreement' in data);
 };
 
 export const isPayanaForm = (data: FormDataUnion): data is PayanaFormValues => {

@@ -1,56 +1,55 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
-import VPInputField from '@/components/common/VPInputField';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FileUploadField from '@/components/form/FileUploadField';
-import { useFormEngineStore } from '../../../store/useFormEngineStore';
-import { pickDocument } from '@/utils/filePicker';
-import { isPUCForm } from '@/types/forms';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
 import { platform } from '@/theme/platform';
+import { spacing } from '@/theme/spacing';
+import { isPUCForm } from '@/types/forms';
+import { pickDocument } from '@/utils/filePicker';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
-const PUC_FILE_KEYS = [
-  'sslcMarksCard',
-  'studentPhoto',
-  'electricityBill',
-  'rationCard',
-  'incomeCert',
-  'familyPhoto',
-  'houseVideo',
+const PUC_FORMAT11_DOC_KEYS = [
+  'StudentSelfie',
+  'SSLCMarksCard',
+  'FeeReceipts',
+  'BankPassbook',
+  'AadhaarCard',
 ] as const;
+
+const DOC_LABELS: Record<string, { title: string; subtitle: string; icon: string }> = {
+  StudentSelfie: { title: 'Student Selfie', subtitle: 'Upload your recent selfie photo', icon: 'person' },
+  SSLCMarksCard: { title: 'SSLC Marks Card', subtitle: 'Upload your SSLC marks card', icon: 'school' },
+  FeeReceipts: { title: 'Fee Receipts', subtitle: 'Upload college fee receipts', icon: 'receipt' },
+  BankPassbook: { title: 'Bank Passbook', subtitle: 'Upload bank passbook copy', icon: 'card' },
+  AadhaarCard: { title: 'Aadhaar Card', subtitle: 'Upload Aadhaar card copy', icon: 'finger-print' },
+};
 
 export default function DocumentSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData, uploadState, updateUploadState } = useFormEngineStore();
 
   const documentData = isPUCForm(formData) ? formData.documents ?? {
-    sslcMarksCard: undefined,
-    studentPhoto: undefined,
-    electricityBill: undefined,
-    rationCard: undefined,
-    incomeCert: undefined,
-    familyPhoto: undefined,
-    houseVideo: undefined,
-    houseVisitLink: '',
+    StudentSelfie: undefined,
+    SSLCMarksCard: undefined,
+    FeeReceipts: undefined,
+    BankPassbook: undefined,
+    AadhaarCard: undefined,
   } : {
-    sslcMarksCard: undefined,
-    studentPhoto: undefined,
-    electricityBill: undefined,
-    rationCard: undefined,
-    incomeCert: undefined,
-    familyPhoto: undefined,
-    houseVideo: undefined,
-    houseVisitLink: '',
+    StudentSelfie: undefined,
+    SSLCMarksCard: undefined,
+    FeeReceipts: undefined,
+    BankPassbook: undefined,
+    AadhaarCard: undefined,
   };
 
   const handleFileUpload = async (documentKey: string) => {
     updateUploadState(documentKey, { isUploading: true, error: undefined, progress: 0 });
 
     const file = await pickDocument();
-    
+
     if (!file) {
       updateUploadState(documentKey, { isUploading: false });
       return;
@@ -76,11 +75,11 @@ export default function DocumentSection({ navigation }: any) {
     updateUploadState(documentKey, { isUploading: false, uploaded: false, error: undefined, progress: 0 });
   };
 
-  const allDocumentsUploaded = PUC_FILE_KEYS.every(key => uploadState[key]?.uploaded);
+  const allDocumentsUploaded = PUC_FORMAT11_DOC_KEYS.every(key => uploadState[key]?.uploaded);
 
   const onSubmit = () => {
     updateValidationState('documents', { isValid: allDocumentsUploaded, data: documentData });
-    markStepComplete(8);
+    markStepComplete(7);
     navigation.navigate('review');
   };
 
@@ -89,193 +88,54 @@ export default function DocumentSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Document Upload"
-      step={9}
+      step={8}
       onBack={navigation.goBack}
       onNext={onSubmit}
       nextDisabled={isNextDisabled}
     >
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Document Guidelines */}
         <FormSectionHeader
           icon="document-text"
           title="Required Documents"
-          subtitle="Upload all required documents"
+          subtitle="Upload all 5 required documents"
           showRequired
         />
-        
+
         <FormCard>
           <View style={styles.guidelineContainer}>
             <Text style={styles.guidelineTitle}>Document Requirements:</Text>
             <Text style={styles.guidelineText}>• All documents must be clear and readable</Text>
-            <Text style={styles.guidelineText}>• File size should not exceed 5MB</Text>
-            <Text style={styles.guidelineText}>• Accepted formats: PDF, JPG, PNG</Text>
-            <Text style={styles.guidelineText}>• Ensure documents are valid and not expired</Text>
+            <Text style={styles.guidelineText}>• File size should not exceed 2MB</Text>
+            <Text style={styles.guidelineText}>• Accepted formats: PDF, JPG, JPEG, PNG</Text>
+            <Text style={styles.guidelineText}>• All 5 documents are mandatory</Text>
           </View>
         </FormCard>
 
-        {/* SSLC Marks Card */}
-        <FormSectionHeader
-          icon="school"
-          title="SSLC Marks Card"
-          subtitle="Upload your SSLC marks card (photo)"
-          showRequired
-        />
-        
-        <FormCard>
-          <FileUploadField
-            title="SSLC Marks Card"
-            subtitle="Upload your SSLC marks card photo"
-            file={documentData.sslcMarksCard?.file}
-            meta={uploadState.sslcMarksCard}
-            onUpload={() => handleFileUpload('sslcMarksCard')}
-            onDelete={() => handleDeleteFile('sslcMarksCard')}
-          />
-        </FormCard>
-
-        {/* Student Photo */}
-        <FormSectionHeader
-          icon="person"
-          title="Student Photo"
-          subtitle="Upload your recent photo/selfie"
-          showRequired
-        />
-        
-        <FormCard>
-          <FileUploadField
-            title="Student Photo"
-            subtitle="Upload your recent photo"
-            file={documentData.studentPhoto?.file}
-            meta={uploadState.studentPhoto}
-            onUpload={() => handleFileUpload('studentPhoto')}
-            onDelete={() => handleDeleteFile('studentPhoto')}
-            acceptedTypes={['image/jpeg', 'image/png']}
-          />
-        </FormCard>
-
-        {/* Electricity Bill */}
-        <FormSectionHeader
-          icon="flash"
-          title="Electricity Bill"
-          subtitle="Upload recent electricity bill (photo)"
-          showRequired
-        />
-        
-        <FormCard>
-          <FileUploadField
-            title="Electricity Bill"
-            subtitle="Upload recent electricity bill photo"
-            file={documentData.electricityBill?.file}
-            meta={uploadState.electricityBill}
-            onUpload={() => handleFileUpload('electricityBill')}
-            onDelete={() => handleDeleteFile('electricityBill')}
-          />
-        </FormCard>
-
-        {/* Ration Card */}
-        <FormSectionHeader
-          icon="card"
-          title="Ration Card"
-          subtitle="Upload ration card (photo)"
-          showRequired
-        />
-        
-        <FormCard>
-          <FileUploadField
-            title="Ration Card"
-            subtitle="Upload ration card photo"
-            file={documentData.rationCard?.file}
-            meta={uploadState.rationCard}
-            onUpload={() => handleFileUpload('rationCard')}
-            onDelete={() => handleDeleteFile('rationCard')}
-          />
-        </FormCard>
-
-        {/* Income Certificate */}
-        <FormSectionHeader
-          icon="cash"
-          title="Income Certificate"
-          subtitle="Upload income certificate"
-          showRequired
-        />
-        
-        <FormCard>
-          <FileUploadField
-            title="Income Certificate"
-            subtitle="Upload income certificate"
-            file={documentData.incomeCert?.file}
-            meta={uploadState.incomeCert}
-            onUpload={() => handleFileUpload('incomeCert')}
-            onDelete={() => handleDeleteFile('incomeCert')}
-          />
-        </FormCard>
-
-        {/* Family Photo */}
-        <FormSectionHeader
-          icon="people"
-          title="Family Photo"
-          subtitle="Upload family photo taken in front of dwelling unit/house"
-          showRequired
-        />
-        
-        <FormCard>
-          <FileUploadField
-            title="Family Photo"
-            subtitle="Family photo in front of house"
-            file={documentData.familyPhoto?.file}
-            meta={uploadState.familyPhoto}
-            onUpload={() => handleFileUpload('familyPhoto')}
-            onDelete={() => handleDeleteFile('familyPhoto')}
-            acceptedTypes={['image/jpeg', 'image/png']}
-          />
-        </FormCard>
-
-        {/* House Video */}
-        <FormSectionHeader
-          icon="videocam"
-          title="House Video"
-          subtitle="Full video of dwelling unit (exterior + interior clearly visible)"
-          showRequired
-        />
-        
-        <FormCard>
-          <FileUploadField
-            title="House Video"
-            subtitle="Full video of dwelling unit"
-            file={documentData.houseVideo?.file}
-            meta={uploadState.houseVideo}
-            onUpload={() => handleFileUpload('houseVideo')}
-            onDelete={() => handleDeleteFile('houseVideo')}
-            acceptedTypes={['video/mp4', 'video/quicktime', 'video/x-msvideo']}
-            maxSize={50 * 1024 * 1024}
-          />
-        </FormCard>
-
-        {/* House Visit Google Link */}
-        <FormSectionHeader
-          icon="location"
-          title="House Visit Google Link"
-          subtitle="Paste Google link here"
-          showRequired
-        />
-        
-        <FormCard>
-          <VPInputField
-            label="House Visit Google Link"
-            value={documentData.houseVisitLink}
-            onChangeText={(text) => {
-              const updatedDocuments = {
-                ...documentData,
-                houseVisitLink: text,
-              };
-              updateSectionData('documents', updatedDocuments);
-            }}
-            placeholder="Paste Google link here"
-            keyboardType="url"
-            autoCapitalize="none"
-            autoCorrect={false}
-            helperText="Provide Google Maps link to your residence"
-          />
-        </FormCard>
+        {PUC_FORMAT11_DOC_KEYS.map((docKey) => {
+          const label = DOC_LABELS[docKey];
+          return (
+            <React.Fragment key={docKey}>
+              <FormSectionHeader
+                icon={label.icon as any}
+                title={label.title}
+                subtitle={label.subtitle}
+                showRequired
+              />
+              <FormCard>
+                <FileUploadField
+                  title={label.title}
+                  subtitle={label.subtitle}
+                  file={documentData[docKey]?.file}
+                  meta={uploadState[docKey]}
+                  onUpload={() => handleFileUpload(docKey)}
+                  onDelete={() => handleDeleteFile(docKey)}
+                  acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+                  maxSize={2 * 1024 * 1024}
+                />
+              </FormCard>
+            </React.Fragment>
+          );
+        })}
       </ScrollView>
     </FormScreenLayout>
   );

@@ -14,27 +14,15 @@ import { pickDocument } from '@/utils/filePicker';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 interface DocumentFormData {
-  studentSelfie?: UploadedDocument;
-  cetRankSheet?: UploadedDocument;
-  ptRankSheet?: UploadedDocument;
-  dwellingUnitPhoto?: UploadedDocument;
-  marksSheet12?: UploadedDocument;
-  houseVideo?: UploadedDocument;
-  electricityBill?: UploadedDocument;
+  pucMarksCard?: UploadedDocument;
   incomeCertificate?: UploadedDocument;
-  rationCard?: UploadedDocument;
+  aadharCard?: UploadedDocument;
 }
 
 const DOC_KEYS = [
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.STUDENT_SELFIE, label: 'Student Selfie/Photograph', subtitle: 'Upload a clear selfie/photograph (PDF/JPG, max 2MB)' },
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.CET_RANK_SHEET, label: 'CET Rank Sheet', subtitle: 'Upload CET rank sheet (PDF/JPG, max 2MB)' },
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.PT_RANK_SHEET, label: 'PT Rank Sheet', subtitle: 'Upload PT rank sheet (PDF/JPG, max 2MB)' },
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.DWELLING_UNIT_PHOTO, label: 'Dwelling Unit Photo', subtitle: 'Upload photo of your dwelling unit (PDF/JPG, max 2MB)' },
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.MARKS_SHEET_12, label: '12th Marks Sheet', subtitle: 'Upload 12th marks sheet (PDF/JPG, max 2MB)' },
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO, label: 'House Video', subtitle: 'Upload house video link or file (PDF/JPG, max 2MB)' },
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL, label: 'Electricity Bill', subtitle: 'Upload latest electricity bill (PDF/JPG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.PUC_MARKS_CARD, label: 'PUC Marks Card', subtitle: 'Upload PUC marks card (PDF/JPG, max 2MB)' },
   { key: SEMI_PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE, label: 'Income Certificate', subtitle: 'Upload family income certificate (PDF/JPG, max 2MB)' },
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.RATION_CARD, label: 'Ration Card', subtitle: 'Upload ration card (PDF/JPG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.AADHAR_CARD, label: 'Aadhar Card', subtitle: 'Upload Aadhar card (PDF/JPG, max 2MB)' },
 ];
 
 export default function DocumentSection({ navigation }: any) {

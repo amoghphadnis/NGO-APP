@@ -3,11 +3,11 @@
  * Tests the payload preparation and submission flow
  */
 
-import { preparePayload } from '../preparePayload';
-import { validatePayload } from '../validatePayload';
-import { submitApplication } from '../submit';
-import { PayanaFormValues } from '@/types/forms';
+import { PayanaFormValues, PucFormValues } from '@/types/forms';
 import { SemiProfessionalFormValues } from '@/validation/semiProfessionalSchemas';
+import { preparePayload } from '../preparePayload';
+import { submitApplication } from '../submit';
+import { validatePayload } from '../validatePayload';
 
 // Mock the API modules
 jest.mock('@/api/professionalApi');
@@ -16,64 +16,167 @@ jest.mock('@/api/semiProfessionalApi');
 jest.mock('@/api/payanaApi');
 
 import { createPayanaStudent } from '@/api/payanaApi';
-import { createSemiProfessionalStudent } from '@/api/semiProfessionalApi';
+import { createPUCStudent } from '@/api/pucApi';
+
+function formDataKeys(payload: FormData): string[] {
+  const anyFd = payload as any;
+  if (typeof anyFd.keys === 'function') {
+    return Array.from(anyFd.keys() as Iterable<string>);
+  }
+  if (typeof anyFd.getParts === 'function') {
+    return anyFd.getParts().map((p: any) => p.fieldName as string);
+  }
+  return [];
+}
+
+function buildValidPayana(overrides: Partial<PayanaFormValues> = {}): PayanaFormValues {
+  return {
+    personal: {
+      studentName: 'Test Student',
+      genderID: 1,
+      casteCategoryID: 1,
+      dateOfBirth: '2000-01-01',
+    },
+    contact: {
+      email: 'test@test.com',
+      contactNumber: '9876543210',
+      alternateNumber: '',
+    },
+    address: {
+      residentialAddress: 'Test Address',
+      currentAddress: 'Test Address',
+      taluka: 'Test Taluka',
+      districtID: 1,
+      otherDistrict: '',
+      pincode: '560001',
+      placeID: 2,
+    },
+    family: {
+      fatherName: 'Test Father',
+      motherName: 'Test Mother',
+      fatherOccupationID: 1,
+      motherOccupationID: 2,
+      familyMembers: 4,
+      familyIncome: '50000',
+      parentBank: '10000',
+    },
+    category: {
+      casteCategoryID: 1,
+      houseTypeID: 1,
+    },
+    academic: {
+      courseID: 1,
+      collegeName: 'Test College',
+      collegeTypeID: 1,
+      collegeCNumber: '',
+      courseSA: 'Test',
+      courseStream: '',
+      annualFees: '100000',
+      totalExpenses: '150000',
+      studentAchievements: 'District topper',
+      securedPercentage: '85',
+    },
+    bank: {
+      accountHolderName: 'Test Student',
+      bankAccountNo: '1234567890',
+      ifscCode: 'TEST0001',
+      bankName: 'Test Bank',
+      branchName: 'Test Branch',
+    },
+    documents: {
+      houseVisitLink: 'https://maps.google.com/test',
+    },
+    agreement: {
+      isAgreed: true,
+    },
+    ...overrides,
+  };
+}
+
+function buildValidSemiProfessional(): SemiProfessionalFormValues {
+  return {
+    personal: {
+      email: 'test@test.com',
+      studentName: 'Test Student',
+      dateOfBirth: '2000-01-01',
+      contactNumber: '9876543210',
+      genderID: 1,
+      casteCategoryID: 1,
+      districtID: 1,
+      otherDistrict: '',
+      taluk: 'Test Taluk',
+      address: 'Test Address',
+      placeID: 1,
+    },
+    family: {
+      fatherOccupationID: 1,
+      motherOccupationID: 2,
+      familyMembers: 4,
+      annualIncome: 50000,
+    },
+    academic: {
+      puPercentage: 85,
+      semiProfessionalCourseID: 1,
+      collegeName: 'Test College',
+      collegeTypeID: 1,
+      collegeFees: 25000,
+    },
+    documents: {},
+  };
+}
+
+function buildValidPucFormat11(overrides: Partial<PucFormValues> = {}): PucFormValues {
+  return {
+    personal: {
+      StudentName: 'Test Student',
+      DateOfBirth: '2005-06-15',
+      Gender: 1,
+      Caste: 2,
+      Place: 3,
+    },
+    contact: {
+      Email: 'test@test.com',
+      ContactNumber: '9876543210',
+      AlternateNumber: '',
+    },
+    address: {
+      District: 1,
+      OtherDistrict: '',
+      Taluk: 'Test Taluk',
+      ResidentialAddress: 'Test Residential Address',
+    },
+    family: {
+      FatherOccupation: 1,
+      MotherOccupation: 2,
+      TotalFamilyMembers: 4,
+      FamilyAnnualIncome: 50000,
+    },
+    academic: {
+      SSLCPercentage: 85,
+      CourseJoined: 1,
+      CollegeName: 'Test College',
+      CollegeType: 1,
+      CollegeFees: 25000,
+      CollegeContactNumber: '08012345678',
+      Achievement: 'District topper',
+    },
+    bank: {
+      ParentsBankBalance: 10000,
+      AccountHolderName: 'Test Parent',
+      AccountNumber: '1234567890',
+      IFSCCode: 'TEST0001',
+      BankName: 'Test Bank',
+      BranchName: 'Test Branch',
+    },
+    documents: {},
+    ...overrides,
+  };
+}
 
 describe('Form Submission', () => {
   describe('preparePayload', () => {
-    it('should include all Payana files in FormData', () => {
-      const mockFormData: PayanaFormValues = {
-        personal: {
-          studentName: 'Test Student',
-          genderID: 1,
-          dateOfBirth: '2000-01-01',
-        },
-        contact: {
-          email: 'test@test.com',
-          contactNumber: '9876543210',
-          alternateNumber: '',
-        },
-        address: {
-          residentialAddress: 'Test Address',
-          currentAddress: 'Test Address',
-          place: 'Test Place',
-          taluka: 'Test Taluka',
-          districtID: 1,
-          otherDistrict: '',
-          pincode: '560001',
-          areaTypeID: 1,
-        },
-        family: {
-          fatherName: 'Test Father',
-          motherName: 'Test Mother',
-          fatherOccupationID: 1,
-          motherOccupationID: 2,
-          familyMembers: 4,
-          familyIncome: 50000,
-          parentBank: 10000,
-        },
-        category: {
-          casteCategoryID: 1,
-          houseTypeID: 1,
-        },
-        academic: {
-          courseID: 1,
-          collegeName: 'Test College',
-          collegeTypeID: 1,
-          collegeCNumber: '',
-          courseSA: 'Test',
-          courseStream: '',
-          annualFees: 100000,
-          totalExpenses: 150000,
-          studentAchievements: '',
-          securedPercentage: '85',
-        },
-        bank: {
-          accountHolderName: 'Test Student',
-          bankAccountNo: '1234567890',
-          ifscCode: 'TEST0001',
-          bankName: 'Test Bank',
-          branchName: 'Test Branch',
-        },
+    it('should emit Payana multipart fields and files with contract names', () => {
+      const mockFormData = buildValidPayana({
         documents: {
           latestMarksCard: {
             file: { uri: 'file://test1.jpg', name: 'marksheet.jpg', type: 'image/jpeg' },
@@ -97,19 +200,29 @@ describe('Form Submission', () => {
           },
           houseVisitLink: 'https://maps.google.com/test',
         },
-        agreement: {
-          isAgreed: true,
-        },
-      };
+      });
 
       const payload = preparePayload('payana', mockFormData);
-      const keys = Array.from((payload as any).keys());
+      expect(payload).toBeInstanceOf(FormData);
 
-      // Check that text fields are present
+      const keys = formDataKeys(payload);
+
+      // Required text fields
       expect(keys).toContain('StudentName');
+      expect(keys).toContain('ContactNumber');
       expect(keys).toContain('Email');
 
-      // Check that files are present with correct API field names
+      // Contract field names (not the old JSON names)
+      expect(keys).toContain('AreaTypeID');
+      expect(keys).not.toContain('PlaceID');
+      expect(keys).toContain('RAddress');
+      expect(keys).toContain('CAddress');
+      expect(keys).toContain('StudentAchivements');
+      expect(keys).toContain('securedPercentage');
+      expect(keys).toContain('bankaccountno');
+      expect(keys).toContain('ifsccode');
+
+      // Files use exact contract multipart names
       expect(keys).toContain('latestmarkscard');
       expect(keys).toContain('studentpassbookFP');
       expect(keys).toContain('StudentPhoto');
@@ -118,36 +231,10 @@ describe('Form Submission', () => {
     });
 
     it('should log missing files for Payana', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      
-      const mockFormData: PayanaFormValues = {
-        personal: { studentName: 'Test', genderID: 1 },
-        contact: { email: 'test@test.com', contactNumber: '9876543210' },
-        address: { 
-          residentialAddress: 'Test', currentAddress: 'Test', place: 'Test', 
-          taluka: 'Test', districtID: 1, otherDistrict: '', pincode: '560001', areaTypeID: 1 
-        },
-        family: { 
-          fatherName: 'Test', motherName: 'Test', fatherOccupationID: 1, motherOccupationID: 1,
-          familyMembers: 4, familyIncome: 50000, parentBank: 10000 
-        },
-        category: { casteCategoryID: 1, houseTypeID: 1 },
-        academic: { 
-          courseID: 1, collegeName: 'Test', collegeTypeID: 1, collegeCNumber: '', 
-          courseSA: 'Test', courseStream: '', annualFees: 100000, totalExpenses: 150000, 
-          studentAchievements: '', securedPercentage: '85' 
-        },
-        bank: { 
-          accountHolderName: 'Test', bankAccountNo: '1234567890', ifscCode: 'TEST0001',
-          bankName: 'Test Bank', branchName: 'Test Branch' 
-        },
-        documents: {}, // No files uploaded
-        agreement: { isAgreed: true },
-      };
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
 
-      preparePayload('payana', mockFormData);
+      preparePayload('payana', buildValidPayana({ documents: {} }));
 
-      // Check that missing files are logged
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Missing file: latestMarksCard')
       );
@@ -155,108 +242,208 @@ describe('Form Submission', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should include SemiProfessional required fields', () => {
-      const mockFormData: SemiProfessionalFormValues = {
-        personal: {
-          studentName: 'Test Student',
-          email: 'test@test.com',
-          dateOfBirth: '2000-01-01',
-          contactNumber: '9876543210',
-          genderID: 1,
-          casteCategoryID: 1,
-        },
-        address: {
-          districtID: 1,
-          taluk: 'Test Taluk',
-          placeID: 1,
-          address: 'Test Address',
-        },
-        family: {
-          fatherOccupationID: 1,
-          motherOccupationID: 2,
-          familyMembers: 4,
-          annualIncome: 50000,
-        },
-        academic: {
-          puPercentage: 85,
-          semiProfessionalCourseID: 1,
-          collegeName: 'Test College',
-          collegeTypeID: 1,
-          collegeFees: 50000,
-        },
-        documents: {
-          houseVisitLink: 'https://test.com',
-        },
-      };
+    it('should emit SemiProfessional multipart fields with contract names', () => {
+      const payload = preparePayload('semiProfessional', buildValidSemiProfessional());
+      const keys = formDataKeys(payload);
 
-      const payload = preparePayload('semiProfessional', mockFormData);
-      const keys = Array.from((payload as any).keys());
-
-      // Check that required family fields are ALWAYS present
+      // Contract fields must be present
+      expect(keys).toContain('Email');
+      expect(keys).toContain('StudentName');
+      expect(keys).toContain('DateOfBirth');
+      expect(keys).toContain('ContactNumber');
+      expect(keys).toContain('GenderID');
+      expect(keys).toContain('CasteCategoryID');
+      expect(keys).toContain('DistrictID');
+      expect(keys).toContain('OtherDistrict');
+      expect(keys).toContain('Taluk');
+      expect(keys).toContain('Address');
+      expect(keys).toContain('PlaceID');
       expect(keys).toContain('FatherOccupationID');
       expect(keys).toContain('MotherOccupationID');
+      expect(keys).toContain('FamilyMembers');
+      expect(keys).toContain('AnnualIncome');
+      expect(keys).toContain('PUPercentage');
+      expect(keys).toContain('SemiProfessionalCourseID');
+      expect(keys).toContain('CollegeName');
+      expect(keys).toContain('CollegeTypeID');
+      expect(keys).toContain('CollegeFees');
+      expect(keys).toContain('HouseVisitLink');
+
+      // Legacy/obsolete fields must NOT be present
+      expect(keys).not.toContain('DOB');
+      expect(keys).not.toContain('ResidentialAddress');
+      expect(keys).not.toContain('AreaTypeID');
+      expect(keys).not.toContain('AlternateNumber');
+      expect(keys).not.toContain('GoogleMapLink');
+      expect(keys).not.toContain('FatherName');
+      expect(keys).not.toContain('MotherName');
+      expect(keys).not.toContain('HouseTypeID');
+      expect(keys).not.toContain('MonthlyRent');
+      expect(keys).not.toContain('FamilyIncome');
+      expect(keys).not.toContain('CETRank');
+      expect(keys).not.toContain('PTRank');
+      expect(keys).not.toContain('CourseApplying');
+      expect(keys).not.toContain('CourseStream');
+      expect(keys).not.toContain('StudentSelfie');
+      expect(keys).not.toContain('CETRankSheet');
+      expect(keys).not.toContain('PTRankSheet');
+      expect(keys).not.toContain('DwellingUnitPhoto');
+      expect(keys).not.toContain('MarksSheet12');
+      expect(keys).not.toContain('HouseVideo');
+      expect(keys).not.toContain('ElectricityBill');
+      expect(keys).not.toContain('RationCard');
+    });
+
+    it('should emit SemiProfessional document file keys when documents are provided', () => {
+      const data = buildValidSemiProfessional();
+      data.documents = {
+        pucMarksCard: {
+          file: { uri: 'file://puc.jpg', name: 'puc.jpg', type: 'image/jpeg' },
+          uploadedAt: new Date().toISOString(),
+        },
+        incomeCertificate: {
+          file: { uri: 'file://income.pdf', name: 'income.pdf', type: 'application/pdf' },
+          uploadedAt: new Date().toISOString(),
+        },
+        aadharCard: {
+          file: { uri: 'file://aadhar.jpg', name: 'aadhar.jpg', type: 'image/jpeg' },
+          uploadedAt: new Date().toISOString(),
+        },
+      };
+      const payload = preparePayload('semiProfessional', data);
+      const keys = formDataKeys(payload);
+
+      expect(keys).toContain('PUCMarksCard');
+      expect(keys).toContain('IncomeCertificate');
+      expect(keys).toContain('AadharCard');
+    });
+
+    it('should emit PUC Format 1.1 multipart fields with contract names', () => {
+      const mockFormData = buildValidPucFormat11({
+        documents: {
+          StudentSelfie: {
+            file: { uri: 'file://selfie.jpg', name: 'selfie.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+          SSLCMarksCard: {
+            file: { uri: 'file://sslc.jpg', name: 'sslc.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+          FeeReceipts: {
+            file: { uri: 'file://fees.pdf', name: 'fees.pdf', type: 'application/pdf' },
+            uploadedAt: new Date().toISOString(),
+          },
+          BankPassbook: {
+            file: { uri: 'file://passbook.jpg', name: 'passbook.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+          AadhaarCard: {
+            file: { uri: 'file://aadhaar.jpg', name: 'aadhaar.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+        },
+      });
+
+      const payload = preparePayload('puc', mockFormData);
+      expect(payload).toBeInstanceOf(FormData);
+
+      const keys = formDataKeys(payload);
+
+      // Personal fields (contract names, not old names)
+      expect(keys).toContain('StudentName');
+      expect(keys).toContain('DateOfBirth');
+      expect(keys).toContain('Gender');
+      expect(keys).toContain('Caste');
+      expect(keys).toContain('Place');
+
+      // Contact fields
+      expect(keys).toContain('Email');
+      expect(keys).toContain('ContactNumber');
+
+      // Address fields (contract names)
+      expect(keys).toContain('District');
+      expect(keys).toContain('Taluk');
+      expect(keys).toContain('ResidentialAddress');
+      expect(keys).not.toContain('DistrictID');
+      expect(keys).not.toContain('Taluka');
+      expect(keys).not.toContain('Address');
+      expect(keys).not.toContain('Pincode');
+
+      // Family fields (contract names)
+      expect(keys).toContain('FatherOccupation');
+      expect(keys).toContain('MotherOccupation');
+      expect(keys).toContain('TotalFamilyMembers');
+      expect(keys).toContain('FamilyAnnualIncome');
+      expect(keys).not.toContain('FatherOccupationID');
+      expect(keys).not.toContain('MotherOccupationID');
+      expect(keys).not.toContain('FamilyMembers');
+      expect(keys).not.toContain('FamilyIncome');
+
+      // Academic fields (contract names)
+      expect(keys).toContain('SSLCPercentage');
+      expect(keys).toContain('CourseJoined');
+      expect(keys).toContain('CollegeType');
+      expect(keys).toContain('CollegeFees');
+      expect(keys).toContain('CollegeContactNumber');
+      expect(keys).toContain('Achievement');
+      expect(keys).not.toContain('CourseID');
+      expect(keys).not.toContain('CollegeTypeID');
+      expect(keys).not.toContain('ExpectedFees');
+      expect(keys).not.toContain('SecuredPercentage');
+
+      // Bank fields
+      expect(keys).toContain('ParentsBankBalance');
+      expect(keys).toContain('AccountHolderName');
+      expect(keys).toContain('AccountNumber');
+      expect(keys).toContain('IFSCCode');
+      expect(keys).toContain('BankName');
+      expect(keys).toContain('BranchName');
+
+      // File fields (exact contract names)
+      expect(keys).toContain('StudentSelfie');
+      expect(keys).toContain('SSLCMarksCard');
+      expect(keys).toContain('FeeReceipts');
+      expect(keys).toContain('BankPassbook');
+      expect(keys).toContain('AadhaarCard');
+
+      // Old file names should NOT be present
+      expect(keys).not.toContain('StudentPhoto');
+      expect(keys).not.toContain('ElectricityBill');
+      expect(keys).not.toContain('RationCards');
+      expect(keys).not.toContain('IncomeCertificate');
+      expect(keys).not.toContain('FamilyPhoto');
+      expect(keys).not.toContain('HouseVideo');
+      expect(keys).not.toContain('HouseVisitLink');
+    });
+
+    it('should log missing files for PUC Format 1.1', () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+
+      preparePayload('puc', buildValidPucFormat11({ documents: {} }));
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Missing required file: StudentSelfie')
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Missing required file: SSLCMarksCard')
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Missing required file: FeeReceipts')
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Missing required file: BankPassbook')
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Missing required file: AadhaarCard')
+      );
+
+      consoleSpy.mockRestore();
     });
   });
 
   describe('validatePayload', () => {
     it('should validate Payana schema successfully', () => {
-      const validPayana: PayanaFormValues = {
-        personal: {
-          studentName: 'Test Student',
-          genderID: 1,
-          dateOfBirth: '2000-01-01',
-        },
-        contact: {
-          email: 'test@test.com',
-          contactNumber: '9876543210',
-        },
-        address: {
-          residentialAddress: 'Test Address',
-          currentAddress: 'Test Address',
-          place: 'Test Place',
-          taluka: 'Test Taluka',
-          districtID: 1,
-          pincode: '560001',
-          areaTypeID: 1,
-        },
-        family: {
-          fatherName: 'Test Father',
-          motherName: 'Test Mother',
-          fatherOccupationID: 1,
-          motherOccupationID: 2,
-          familyMembers: 4,
-          familyIncome: 50000,
-          parentBank: 10000,
-        },
-        category: {
-          casteCategoryID: 1,
-          houseTypeID: 1,
-        },
-        academic: {
-          courseID: 1,
-          collegeName: 'Test College',
-          collegeTypeID: 1,
-          courseSA: 'Test Course',
-          annualFees: 100000,
-          totalExpenses: 150000,
-          securedPercentage: '85',
-        },
-        bank: {
-          accountHolderName: 'Test Student',
-          bankAccountNo: '1234567890',
-          ifscCode: 'TEST0001',
-          bankName: 'Test Bank',
-          branchName: 'Test Branch',
-        },
-        documents: {
-          houseVisitLink: 'https://test.com',
-        },
-        agreement: {
-          isAgreed: true,
-        },
-      };
-
-      const result = validatePayload('payana', validPayana);
+      const result = validatePayload('payana', buildValidPayana());
 
       expect(result.success).toBe(true);
       expect(result.errors).toBeUndefined();
@@ -283,76 +470,56 @@ describe('Form Submission', () => {
     });
 
     it('should validate SemiProfessional schema', () => {
-      const validSemiPro: SemiProfessionalFormValues = {
-        personal: {
-          studentName: 'Test Student',
-          email: 'test@test.com',
-          dateOfBirth: '2000-01-01',
-          contactNumber: '9876543210',
-          genderID: 1,
-          casteCategoryID: 1,
-        },
-        address: {
-          districtID: 1,
-          taluk: 'Test Taluk',
-          placeID: 1,
-          address: 'Test Address',
-        },
-        family: {
-          fatherOccupationID: 1,
-          motherOccupationID: 2,
-          familyMembers: 4,
-          annualIncome: 50000,
-        },
-        academic: {
-          puPercentage: 85,
-          semiProfessionalCourseID: 1,
-          collegeName: 'Test College',
-          collegeTypeID: 1,
-          collegeFees: 50000,
-        },
-        documents: {},
-      };
-
-      const result = validatePayload('semiProfessional', validSemiPro);
+      const result = validatePayload('semiProfessional', buildValidSemiProfessional());
 
       expect(result.success).toBe(true);
     });
 
     it('should fail SemiProfessional validation without required occupation IDs', () => {
+      const base = buildValidSemiProfessional();
       const invalidSemiPro: SemiProfessionalFormValues = {
-        personal: {
-          studentName: 'Test Student',
-          email: 'test@test.com',
-          dateOfBirth: '2000-01-01',
-          contactNumber: '9876543210',
-          genderID: 1,
-          casteCategoryID: 1,
-        },
-        address: {
-          districtID: 1,
-          taluk: 'Test Taluk',
-          placeID: 1,
-          address: 'Test Address',
-        },
-        family: {
-          // Missing fatherOccupationID and motherOccupationID
-          fatherOccupationID: 0,
-          motherOccupationID: 0,
-          familyMembers: 4,
-          annualIncome: 50000,
-        },
-        academic: {
-          puPercentage: 85,
-          semiProfessionalCourseID: 1,
-          collegeName: 'Test College',
-          collegeTypeID: 1,
-          collegeFees: 50000,
-        },
-        documents: {},
+        ...base,
+        family: { ...base.family, fatherOccupationID: 0, motherOccupationID: 0 },
       };
 
       const result = validatePayload('semiProfessional', invalidSemiPro);
+
+      expect(result.success).toBe(false);
+    });
+
+    it('should validate PUC Format 1.1 schema successfully', () => {
+      const result = validatePayload('puc', buildValidPucFormat11());
+
+      expect(result.success).toBe(true);
+      expect(result.errors).toBeUndefined();
+    });
+
+    it('should fail PUC validation with missing required fields', () => {
+      const invalidPuc = {
+        personal: {},
+        contact: {},
+        address: {},
+        family: {},
+        academic: {},
+        bank: {},
+        documents: {},
+      } as any;
+
+      const result = validatePayload('puc', invalidPuc);
+
+      expect(result.success).toBe(false);
+      expect(result.errors).toBeDefined();
+      expect(result.errors?.length).toBeGreaterThan(0);
+    });
+
+    it('should fail PUC validation with zero Gender or Caste', () => {
+      const base = buildValidPucFormat11();
+      const invalidPuc: PucFormValues = {
+        ...base,
+        personal: { ...base.personal, Gender: 0, Caste: 0 },
+      };
+
+      const result = validatePayload('puc', invalidPuc);
 
       expect(result.success).toBe(false);
     });
@@ -376,13 +543,28 @@ describe('Form Submission', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should route puc form to createPUCStudent', async () => {
+      const mockPayload = new FormData();
+      (createPUCStudent as jest.Mock).mockResolvedValue({
+        success: true,
+        message: 'PUC student created successfully',
+      });
+
+      const result = await submitApplication('puc', mockPayload);
+
+      expect(createPUCStudent).toHaveBeenCalledWith(mockPayload);
+      expect(result.success).toBe(true);
+    });
+
     it('should return error for unsupported form type', async () => {
       const mockPayload = new FormData();
       
       const result = await submitApplication('unknown' as any, mockPayload);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Unsupported form type');
+      if (!result.success) {
+        expect(result.error).toContain('Unsupported form type');
+      }
     });
 
     it('should handle API errors gracefully', async () => {
@@ -392,7 +574,9 @@ describe('Form Submission', () => {
       const result = await submitApplication('payana', mockPayload);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Network error');
+      if (!result.success) {
+        expect(result.error).toContain('Network error');
+      }
     });
   });
 });

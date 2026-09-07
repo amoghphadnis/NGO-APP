@@ -1,10 +1,17 @@
-import StudentListScreen from '@/screens/volunteer/StudentListScreen';
+import { payanaApprovalApi } from '@/api/payanaApprovalApi';
+import GenericApprovalListScreen from '@/screens/approval/GenericApprovalListScreen';
 
 export default function ApprovalPayanaScreen() {
   return (
-    <StudentListScreen
-      studentType="payana"
-      title="Payana Students"
+    <GenericApprovalListScreen
+      title="Payana Approval"
+      api={{
+        getList: payanaApprovalApi.getList,
+        approve: payanaApprovalApi.approve,
+        reject: payanaApprovalApi.reject,
+        queryKey: payanaApprovalApi.queryKeys.list,
+        invalidatePrefix: 'payanaApproval',
+      }}
     />
   );
 }

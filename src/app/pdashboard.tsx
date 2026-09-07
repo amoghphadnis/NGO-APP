@@ -1,8 +1,4 @@
 import { dashboardApi } from '@/api/dashboardApi';
-import { payanaStudentApi } from '@/api/payanaStudentApi';
-import { professionalStudentApi } from '@/api/professionalStudentApi';
-import { pucStudentApi } from '@/api/pucStudentApi';
-import { semiProfessionalStudentApi } from '@/api/semiProfessionalStudentApi';
 import AppFooter from '@/components/common/AppFooter';
 import { DASHBOARD_MENU_ITEMS, DASHBOARD_MENU_SECTIONS } from '@/config/appContent';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -10,6 +6,7 @@ import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { DashboardError, DashboardErrorCode, PDashboardResponseDto } from '@/types/dashboard';
+import { canCreatePayana } from '@/utils/roleUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -37,10 +34,10 @@ interface StatCardConfig {
 }
 
 const STAT_CARDS: StatCardConfig[] = [
-  { label: 'Pending PUC',          field: 'PendingPUC',          icon: 'school-outline',         route: '/approval/puc' },
-  { label: 'Pending Payana',       field: 'PendingPayana',        icon: 'bicycle-outline',        route: '/approval/payana' },
-  { label: 'Pending Professional', field: 'PendingProfessional',  icon: 'briefcase-outline',      route: '/approval/professional' },
-  { label: 'Pending Semi Prof',    field: 'PendingSemiProfessional', icon: 'book-outline',        route: '/approval/semi-professional' },
+  { label: 'Pending PUC Apps',          field: 'PendingPUC',          icon: 'school-outline',         route: '/approval/puc' },
+  { label: 'Pending Payana Apps',       field: 'PendingPayana',        icon: 'bicycle-outline',        route: '/approval/payana' },
+  { label: 'Pending Prof Apps',         field: 'PendingProfessional',  icon: 'briefcase-outline',      route: '/approval/professional' },
+  { label: 'Pending Semi Prof Apps',    field: 'PendingSemiProfessional', icon: 'book-outline',        route: '/approval/semi-professional' },
 ];
 
 interface DrawerNavItem {
@@ -62,13 +59,6 @@ function SkeletonCard() {
   return <View style={styles.skeletonCard} />;
 }
 
-interface RealTimeCounts {
-  pendingPUC: number;
-  pendingPayana: number;
-  pendingProfessional: number;
-  pendingSemiProfessional: number;
-}
-
 interface DrawerProps {
   open: boolean;
   slideAnim: Animated.Value;
@@ -78,7 +68,6 @@ interface DrawerProps {
   onLogout: () => void;
   user: { UserName: string; Role: string; District: string } | null;
   dashboard: PDashboardResponseDto | null;
-  realTimeCounts: RealTimeCounts;
 }
 
 function DrawerSidebar({
@@ -90,31 +79,30 @@ function DrawerSidebar({
   onLogout,
   user,
   dashboard,
-  realTimeCounts,
 }: DrawerProps) {
   const navItems: DrawerNavItem[] = [
     {
       icon: 'school-outline',
-      label: 'Pending PUC',
-      badge: realTimeCounts.pendingPUC,
+      label: 'Pending PUC Apps',
+      badge: dashboard?.PendingPUC ?? 0,
       route: '/approval/puc',
     },
     {
       icon: 'bicycle-outline',
-      label: 'Pending Payana',
-      badge: realTimeCounts.pendingPayana,
+      label: 'Pending Payana Apps',
+      badge: dashboard?.PendingPayana ?? 0,
       route: '/approval/payana',
     },
     {
       icon: 'briefcase-outline',
-      label: 'Pending Professional',
-      badge: realTimeCounts.pendingProfessional,
+      label: 'Pending Prof Apps',
+      badge: dashboard?.PendingProfessional ?? 0,
       route: '/approval/professional',
     },
     {
       icon: 'book-outline',
-      label: 'Pending Semi Prof',
-      badge: realTimeCounts.pendingSemiProfessional,
+      label: 'Pending Semi Prof Apps',
+      badge: dashboard?.PendingSemiProfessional ?? 0,
       route: '/approval/semi-professional',
     },
   ];
@@ -199,12 +187,6 @@ export default function PDashboardScreen() {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dashboard, setDashboard] = useState<PDashboardResponseDto | null>(null);
-  const [realTimeCounts, setRealTimeCounts] = useState<RealTimeCounts>({
-    pendingPUC: 0,
-    pendingPayana: 0,
-    pendingProfessional: 0,
-    pendingSemiProfessional: 0,
-  });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -243,56 +225,11 @@ export default function PDashboardScreen() {
     }, 260);
   }, [closeDrawer, logout, router]);
 
-  const fetchRealTimeCounts = useCallback(async () => {
-    try {
-      console.log('[PDashboard] Fetching real-time student counts...');
-      
-      const [pucResult, payanaResult, professionalResult, semiProfResult] = await Promise.allSettled([
-        pucStudentApi.getList(),
-        payanaStudentApi.getList(),
-        professionalStudentApi.getList(),
-        semiProfessionalStudentApi.getList(),
-      ]);
-
-      const counts: RealTimeCounts = {
-        pendingPUC: 0,
-        pendingPayana: 0,
-        pendingProfessional: 0,
-        pendingSemiProfessional: 0,
-      };
-
-      if (pucResult.status === 'fulfilled') {
-        counts.pendingPUC = pucResult.value.students?.length || 0;
-        console.log('[PDashboard] PUC students count:', counts.pendingPUC);
-      }
-
-      if (payanaResult.status === 'fulfilled') {
-        counts.pendingPayana = payanaResult.value.students?.length || 0;
-        console.log('[PDashboard] Payana students count:', counts.pendingPayana);
-      }
-
-      if (professionalResult.status === 'fulfilled') {
-        counts.pendingProfessional = professionalResult.value.students?.length || 0;
-        console.log('[PDashboard] Professional students count:', counts.pendingProfessional);
-      }
-
-      if (semiProfResult.status === 'fulfilled') {
-        counts.pendingSemiProfessional = semiProfResult.value.students?.length || 0;
-        console.log('[PDashboard] Semi Professional students count:', counts.pendingSemiProfessional);
-      }
-
-      setRealTimeCounts(counts);
-    } catch (err) {
-      console.error('[PDashboard] Error fetching real-time counts:', err);
-    }
-  }, []);
-
   const fetchDashboard = useCallback(async () => {
     try {
       setError(null);
       const data = await dashboardApi.getPDashboard();
       setDashboard(data);
-      await fetchRealTimeCounts();
     } catch (e) {
       if (e instanceof DashboardError) {
         if (
@@ -311,7 +248,7 @@ export default function PDashboardScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [logout, router, fetchRealTimeCounts]);
+  }, [logout, router]);
 
   useEffect(() => {
     fetchDashboard();
@@ -323,18 +260,7 @@ export default function PDashboardScreen() {
   }, [fetchDashboard]);
 
   const getCountForCard = (field: StatCardConfig['field']): number => {
-    switch (field) {
-      case 'PendingPUC':
-        return realTimeCounts.pendingPUC;
-      case 'PendingPayana':
-        return realTimeCounts.pendingPayana;
-      case 'PendingProfessional':
-        return realTimeCounts.pendingProfessional;
-      case 'PendingSemiProfessional':
-        return realTimeCounts.pendingSemiProfessional;
-      default:
-        return dashboard?.[field] ?? 0;
-    }
+    return dashboard?.[field] ?? 0;
   };
 
   const renderStatCard = ({ item }: { item: StatCardConfig }) => (
@@ -379,6 +305,21 @@ export default function PDashboardScreen() {
             <SkeletonCard key={i} />
           ))}
         </View>
+      )}
+
+      {!loading && !error && canCreatePayana(user?.Role) && (
+        <>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <TouchableOpacity
+            style={styles.quickActionCard}
+            onPress={() => (router.push as any)(DASHBOARD_MENU_ITEMS.newPayana.route)}
+            activeOpacity={0.75}
+          >
+            <Ionicons name="star-outline" size={24} color={colors.primary} />
+            <Text style={styles.quickActionLabel}>{DASHBOARD_MENU_ITEMS.newPayana.label}</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </>
       )}
 
       {!loading && !error && (
@@ -446,7 +387,6 @@ export default function PDashboardScreen() {
         onLogout={handleDrawerLogout}
         user={user}
         dashboard={dashboard}
-        realTimeCounts={realTimeCounts}
       />
     </SafeAreaView>
   );
@@ -693,5 +633,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     marginHorizontal: spacing.md,
     marginVertical: spacing.sm,
+  },
+  quickActionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 6 },
+      android: { elevation: 2 },
+    }),
+  },
+  quickActionLabel: {
+    flex: 1,
+    fontSize: platform.normalize.fontSize.body,
+    color: colors.textPrimary,
+    fontWeight: '500',
   },
 });

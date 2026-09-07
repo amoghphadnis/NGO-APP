@@ -48,7 +48,7 @@ export const semiProfessionalStepConfigs = [
   {
     id: 'family' as FormStep,
     title: 'Family Details',
-    subtitle: 'Parents info, family and housing details',
+    subtitle: 'Parents occupation and family income details',
     component: 'FamilySection',
     validation: 'semiProfFamilySchema',
     required: true,
@@ -57,7 +57,7 @@ export const semiProfessionalStepConfigs = [
   {
     id: 'academic' as FormStep,
     title: 'Academic Details',
-    subtitle: 'PU percentage, CET/PT rank, course details',
+    subtitle: 'PU percentage, course, college details',
     component: 'AcademicSection',
     validation: 'semiProfAcademicSchema',
     required: true,

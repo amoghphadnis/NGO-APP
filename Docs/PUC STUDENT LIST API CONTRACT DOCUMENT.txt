@@ -1,0 +1,1211 @@
+PUC STUDENT LIST API CONTRACT DOCUMENT
+=========================================================
+
+API NAME:
+PUC Student List API
+
+CONTROLLER:
+PUC_StudentsListController
+
+NAMESPACE:
+VP_WebAPI.Controllers
+
+BASE ROUTE / ROUTE PREFIX:
+api/pucstudents
+
+FULL BASE ROUTE:
+[BASE_URL]/api/pucstudents
+
+AUTHENTICATION:
+JWT-based authentication is required.
+
+AUTHENTICATION FILTER:
+JwtSessionFilter
+
+DATABASE CONNECTION:
+EnvisageDb
+
+AUTHENTICATED USER CONTEXT USED:
+- CurrentUser.Role
+- CurrentUser.UserID
+
+IMPORTANT AUTHORIZATION NOTE:
+The controller is decorated with [JwtSessionFilter]. The exact JWT header format, token generation endpoint, token expiry, required JWT claims, and authentication failure behavior are not defined in the supplied controller code. These details depend on the implementation of JwtSessionFilter and the application's JWT configuration.
+
+ROLE-BASED LOGIC:
+- Volunteer users are restricted to students assigned to CurrentUser.UserID.
+- Non-Volunteer users may filter students using the districtId query parameter.
+- For Volunteer users, districtId is ignored.
+- The controller does not explicitly implement an Admin-only authorization check.
+- The controller determines Volunteer behavior using a case-insensitive comparison against "Volunteer".
+
+TOTAL PUBLIC API ENDPOINTS:
+1
+
+PUBLIC ENDPOINTS:
+- GET /api/pucstudents/studentlist
+
+PRIVATE HELPER METHODS:
+- LoadDistricts()
+
+NOTE:
+LoadDistricts() is a private helper method and is not directly exposed as an API endpoint. Its output is included in the response of the Student List endpoint.
+
+=========================================================
+1. PUC STUDENT LIST
+=========================================================
+
+Endpoint:
+GET /api/pucstudents/studentlist
+
+Purpose:
+Retrieves a list of approved PUC students accessible to the authenticated user.
+
+The API:
+- Returns only students whose New_Students.ApprovalStatus = 'Approved'.
+- Supports optional student-name searching.
+- Supports optional district filtering.
+- Restricts Volunteer users to students assigned to the logged-in Volunteer.
+- Ignores districtId filtering for Volunteer users.
+- Allows non-Volunteer users to filter by the supplied districtId.
+- Includes house visit information.
+- Indicates whether a house visit record exists.
+- Returns house visit approval status.
+- Includes a complete district dropdown list in the same response.
+- Orders the district dropdown alphabetically by DistrictName.
+
+Content-Type:
+application/json
+
+Authorization:
+Required - JWT authentication/token required.
+
+Authentication Filter:
+JwtSessionFilter
+
+Required Authenticated User Context:
+- CurrentUser.Role
+- CurrentUser.UserID
+
+Path Parameters:
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint does not use path parameters. |
+
+Query Parameters:
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| search | string | No | Optional student-name search value. If supplied and not null, empty, or whitespace-only, the value is trimmed and used in a SQL LIKE search against StudentName. |
+| districtId | integer | No | Optional district ID filter. Applied only when the authenticated user's role is not Volunteer. Ignored for Volunteer users. |
+
+Request Body:
+None.
+
+This endpoint is a GET request and does not accept a JSON request body.
+
+Full JSON Request Body Sample:
+Not Applicable.
+
+Example Request Without Filters:
+GET /api/pucstudents/studentlist
+
+Example Request With Search:
+GET /api/pucstudents/studentlist?search=Rahul
+
+Example Request With District:
+GET /api/pucstudents/studentlist?districtId=1
+
+Example Request With Search and District:
+GET /api/pucstudents/studentlist?search=Rahul&districtId=1
+
+Example Authorization Header:
+Authorization: Bearer <JWT_TOKEN>
+
+Form Data / Multipart Fields (if any):
+None.
+
+File Upload Fields (if any):
+None.
+
+=========================================================
+VALIDATION RULES
+=========================================================
+
+1. search is optional.
+
+2. search defaults to null when not supplied.
+
+3. districtId is optional.
+
+4. districtId defaults to null when not supplied.
+
+5. If search is null, empty, or contains only whitespace:
+   - No StudentName search condition is added.
+
+6. If search contains a value:
+   - Leading and trailing whitespace is removed using Trim().
+   - The resulting value is searched using:
+     s.StudentName LIKE @Search
+
+7. The actual SQL search parameter is:
+   "%" + search.Trim() + "%"
+
+8. No explicit minimum length validation is implemented for search.
+
+9. No explicit maximum length validation is implemented for search.
+
+10. districtId must be supplied as a nullable integer when provided.
+
+11. No explicit validation is performed to verify that districtId exists in DistrictMaster.
+
+12. No explicit validation is performed to verify that districtId belongs to the authenticated user.
+
+13. For Volunteer users:
+    - districtId is ignored even when supplied.
+    - The API uses CurrentUser.UserID as the VolunteerID.
+
+14. For non-Volunteer users:
+    - If districtId is supplied, it is applied as a student DistrictID filter.
+
+15. Only students where:
+    New_Students.ApprovalStatus = 'Approved'
+    are returned.
+
+16. StudentID is converted directly using Convert.ToInt32().
+    - The controller does not explicitly handle NULL StudentID values.
+    - Therefore, StudentID is expected to be non-null in the database.
+
+17. StudentName:
+    - Nullable in the response.
+    - Database NULL becomes null.
+
+18. ContactNumber:
+    - Nullable in the response.
+    - Database NULL becomes null.
+
+19. Address:
+    - Nullable in the response.
+    - Database NULL becomes null.
+
+20. Place:
+    - Nullable in the response.
+    - Database NULL becomes null.
+
+21. Taluka:
+    - Nullable in the response.
+    - Database NULL becomes null.
+
+22. PinCode:
+    - Nullable in the response.
+    - Database NULL becomes null.
+
+23. HouseVisitLink:
+    - Nullable in the response.
+    - Database NULL becomes null.
+
+24. DistrictName:
+    - Nullable in the response.
+    - Database NULL becomes null.
+
+25. CollegeName:
+    - Nullable in the response.
+    - Database NULL becomes null.
+
+26. FamilyIncome:
+    - Nullable decimal.
+    - Database NULL becomes null.
+
+27. SecuredPercentage:
+    - Nullable decimal.
+    - Database NULL becomes null.
+
+28. IsVisited:
+    - Boolean.
+    - Returns true when a matching HouseVisitForm_PUC record exists.
+    - Returns false when no matching house visit record exists.
+
+29. ApproveStatus:
+    - Nullable string.
+    - Maps from HouseVisitForm_PUC.ApproveStatus.
+    - Database NULL becomes null.
+
+30. No pagination is implemented.
+
+31. No page number parameter is implemented.
+
+32. No page size parameter is implemented.
+
+33. No dynamic sorting parameter is implemented.
+
+34. The student query itself does not contain an ORDER BY clause.
+    - Therefore, the order of student records is not explicitly guaranteed by the SQL query.
+
+35. District dropdown records are explicitly sorted by:
+    ORDER BY DistrictName
+
+=========================================================
+BUSINESS LOGIC NOTES
+=========================================================
+
+1. APPROVED STUDENT FILTER:
+   The API only returns records where:
+
+   s.ApprovalStatus = 'Approved'
+
+   IMPORTANT:
+   The PUC student approval status used for filtering comes from:
+   New_Students.ApprovalStatus
+
+2. VOLUNTEER ROLE FILTER:
+   If:
+
+   CurrentUser.Role equals "Volunteer"
+
+   using a case-insensitive comparison,
+
+   then the API adds:
+
+   AND sva.VolunteerID = @VolunteerID
+
+   where:
+
+   @VolunteerID = CurrentUser.UserID
+
+3. VOLUNTEER DISTRICT FILTER:
+   The districtId query parameter is completely ignored for Volunteer users.
+
+   Therefore:
+
+   Request:
+   GET /api/pucstudents/studentlist?districtId=5
+
+   If authenticated user is Volunteer:
+
+   districtId = 5
+
+   has no effect on the SQL query.
+
+4. NON-VOLUNTEER DISTRICT FILTER:
+   If the authenticated user is not a Volunteer and districtId is supplied:
+
+   AND s.DistrictID = @DistrictID
+
+   is added to the query.
+
+5. CLIENT CANNOT OVERRIDE VOLUNTEER ID:
+   VolunteerID is never accepted as a query parameter.
+
+   The API derives VolunteerID from:
+
+   CurrentUser.UserID
+
+6. CLIENT CAN SUPPLY DISTRICT FILTER:
+   Unlike the SemiProfessional controller pattern, this controller accepts districtId directly from the client.
+
+   However, the district filter is still restricted by role:
+   - Volunteer: ignored
+   - Non-Volunteer: applied when supplied
+
+7. SEARCH LOGIC:
+   If search is supplied:
+
+   AND s.StudentName LIKE @Search
+
+   where:
+
+   @Search = "%" + search.Trim() + "%"
+
+8. STUDENT APPROVAL:
+   The Student List is restricted to:
+
+   New_Students.ApprovalStatus = 'Approved'
+
+9. HOUSE VISIT LOGIC:
+   House visit data is retrieved using:
+
+   HouseVisitForm_PUC
+
+   with:
+
+   hv.PUC_StudentID = s.StudentID
+
+10. IS VISITED LOGIC:
+    IsVisited is calculated using:
+
+    CASE
+        WHEN hv.PUC_StudentID IS NOT NULL
+        THEN 1
+        ELSE 0
+    END
+
+    API mapping:
+    - 1 = true
+    - 0 = false
+
+11. HOUSE VISIT APPROVAL STATUS:
+    The API response field ApproveStatus maps to:
+
+    HouseVisitForm_PUC.ApproveStatus
+
+    IMPORTANT:
+    This is separate from the student approval filter:
+
+    Student approval filter:
+    New_Students.ApprovalStatus
+
+    Response ApproveStatus:
+    HouseVisitForm_PUC.ApproveStatus
+
+12. DISTRICT INFORMATION:
+    DistrictName is retrieved from:
+
+    DistrictMaster
+
+    using:
+
+    s.DistrictID = d.DistrictID
+
+13. DISTRICT DROPDOWN:
+    The API calls the private LoadDistricts() method after retrieving the student list.
+
+14. DISTRICT DROPDOWN SOURCE:
+    DistrictMaster
+
+15. DISTRICT DROPDOWN ORDER:
+    DistrictName ascending.
+
+16. EMPTY STUDENT RESULT:
+    If no students match the applied filters, the API is expected to return HTTP 200 with:
+
+    "Students": []
+
+    provided no exception occurs.
+
+17. DUPLICATE RECORD POSSIBILITY:
+    The SQL query directly joins:
+    - StudentVolunteerAssignment
+    - HouseVisitForm_PUC
+
+    If multiple assignment or house visit records exist for the same student, duplicate student rows may be returned.
+
+    The controller does not use:
+    - DISTINCT
+    - GROUP BY
+    - Duplicate removal
+    - Deduplication logic
+
+18. DATABASE CONNECTION:
+    The API uses:
+
+    ConfigurationManager.ConnectionStrings["EnvisageDb"]
+
+=========================================================
+SUCCESS RESPONSE (200)
+=========================================================
+
+Full Sample JSON:
+
+{
+  "Students": [
+    {
+      "StudentID": 1001,
+      "StudentName": "Rahul Kumar",
+      "ContactNumber": "9876543210",
+      "Address": "123 Main Road, Bengaluru",
+      "Place": "Bengaluru",
+      "Taluka": "Bengaluru North",
+      "PinCode": "560001",
+      "HouseVisitLink": "https://example.com/housevisit/1001",
+      "DistrictName": "Bengaluru Urban",
+      "CollegeName": "ABC PU College",
+      "FamilyIncome": 250000.00,
+      "SecuredPercentage": 82.50,
+      "IsVisited": true,
+      "ApproveStatus": "Approved"
+    }
+  ],
+  "Districts": [
+    {
+      "DistrictID": 1,
+      "DistrictName": "Bengaluru Urban"
+    },
+    {
+      "DistrictID": 2,
+      "DistrictName": "Bengaluru Rural"
+    }
+  ]
+}
+
+=========================================================
+SUCCESS RESPONSE FIELD DEFINITIONS
+=========================================================
+
+PUCStudentListResponseDto:
+| Field | Type | Required | Nullable | Description |
+|-------|------|----------|----------|-------------|
+| Students | Array<PayanaStudentListVM> | Yes | No | List of approved PUC students matching the applied filters and authenticated user's access rules. |
+| Districts | Array<DistrictDto> | Yes | No | Complete district dropdown list loaded from DistrictMaster. |
+
+PayanaStudentListVM:
+| Field | Type | Required | Nullable | Description |
+|-------|------|----------|----------|-------------|
+| StudentID | integer | Yes | No | Maps from New_Students.StudentID. The controller directly converts this value to integer. |
+| StudentName | string | Yes | Yes | Student name. Database NULL becomes null. |
+| ContactNumber | string | Yes | Yes | Student contact number. Database NULL becomes null. |
+| Address | string | Yes | Yes | Student address. Database NULL becomes null. |
+| Place | string | Yes | Yes | Student place. Database NULL becomes null. |
+| Taluka | string | Yes | Yes | Student Taluka. Database NULL becomes null. |
+| PinCode | string | Yes | Yes | Student PIN code. Database NULL becomes null. |
+| HouseVisitLink | string | Yes | Yes | House visit link. Database NULL becomes null. |
+| DistrictName | string | Yes | Yes | District name from DistrictMaster. Database NULL becomes null. |
+| CollegeName | string | Yes | Yes | College name. Database NULL becomes null. |
+| FamilyIncome | decimal | Yes | Yes | Family income. Maps from New_Students.FamilyIncome. |
+| SecuredPercentage | decimal | Yes | Yes | Secured percentage. Maps from New_Students.SecuredPercentage. |
+| IsVisited | boolean | Yes | No | True when a matching HouseVisitForm_PUC record exists; otherwise false. |
+| ApproveStatus | string | Yes | Yes | House visit approval status from HouseVisitForm_PUC. Database NULL becomes null. |
+
+DistrictDto:
+| Field | Type | Required | Nullable | Description |
+|-------|------|----------|----------|-------------|
+| DistrictID | integer | Yes | No | District identifier from DistrictMaster. |
+| DistrictName | string | Yes | Yes | District name from DistrictMaster. Database NULL becomes null. |
+
+=========================================================
+DROPDOWN API INFORMATION
+=========================================================
+
+Separate Dropdown Endpoint:
+None.
+
+The controller does NOT expose a separate public district dropdown endpoint.
+
+Instead, the Student List endpoint includes the Districts collection in its response.
+
+Private Dropdown Method:
+LoadDistricts()
+
+Visibility:
+private
+
+Dropdown Source:
+DistrictMaster
+
+SQL:
+
+SELECT
+    DistrictID,
+    DistrictName
+FROM DistrictMaster
+ORDER BY DistrictName
+
+Dropdown Response Example:
+
+{
+  "Districts": [
+    {
+      "DistrictID": 1,
+      "DistrictName": "Bengaluru Urban"
+    },
+    {
+      "DistrictID": 2,
+      "DistrictName": "Bengaluru Rural"
+    },
+    {
+      "DistrictID": 3,
+      "DistrictName": "Mysuru"
+    }
+  ]
+}
+
+Dropdown Field Mapping:
+| Database Field | API Field | Type | Nullable | Description |
+|----------------|-----------|------|----------|-------------|
+| DistrictID | DistrictID | integer | No | District identifier. |
+| DistrictName | DistrictName | string | Yes | District name. |
+
+Dropdown Business Rules:
+- All records from DistrictMaster are loaded.
+- No role-based filtering is applied to the dropdown.
+- No district query parameter is applied to the dropdown.
+- Districts are ordered by DistrictName ascending.
+- The dropdown is included in the main Student List response.
+- There is no separate district endpoint in this controller.
+
+=========================================================
+FAILURE RESPONSES
+=========================================================
+
+400 Bad Request
+
+Description:
+The supplied controller does not explicitly return HTTP 400.
+
+A 400 response may be generated by ASP.NET Web API request processing or parameter binding depending on application configuration.
+
+Example Error JSON:
+
+{
+  "success": false,
+  "message": "Bad Request"
+}
+
+
+401 Unauthorized
+
+Description:
+The supplied controller does not explicitly return HTTP 401.
+
+A 401 response may be generated by JwtSessionFilter or the authentication pipeline when:
+- JWT token is missing.
+- JWT token is invalid.
+- JWT token is expired.
+- Authentication fails.
+
+Example Error JSON:
+
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+
+
+403 Forbidden
+
+Description:
+The supplied controller does not explicitly return HTTP 403.
+
+The controller does not contain explicit role-based denial logic.
+
+If an external authorization layer rejects an authenticated user, HTTP 403 may be returned.
+
+Example Error JSON:
+
+{
+  "success": false,
+  "message": "Forbidden"
+}
+
+
+404 Not Found
+
+Description:
+The supplied controller does not explicitly return HTTP 404.
+
+If no PUC students match the filters, the API is expected to return HTTP 200 with an empty Students array.
+
+Example Empty Result:
+
+{
+  "Students": [],
+  "Districts": [
+    {
+      "DistrictID": 1,
+      "DistrictName": "Bengaluru Urban"
+    }
+  ]
+}
+
+Generic 404 Error JSON:
+
+{
+  "success": false,
+  "message": "Not Found"
+}
+
+
+409 Conflict
+
+Description:
+The supplied controller does not explicitly return HTTP 409.
+
+No business conflict or duplicate-record conflict handling is implemented.
+
+Example Error JSON:
+
+{
+  "success": false,
+  "message": "Conflict"
+}
+
+
+500 Internal Server Error
+
+Description:
+The controller explicitly returns HTTP 500 when an exception occurs inside StudentList().
+
+Potential causes:
+- Database connection failure.
+- Invalid EnvisageDb connection string.
+- SQL execution failure.
+- Database schema mismatch.
+- SQL timeout.
+- Data conversion failure.
+- Invalid StudentID value.
+- Invalid decimal conversion for FamilyIncome.
+- Invalid decimal conversion for SecuredPercentage.
+- Failure while loading districts.
+- Unexpected runtime exception.
+
+Actual Controller Response:
+
+{
+  "success": false,
+  "message": "Error message"
+}
+
+IMPORTANT:
+The current implementation uses:
+
+Message = ex.Message
+
+Therefore, the actual error message may contain the raw exception details.
+
+Example:
+
+{
+  "success": false,
+  "message": "Invalid object name 'New_Students'."
+}
+
+SECURITY RECOMMENDATION:
+In production, do not expose raw exception messages to API consumers.
+
+Recommended production response:
+
+{
+  "success": false,
+  "message": "An unexpected server error occurred."
+}
+
+Detailed exception information should be logged server-side.
+
+=========================================================
+STATUS CODES USED
+=========================================================
+
+| HTTP Status Code | Description | Explicitly Returned By Controller |
+|------------------|-------------|-----------------------------------|
+| 200 OK | Student and district data successfully retrieved | Yes |
+| 400 Bad Request | Invalid or malformed request | No; may be framework-generated |
+| 401 Unauthorized | JWT/authentication failure | No; may be generated by authentication pipeline |
+| 403 Forbidden | Authenticated user lacks permission | No; not explicitly implemented |
+| 404 Not Found | Requested resource not found | No; empty result returns 200 |
+| 409 Conflict | Business/resource conflict | No |
+| 500 Internal Server Error | Unexpected exception | Yes |
+
+=========================================================
+REQUEST / RESPONSE EXAMPLES
+=========================================================
+
+EXAMPLE 1:
+Get all accessible approved PUC students.
+
+Request:
+GET /api/pucstudents/studentlist
+
+Authorization:
+Bearer <JWT_TOKEN>
+
+Request Body:
+None.
+
+Behavior:
+
+Volunteer:
+- Only students assigned to CurrentUser.UserID are returned.
+
+Non-Volunteer:
+- All approved students are returned unless districtId is supplied.
+
+---------------------------------------------------------
+
+EXAMPLE 2:
+Search students by name.
+
+Request:
+GET /api/pucstudents/studentlist?search=Rahul
+
+Authorization:
+Bearer <JWT_TOKEN>
+
+Request Body:
+None.
+
+Behavior:
+Returns approved PUC students whose StudentName contains "Rahul", subject to the authenticated user's role-based access rules.
+
+---------------------------------------------------------
+
+EXAMPLE 3:
+Filter by district.
+
+Request:
+GET /api/pucstudents/studentlist?districtId=1
+
+Authorization:
+Bearer <JWT_TOKEN>
+
+Request Body:
+None.
+
+Behavior for Non-Volunteer:
+Returns approved PUC students where:
+
+s.DistrictID = 1
+
+Behavior for Volunteer:
+districtId is ignored.
+
+---------------------------------------------------------
+
+EXAMPLE 4:
+Search and district filter.
+
+Request:
+GET /api/pucstudents/studentlist?search=Rahul&districtId=1
+
+Authorization:
+Bearer <JWT_TOKEN>
+
+Behavior for Non-Volunteer:
+The API applies:
+
+s.ApprovalStatus = 'Approved'
+
+AND
+
+s.StudentName LIKE '%Rahul%'
+
+AND
+
+s.DistrictID = 1
+
+Behavior for Volunteer:
+The API applies:
+
+s.ApprovalStatus = 'Approved'
+
+AND
+
+s.StudentName LIKE '%Rahul%'
+
+AND
+
+sva.VolunteerID = CurrentUser.UserID
+
+The supplied districtId is ignored.
+
+---------------------------------------------------------
+
+EXAMPLE 5:
+Volunteer role behavior.
+
+Authenticated Context:
+
+CurrentUser.Role = "Volunteer"
+
+CurrentUser.UserID = 25
+
+Request:
+
+GET /api/pucstudents/studentlist?districtId=5
+
+Effective filters:
+
+s.ApprovalStatus = 'Approved'
+
+AND
+
+sva.VolunteerID = 25
+
+The districtId=5 parameter is ignored.
+
+---------------------------------------------------------
+
+EXAMPLE 6:
+Non-Volunteer role behavior.
+
+Authenticated Context:
+
+CurrentUser.Role = "Admin"
+
+Request:
+
+GET /api/pucstudents/studentlist?districtId=5
+
+Effective filters:
+
+s.ApprovalStatus = 'Approved'
+
+AND
+
+s.DistrictID = 5
+
+IMPORTANT:
+The controller does not explicitly validate that the authenticated role is Admin. Any non-Volunteer role follows the non-Volunteer branch.
+
+=========================================================
+DATABASE TABLES USED
+=========================================================
+
+1. StudentVolunteerAssignment
+
+Purpose:
+Used to identify Volunteer-to-student assignments.
+
+Important Fields:
+- VolunteerID
+- StudentID
+
+---------------------------------------------------------
+
+2. New_Students
+
+Purpose:
+Primary source for PUC student information.
+
+Important Fields Used:
+- StudentID
+- StudentName
+- ContactNumber
+- Address
+- Place
+- Taluka
+- PinCode
+- HouseVisitLink
+- DistrictID
+- CollegeName
+- FamilyIncome
+- SecuredPercentage
+- ApprovalStatus
+
+---------------------------------------------------------
+
+3. DistrictMaster
+
+Purpose:
+Used to retrieve DistrictName and populate the district dropdown.
+
+Important Fields:
+- DistrictID
+- DistrictName
+
+---------------------------------------------------------
+
+4. HouseVisitForm_PUC
+
+Purpose:
+Used to determine whether a PUC student has a house visit record and retrieve the house visit approval status.
+
+Important Fields:
+- PUC_StudentID
+- ApproveStatus
+
+=========================================================
+DATABASE FIELD MAPPING
+=========================================================
+
+| Database Field | API Response Field | Transformation / Logic |
+|----------------|--------------------|------------------------|
+| New_Students.StudentID | StudentID | Direct Convert.ToInt32() |
+| New_Students.StudentName | StudentName | NULL becomes null |
+| New_Students.ContactNumber | ContactNumber | NULL becomes null |
+| New_Students.Address | Address | NULL becomes null |
+| New_Students.Place | Place | NULL becomes null |
+| New_Students.Taluka | Taluka | NULL becomes null |
+| New_Students.PinCode | PinCode | NULL becomes null |
+| New_Students.HouseVisitLink | HouseVisitLink | NULL becomes null |
+| DistrictMaster.DistrictName | DistrictName | NULL becomes null |
+| New_Students.CollegeName | CollegeName | NULL becomes null |
+| New_Students.FamilyIncome | FamilyIncome | Nullable decimal |
+| New_Students.SecuredPercentage | SecuredPercentage | Nullable decimal |
+| HouseVisitForm_PUC.PUC_StudentID | IsVisited | true when matching record exists |
+| HouseVisitForm_PUC.ApproveStatus | ApproveStatus | NULL becomes null |
+| DistrictMaster.DistrictID | Districts[].DistrictID | Direct integer mapping |
+| DistrictMaster.DistrictName | Districts[].DistrictName | NULL becomes null |
+
+=========================================================
+SQL JOIN LOGIC
+=========================================================
+
+Primary Student Query:
+
+SELECT
+    s.StudentID,
+    s.StudentName,
+    s.ContactNumber,
+    s.Address,
+    s.Place,
+    s.Taluka,
+    s.PinCode,
+    s.HouseVisitLink,
+    d.DistrictName,
+    s.CollegeName,
+    s.FamilyIncome,
+    s.SecuredPercentage,
+    sva.VolunteerID,
+    hv.ApproveStatus,
+
+    CASE
+        WHEN hv.PUC_StudentID IS NOT NULL
+        THEN 1
+        ELSE 0
+    END AS IsVisited
+
+FROM StudentVolunteerAssignment sva
+
+INNER JOIN New_Students s
+    ON s.StudentID = sva.StudentID
+
+LEFT JOIN DistrictMaster d
+    ON s.DistrictID = d.DistrictID
+
+LEFT JOIN HouseVisitForm_PUC hv
+    ON hv.PUC_StudentID = s.StudentID
+
+WHERE s.ApprovalStatus = 'Approved'
+
+
+DYNAMIC FILTERS:
+
+Volunteer:
+AND sva.VolunteerID = @VolunteerID
+
+Search:
+AND s.StudentName LIKE @Search
+
+Non-Volunteer District:
+AND s.DistrictID = @DistrictID
+
+
+PARAMETER VALUES:
+
+@VolunteerID:
+CurrentUser.UserID
+
+@Search:
+"%" + search.Trim() + "%"
+
+@DistrictID:
+districtId.Value
+
+=========================================================
+ROLE-BASED FILTER SUMMARY
+=========================================================
+
+| User Condition | Filter Applied |
+|----------------|----------------|
+| CurrentUser.Role equals "Volunteer" | sva.VolunteerID = CurrentUser.UserID |
+| CurrentUser.Role does not equal "Volunteer" AND districtId supplied | s.DistrictID = districtId |
+| Any authenticated user | s.ApprovalStatus = 'Approved' |
+| search supplied | s.StudentName LIKE '%' + search.Trim() + '%' |
+| Volunteer user supplies districtId | districtId is ignored |
+
+=========================================================
+SECURITY NOTES
+=========================================================
+
+1. JWT authentication is expected through JwtSessionFilter.
+
+2. Volunteer users cannot specify another VolunteerID because VolunteerID is not accepted as a query parameter.
+
+3. Volunteer filtering is performed server-side using CurrentUser.UserID.
+
+4. The districtId parameter is accepted directly from the client for non-Volunteer users.
+
+5. Volunteer users cannot use districtId to alter their result set because the parameter is ignored for Volunteers.
+
+6. The controller does not explicitly implement an Admin-only authorization rule.
+
+7. The controller does not define a list of allowed roles.
+
+8. Any role other than "Volunteer" follows the non-Volunteer district-filtering branch.
+
+9. SQL parameters are used for:
+   - VolunteerID
+   - Search
+   - DistrictID
+
+10. The user-provided search value is passed through the @Search SQL parameter rather than directly concatenated into the SQL query.
+
+11. Raw exception messages are currently returned in HTTP 500 responses.
+
+12. For production security, detailed exception messages should be logged server-side and replaced with a generic API error message.
+
+=========================================================
+COMPLETE API SUMMARY
+=========================================================
+
+| # | HTTP Method | Full Route | Authorization | Request Body | Query Parameters | File Upload | Purpose |
+|---|-------------|------------|---------------|--------------|------------------|-------------|---------|
+| 1 | GET | /api/pucstudents/studentlist | JWT Required | None | search (optional), districtId (optional) | None | Returns approved PUC students with optional name/district filtering, role-based Volunteer filtering, house visit status, and district dropdown data. |
+
+Total Public API Endpoints:
+1
+
+Total Private Helper Methods:
+1
+
+Private Helper:
+LoadDistricts()
+
+Private Helper Route:
+None - LoadDistricts() is not directly exposed as an API endpoint.
+
+Multipart/Form-Data Endpoints:
+None.
+
+File Upload Endpoints:
+None.
+
+Request Body DTOs:
+None.
+
+Response DTOs:
+- PUCStudentListResponseDto
+- PayanaStudentListVM
+- DistrictDto
+- ErrorResponseDto
+
+=========================================================
+COMMON DTOS
+=========================================================
+
+1. PUCStudentListResponseDto
+
+Class Purpose:
+Top-level response DTO returned by the Student List endpoint.
+
+Sample JSON:
+
+{
+  "Students": [
+    {
+      "StudentID": 1001,
+      "StudentName": "Rahul Kumar",
+      "ContactNumber": "9876543210",
+      "Address": "123 Main Road, Bengaluru",
+      "Place": "Bengaluru",
+      "Taluka": "Bengaluru North",
+      "PinCode": "560001",
+      "HouseVisitLink": "https://example.com/housevisit/1001",
+      "DistrictName": "Bengaluru Urban",
+      "CollegeName": "ABC PU College",
+      "FamilyIncome": 250000.00,
+      "SecuredPercentage": 82.50,
+      "IsVisited": true,
+      "ApproveStatus": "Approved"
+    }
+  ],
+  "Districts": [
+    {
+      "DistrictID": 1,
+      "DistrictName": "Bengaluru Urban"
+    }
+  ]
+}
+
+Properties:
+| Field | Type | Required | Nullable | Description |
+|-------|------|----------|----------|-------------|
+| Students | List<PayanaStudentListVM> | Yes | No | List of matching approved PUC students. May be empty. |
+| Districts | List<DistrictDto> | Yes | No | List of all districts loaded from DistrictMaster. |
+
+---------------------------------------------------------
+
+2. PayanaStudentListVM
+
+Class Purpose:
+Represents an individual PUC student in the API response.
+
+Sample JSON:
+
+{
+  "StudentID": 1001,
+  "StudentName": "Rahul Kumar",
+  "ContactNumber": "9876543210",
+  "Address": "123 Main Road, Bengaluru",
+  "Place": "Bengaluru",
+  "Taluka": "Bengaluru North",
+  "PinCode": "560001",
+  "HouseVisitLink": "https://example.com/housevisit/1001",
+  "DistrictName": "Bengaluru Urban",
+  "CollegeName": "ABC PU College",
+  "FamilyIncome": 250000.00,
+  "SecuredPercentage": 82.50,
+  "IsVisited": true,
+  "ApproveStatus": "Approved"
+}
+
+Properties:
+| Field | Type | Required | Nullable | Description |
+|-------|------|----------|----------|-------------|
+| StudentID | integer | Yes | No | Student identifier from New_Students.StudentID. Directly converted to integer. |
+| StudentName | string | Yes | Yes | Student's name. Database NULL becomes null. |
+| ContactNumber | string | Yes | Yes | Student contact number. Database NULL becomes null. |
+| Address | string | Yes | Yes | Student address. Database NULL becomes null. |
+| Place | string | Yes | Yes | Student place. Database NULL becomes null. |
+| Taluka | string | Yes | Yes | Student Taluka. Database NULL becomes null. |
+| PinCode | string | Yes | Yes | Student PIN code. Database NULL becomes null. |
+| HouseVisitLink | string | Yes | Yes | House visit link. Database NULL becomes null. |
+| DistrictName | string | Yes | Yes | District name from DistrictMaster. Database NULL becomes null. |
+| CollegeName | string | Yes | Yes | College name. Database NULL becomes null. |
+| FamilyIncome | decimal | Yes | Yes | Family income. Maps from New_Students.FamilyIncome. |
+| SecuredPercentage | decimal | Yes | Yes | Secured percentage. Maps from New_Students.SecuredPercentage. |
+| IsVisited | boolean | Yes | No | Indicates whether a HouseVisitForm_PUC record exists for the student. |
+| ApproveStatus | string | Yes | Yes | House visit approval status from HouseVisitForm_PUC. |
+
+---------------------------------------------------------
+
+3. DistrictDto
+
+Class Purpose:
+Represents a district item used in the district dropdown.
+
+Sample JSON:
+
+{
+  "DistrictID": 1,
+  "DistrictName": "Bengaluru Urban"
+}
+
+Properties:
+| Field | Type | Required | Nullable | Description |
+|-------|------|----------|----------|-------------|
+| DistrictID | integer | Yes | No | Unique district identifier from DistrictMaster. |
+| DistrictName | string | Yes | Yes | District name from DistrictMaster. |
+
+---------------------------------------------------------
+
+4. ErrorResponseDto
+
+Class Purpose:
+Represents an error response returned when an exception occurs.
+
+Sample JSON:
+
+{
+  "success": false,
+  "message": "Error message"
+}
+
+Properties:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| Success | boolean | Yes | Indicates whether the operation succeeded. |
+| Message | string | Yes | Error message returned by the API. |
+
+IMPORTANT:
+The exact JSON property casing depends on the ASP.NET Web API JSON serializer configuration.
+
+C# properties:
+- Success
+- Message
+
+Documented JSON example:
+- success
+- message
+
+=========================================================
+END OF API CONTRACT
+=========================================================

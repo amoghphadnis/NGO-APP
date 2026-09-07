@@ -40,7 +40,7 @@ interface FormEngineStore extends FormEngineState {
   initializeForm: (formType: FormType) => void;
   setCurrentStep: (step: number) => void;
   markStepComplete: (step: number) => void;
-  updateSectionData: (section: keyof FormDataUnion | 'contact' | 'academic' | 'category' | 'bank' | 'documents', data: unknown) => void;
+  updateSectionData: (section: keyof FormDataUnion | 'contact' | 'address' | 'academic' | 'category' | 'bank' | 'documents', data: unknown) => void;
   updateValidationState: (step: string, validation: { isValid: boolean; errors?: Record<string, string>; data?: unknown }) => void;
   updateUploadState: (documentKey: string, meta: Partial<DocumentsMetaItem>) => void;
   setSubmissionLoading: (loading: boolean) => void;
@@ -187,60 +187,43 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
           studentName: '',
           dateOfBirth: '',
           contactNumber: '',
-          alternateNumber: '',
-          residentialAddress: '',
-          googleMapLink: '',
-          areaTypeID: 0,
-          districtID: 0,
-          otherDistrict: '',
           genderID: 0,
           casteCategoryID: 0,
+          districtID: 0,
+          otherDistrict: '',
+          taluk: '',
+          address: '',
+          placeID: 0,
         },
         family: {
-          fatherName: '',
-          motherName: '',
           fatherOccupationID: 0,
           motherOccupationID: 0,
           familyMembers: 1,
-          houseTypeID: 0,
-          monthlyRent: undefined,
-          familyIncome: 0,
+          annualIncome: 0,
         },
         academic: {
           puPercentage: 0,
-          cetRank: undefined,
-          ptRank: undefined,
-          courseApplying: '',
-          courseStream: '',
+          semiProfessionalCourseID: 0,
+          collegeName: '',
+          collegeTypeID: 0,
+          collegeFees: 0,
         },
         documents: {
-          studentSelfie: undefined,
-          cetRankSheet: undefined,
-          ptRankSheet: undefined,
-          dwellingUnitPhoto: undefined,
-          marksSheet12: undefined,
-          houseVideo: undefined,
-          electricityBill: undefined,
+          pucMarksCard: undefined,
           incomeCertificate: undefined,
-          rationCard: undefined,
+          aadharCard: undefined,
         },
       } as unknown as SemiProfessionalFormValues;
       initialUploadState = {
-        studentSelfie: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        cetRankSheet: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        ptRankSheet: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        dwellingUnitPhoto: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        marksSheet12: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        houseVideo: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        electricityBill: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        pucMarksCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
         incomeCertificate: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        rationCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        aadharCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
       };
     } else if (formType === 'payana') {
       safeFormData = {
         personal: { studentName: '', dateOfBirth: '', genderID: 0 },
         contact: { contactNumber: '', alternateNumber: '', email: '' },
-        address: { residentialAddress: '', currentAddress: '', place: '', taluka: '', districtID: 0, otherDistrict: '', pincode: '', areaTypeID: 0 },
+        address: { residentialAddress: '', currentAddress: '', taluka: '', districtID: 0, otherDistrict: '', pincode: '', placeID: 0 },
         family: { fatherName: '', motherName: '', fatherOccupationID: undefined, motherOccupationID: undefined, familyMembers: 1, familyIncome: '', parentBank: '' },
         category: { casteCategoryID: 0, houseTypeID: 0 },
         academic: { courseID: 0, collegeName: '', collegeTypeID: 0, collegeCNumber: '', courseSA: '', courseStream: '', annualFees: '', totalExpenses: '', studentAchievements: '', securedPercentage: '' },
@@ -256,24 +239,22 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
         aadhaarCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
       };
     } else {
-      // PUC form (default)
+      // PUC Format 1.1 form
       safeFormData = {
-        personal: { name: '', dateOfBirth: '', gender: '', caste: '' },
-        contact: { email: '', phone: '', alternatePhone: undefined },
-        address: { pincode: '', district: '', otherDistrict: '', taluk: '', place: '', address: '', area: undefined },
-        family: { fatherName: '', motherName: '', fatherOccupationID: undefined, motherOccupationID: undefined, familyMembers: 1, familyComposition: [], annualIncome: '', monthlyRent: '', residenceType: undefined },
-        category: { caste: '', houseType: '', monthlyRent: '', referenceSource: '', referenceSourceOther: '' },
-        academic: { course: '', collegeName: '', collegeType: '', expectedFees: 0, percentage: 0, totalMarks: 0 },
-        documents: { sslcMarksCard: undefined, studentPhoto: undefined, electricityBill: undefined, rationCard: undefined, incomeCert: undefined, familyPhoto: undefined, houseVideo: undefined, houseVisitLink: undefined },
-      } as PucFormValues;
+        personal: { StudentName: '', DateOfBirth: '', Gender: 0, Caste: 0, Place: 0 },
+        contact: { Email: '', ContactNumber: '', AlternateNumber: '' },
+        address: { District: 0, OtherDistrict: '', Taluk: '', ResidentialAddress: '' },
+        family: { FatherOccupation: 0, MotherOccupation: 0, TotalFamilyMembers: 1, FamilyAnnualIncome: 0 },
+        academic: { SSLCPercentage: 0, CourseJoined: 0, CollegeName: '', CollegeType: 0, CollegeFees: 0, CollegeContactNumber: '', Achievement: '' },
+        bank: { ParentsBankBalance: 0, AccountHolderName: '', AccountNumber: '', IFSCCode: '', BankName: '', BranchName: '' },
+        documents: { StudentSelfie: undefined, SSLCMarksCard: undefined, FeeReceipts: undefined, BankPassbook: undefined, AadhaarCard: undefined },
+      } as unknown as PucFormValues;
       initialUploadState = {
-        sslcMarksCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        studentPhoto: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        electricityBill: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        rationCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        incomeCert: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        familyPhoto: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        houseVideo: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        StudentSelfie: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        SSLCMarksCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        FeeReceipts: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        BankPassbook: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+        AadhaarCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
       };
     }
 
@@ -331,13 +312,15 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
         // semiProfessional doesn't have category or bank - ignore
         return state;
       }
-      // PUC form handling
-      if (section !== 'bank') {
+      // PUC form handling (Format 1.1 — has bank section)
+      if (section === 'bank') {
         return {
-          formData: { ...state.formData, [section]: { ...(state.formData as PucFormValues)[section as keyof PucFormValues], ...(data as object) } } as FormDataUnion,
+          formData: { ...state.formData, bank: { ...(state.formData as PucFormValues).bank, ...(data as object) } } as FormDataUnion,
         };
       }
-      return state; // Ignore bank updates for non-Payana forms
+      return {
+        formData: { ...state.formData, [section]: { ...(state.formData as PucFormValues)[section as keyof PucFormValues], ...(data as object) } } as FormDataUnion,
+      };
     }
     if (section === 'documents') {
       return {

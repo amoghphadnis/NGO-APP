@@ -385,7 +385,7 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
                 <FlatList
                   data={students}
                   renderItem={renderStudentRow}
-                  keyExtractor={(item, index) => `${item.studentType}-${item.id > 0 ? item.id : index}`}
+                  keyExtractor={(item, index) => `${item.studentType}-${index}-${item.id}`}
                   refreshControl={
                     <RefreshControl
                       refreshing={isFetching}

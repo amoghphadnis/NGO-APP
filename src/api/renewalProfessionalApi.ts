@@ -114,7 +114,7 @@ export async function submitRenewalProfessional(
       message: error.message,
       response: error.response?.data,
       status: error.response?.status,
-      payload: Object.fromEntries(formData.entries()),
+      payloadKeys: (formData as any).getParts?.().map((p: any) => p.fieldName) ?? [],
     });
     throw error;
   }

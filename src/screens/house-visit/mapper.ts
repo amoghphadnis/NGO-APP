@@ -2,8 +2,9 @@
  * Maps House Visit form data to API payload format
  */
 
+import { DocumentFile } from '@/types/documents';
+import { FamilyMemberDto, HouseVisitCreatePayload, VolunteerApprovalStatus } from '@/types/houseVisit';
 import { HouseVisitFormValues } from '@/validation/houseVisitSchemas';
-import { HouseVisitCreatePayload, FamilyMemberDto } from '@/types/houseVisit';
 
 /**
  * Convert array to comma-separated string
@@ -32,7 +33,10 @@ function mapFamilyMembers(members: { name: string; relation: string; age?: strin
 export function mapHouseVisitFormToPayload(
   formData: HouseVisitFormValues,
   studentID: number,
-  source: string
+  source: string,
+  volunteerApprovalStatus?: VolunteerApprovalStatus,
+  housePhoto?: DocumentFile,
+  uploadedFiles?: DocumentFile[],
 ): HouseVisitCreatePayload {
   return {
     StudentID: studentID,
@@ -110,5 +114,10 @@ export function mapHouseVisitFormToPayload(
     // Declaration
     DeclarationConfirmation: formData.declaration.confirmation,
     DeclarationDate: formData.declaration.date,
+
+    // Approval & files
+    VolunteerApprovalStatus: volunteerApprovalStatus,
+    HousePhoto: housePhoto,
+    UploadedFiles: uploadedFiles,
   };
 }

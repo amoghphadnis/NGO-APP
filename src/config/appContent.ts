@@ -11,10 +11,11 @@ export const APP_TITLES = {
   renewalPuc: 'Renewal PUC',
   renewalProfessional: 'Renewal Professional',
   renewalPayana: 'Renewal Payana',
-  professionalApplication: 'New Professional Student Information Sheet-\n2026-2027',
+  professionalApplication: 'Vidya Poshak Financial Assistance\nApplication form for Engineering and Medical students\n2026-2027',
   pucApplication: 'Vidya Poshak Financial Assistance Application\nfor PUC-I Commerce and Diploma-I Students\n2026-2027',
-  semiProfessionalApplication: 'Vidya Poshak Financial Assistance Application\nfor Semi-Professional Students 2026-2027',
+  semiProfessionalApplication: 'Vidya Poshak Financial Assistance Application form\nfor SemiProfessional (For B.ScNursing, GNM- Nursing, Physiotherapy,\nB.Sc- Agriculture, Veterinary Science & Horticulture)-2026-2027',
   payanaApplication: 'Payana New Student Application',
+  newPayana: 'New Payana Application',
 } as const;
 
 export const DASHBOARD_MENU_SECTIONS = {
@@ -27,6 +28,10 @@ export const DASHBOARD_MENU_ITEMS = {
   newScholarship: {
     label: APP_TITLES.applyScholarship,
     route: '/form-selection',
+  },
+  newPayana: {
+    label: APP_TITLES.newPayana,
+    route: '/form-engine?formType=payana',
   },
   renewalPuc: {
     label: APP_TITLES.renewalPuc,

@@ -1,0 +1,573 @@
+API CONTRACT DOCUMENT
+
+Professional Students API
+
+=========================================================
+
+BASE ROUTE
+
+=========================================================
+
+/api/professional-students
+
+Authentication:
+
+JWT authentication is required for all endpoints.
+
+The controller uses JwtSessionFilter.
+
+Content-Type:
+
+application/json
+
+=========================================================
+
+1. GET PROFESSIONAL STUDENT LIST
+
+=========================================================
+
+Endpoint:
+
+/api/professional-students/list
+
+HTTP Method:
+
+GET
+
+Purpose:
+
+Retrieves the list of approved Professional Students. The API combines normal professional student applications and imported professional students into one result set.
+
+The response also indicates whether a house visit has been completed and returns the house-visit approval status.
+
+Authentication:
+
+Required - JWT Token
+
+Authorization:
+
+JWT session is required. If the logged-in user has the role "Volunteer", the result is restricted to students assigned to that volunteer.
+
+Query Parameters:
+
+| Name | Type | Required | Description |
+
+|------------|---------|----------|-------------|
+
+| search | string | No | Searches students by StudentName using a contains/LIKE search. |
+
+| districtId | integer | No | Filters students by DistrictID. Ignored when the logged-in user role is Volunteer. |
+
+Path Parameters:
+
+None
+
+Request Body:
+
+None
+
+Form Data / Multipart Fields:
+
+None
+
+File Upload Fields:
+
+None
+
+Validation Rules:
+
+- search is optional.
+
+- districtId is optional.
+
+- search is trimmed before being used.
+
+- When search is supplied, StudentName is filtered using LIKE %search%.
+
+- districtId must be an integer when supplied.
+
+- If the logged-in role is Volunteer, UserID must exist in the JWT session.
+
+- If Volunteer UserID is missing, the API returns 401 Unauthorized.
+
+- Volunteer users cannot use districtId to broaden their results; the district filter is ignored for Volunteers.
+
+- Only students whose approval status is "Approved" are included.
+
+- Both normal and imported professional student records are included.
+
+- Normal records use NewProfessionalApplication.
+
+- Imported records use GoogleSheet\_NewProfessional.
+
+- Results are ordered by StudentName.
+
+Business Logic Notes:
+
+- The logged-in role is read from HttpContext.Current.Session["UserRole"].
+
+- For Volunteer users, HttpContext.Current.Session["UserID"] is used as VolunteerID.
+
+- Normal professional students are obtained through Professional\_StudentVolunteerAssignment.
+
+- Imported professional students are matched through ImportID.
+
+- District names for imported records are matched to DistrictMaster using trimmed DistrictName values.
+
+- House visit information is obtained from HouseVisitForm\_Professional.
+
+- IsVisited is true when the corresponding professional student has a house-visit record.
+
+- For imported students, IsVisited is true when a HouseVisitForm\_Professional record exists for the ImportID.
+
+- Fields not available in the Professional Student source are returned as empty strings:
+
+- Place
+
+- Taluka
+
+- PinCode
+
+- CETRank and NEETRank are selected by SQL but are not exposed in the response DTO.
+
+- CourseApplying is returned through the response property CollegeName.
+
+- PUPercentage is returned through the response property SecuredPercentage.
+
+- FamilyIncome is nullable.
+
+- SecuredPercentage is nullable.
+
+- ApproveStatus is returned as an empty string when the database value is NULL.
+
+- StudentName, ContactNumber, Address, HouseVisitLink, DistrictName and CollegeName are returned as empty strings when their database values are NULL.
+
+Success Response (200):
+
+{
+
+"success": true,
+
+"count": 2,
+
+"data": [
+
+{
+
+"StudentID": 101,
+
+"StudentName": "Rahul Kumar",
+
+"ContactNumber": "9876543210",
+
+"Address": "Bengaluru, Karnataka",
+
+"Place": "",
+
+"Taluka": "",
+
+"PinCode": "",
+
+"HouseVisitLink": "uploads/housevisit/101.mp4",
+
+"DistrictName": "Bengaluru Urban",
+
+"CollegeName": "B.E. Computer Science",
+
+"FamilyIncome": 180000.00,
+
+"SecuredPercentage": 86.50,
+
+"IsVisited": true,
+
+"ApproveStatus": "Approved"
+
+},
+
+{
+
+"StudentID": 102,
+
+"StudentName": "Sneha Patil",
+
+"ContactNumber": "9988776655",
+
+"Address": "Belagavi, Karnataka",
+
+"Place": "",
+
+"Taluka": "",
+
+"PinCode": "",
+
+"HouseVisitLink": "",
+
+"DistrictName": "Belagavi",
+
+"CollegeName": "MBBS",
+
+"FamilyIncome": 120000.00,
+
+"SecuredPercentage": 91.25,
+
+"IsVisited": false,
+
+"ApproveStatus": ""
+
+}
+
+]
+
+}
+
+Empty Result Success Response (200):
+
+{
+
+"success": true,
+
+"count": 0,
+
+"data": []
+
+}
+
+Unauthorized Response (401):
+
+{
+
+"success": false,
+
+"message": "User session not found."
+
+}
+
+Failure Responses:
+
+400 Bad Request
+
+- Returned by the framework if an invalid query parameter type is supplied, such as a non-integer districtId.
+
+401 Unauthorized
+
+- Returned when a Volunteer user does not have UserID available in the JWT session.
+
+403 Forbidden
+
+- No explicit 403 response is coded in this controller. A 403 may be generated by external authorization/filter configuration if applicable.
+
+404 Not Found
+
+- No explicit 404 response is coded by this endpoint.
+
+409 Conflict
+
+- No explicit 409 response is coded by this endpoint.
+
+500 Internal Server Error
+
+- Returned when an unhandled exception occurs.
+
+Example 500 Error:
+
+{
+
+"success": false,
+
+"message": "Error message"
+
+}
+
+Status Codes Used:
+
+- 200 OK
+
+- 401 Unauthorized
+
+- 500 Internal Server Error
+
+Potential Framework-Level Codes:
+
+- 400 Bad Request
+
+- 403 Forbidden
+
+- 404 Not Found
+
+- 409 Conflict
+
+=========================================================
+
+2. GET DISTRICT LIST
+
+=========================================================
+
+Endpoint:
+
+/api/professional-students/districts
+
+HTTP Method:
+
+GET
+
+Purpose:
+
+Retrieves all districts from DistrictMaster for use in district filtering/dropdowns.
+
+Authentication:
+
+Required - JWT Token
+
+Authorization:
+
+JWT session is required through JwtSessionFilter.
+
+Content-Type:
+
+application/json
+
+Path Parameters:
+
+None
+
+Query Parameters:
+
+None
+
+Request Body:
+
+None
+
+Form Data / Multipart Fields:
+
+None
+
+File Upload Fields:
+
+None
+
+Validation Rules:
+
+- No request parameters are required.
+
+- DistrictID is returned as an integer.
+
+- DistrictName is returned as an empty string if the database value is NULL.
+
+- Results are ordered alphabetically by DistrictName.
+
+Business Logic Notes:
+
+- Data is retrieved from DistrictMaster.
+
+- The endpoint returns both DistrictID and DistrictName.
+
+- This endpoint is suitable for populating a district dropdown/filter.
+
+- No role-specific filtering is implemented in this endpoint.
+
+- All districts available in DistrictMaster are returned.
+
+Success Response (200):
+
+{
+
+"success": true,
+
+"count": 3,
+
+"data": [
+
+{
+
+"DistrictID": 1,
+
+"DistrictName": "Belagavi"
+
+},
+
+{
+
+"DistrictID": 2,
+
+"DistrictName": "Bengaluru Urban"
+
+},
+
+{
+
+"DistrictID": 3,
+
+"DistrictName": "Mysuru"
+
+}
+
+]
+
+}
+
+Empty Result Success Response (200):
+
+{
+
+"success": true,
+
+"count": 0,
+
+"data": []
+
+}
+
+Failure Responses:
+
+400 Bad Request
+
+- No explicit 400 response is coded.
+
+401 Unauthorized
+
+- JWT authentication/filter failure may result in unauthorized access.
+
+403 Forbidden
+
+- No explicit 403 response is coded in this controller.
+
+404 Not Found
+
+- No explicit 404 response is coded.
+
+409 Conflict
+
+- No explicit 409 response is coded.
+
+500 Internal Server Error
+
+- Returned when an exception occurs while retrieving districts.
+
+Example 500 Error:
+
+{
+
+"success": false,
+
+"message": "Error message"
+
+}
+
+Status Codes Used:
+
+- 200 OK
+
+- 500 Internal Server Error
+
+Potential Framework-Level Codes:
+
+- 400 Bad Request
+
+- 401 Unauthorized
+
+- 403 Forbidden
+
+- 404 Not Found
+
+- 409 Conflict
+
+=========================================================
+
+COMMON DTOS
+
+=========================================================
+
+1. ProfessionalStudentListDTO
+
+{
+
+"StudentID": 0,
+
+"StudentName": "",
+
+"ContactNumber": "",
+
+"Address": "",
+
+"Place": "",
+
+"Taluka": "",
+
+"PinCode": "",
+
+"HouseVisitLink": "",
+
+"DistrictName": "",
+
+"CollegeName": "",
+
+"FamilyIncome": 0.00,
+
+"SecuredPercentage": 0.00,
+
+"IsVisited": false,
+
+"ApproveStatus": ""
+
+}
+
+Field Description:
+
+| Field | Type | Nullable/Optional | Description |
+
+|-------|------|-------------------|-------------|
+
+| StudentID | integer | No | ApplicationID for normal professional students or ImportID for imported students. |
+
+| StudentName | string | Yes | Student name. Returned as empty string when database value is NULL. |
+
+| ContactNumber | string | Yes | Student contact number. |
+
+| Address | string | Yes | Residential address. |
+
+| Place | string | Yes | Not available in the source; returned as empty string. |
+
+| Taluka | string | Yes | Not available in the source; returned as empty string. |
+
+| PinCode | string | Yes | Not mapped; returned as empty string. |
+
+| HouseVisitLink | string | Yes | House video/visit path when available. |
+
+| DistrictName | string | Yes | District name. |
+
+| CollegeName | string | Yes | Maps to CourseApplying. |
+
+| FamilyIncome | decimal | Yes | Family income. |
+
+| SecuredPercentage | decimal | Yes | Maps to PUPercentage for professional students. |
+
+| IsVisited | boolean | No | True when a corresponding house visit exists. |
+
+| ApproveStatus | string | Yes | House visit approval status; empty string when NULL. |
+
+2. DistrictDTO
+
+{
+
+"DistrictID": 1,
+
+"DistrictName": "Belagavi"
+
+}
+
+Field Description:
+
+| Field | Type | Nullable/Optional | Description |
+
+|-------|------|-------------------|-------------|
+
+| DistrictID | integer | No | Unique district identifier. |
+
+| DistrictName | string | Yes | District name. Returned as empty string if NULL. |
+
+=========================================================
+
+END OF API CONTRACT
+
+=========================================================

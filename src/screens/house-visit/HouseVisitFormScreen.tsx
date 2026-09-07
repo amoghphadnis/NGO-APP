@@ -6,25 +6,31 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+    ActionSheetIOS,
     ActivityIndicator,
     Alert,
+    Image,
     Platform,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { houseVisitApi } from '@/api/houseVisitApi';
+import { HouseVisitEditApi, houseVisitEditApis } from '@/api/houseVisitEditApi';
 import AppFooter from '@/components/common/AppFooter';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-import { pickDocument } from '@/utils/filePicker';
+import { DocumentFile } from '@/types/documents';
+import { VOLUNTEER_APPROVAL_OPTIONS, VolunteerApprovalStatus } from '@/types/houseVisit';
+import { HouseVisitProgram } from '@/types/houseVisitEdit';
+import { pickDocument, pickFromGallery, takePhoto } from '@/utils/imagePicker';
 
 // ============================================================================
 // Reusable Form Components (defined outside main component to prevent re-renders)
@@ -112,12 +118,29 @@ const RadioGroup = React.memo(function RadioGroup({ label, options, value, onSel
 
 export default function HouseVisitFormScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ studentId: string; source: string; studentName?: string }>();
+  const params = useLocalSearchParams<{ studentId: string; source: string; studentName?: string; houseVisitId?: string; program?: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPhotoLoading, setIsPhotoLoading] = useState(false);
+  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
+  const [existingFiles, setExistingFiles] = useState<string[]>([]);
 
   const studentId = parseInt(params.studentId || '0', 10);
   const source = params.source || 'puc';
   const initialStudentName = params.studentName ? decodeURIComponent(params.studentName) : '';
+
+  // Edit mode detection
+  const editMode = Boolean(params.houseVisitId);
+  const houseVisitId = editMode ? parseInt(params.houseVisitId!, 10) : 0;
+  const editProgram = (params.program || source) as HouseVisitProgram;
+  const editApi: HouseVisitEditApi | null = editMode ? houseVisitEditApis[editProgram] ?? null : null;
+
+  const SOURCE_MAP: Record<string, string> = {
+    puc: 'PUC',
+    professional: 'Professional',
+    payana: 'Payana',
+    semiProfessional: 'SemiProfessional',
+  };
+  const normalizedSource = SOURCE_MAP[source.toLowerCase()] || source.toUpperCase();
 
   // DateTime picker state
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -199,8 +222,101 @@ export default function HouseVisitFormScreen() {
     // Section L: Declaration
     declaration: '',
     declarationDate: new Date().toISOString().split('T')[0],
-    uploadedFiles: [] as { uri: string; name: string; type: string; size: number }[],
+    uploadedFiles: [] as DocumentFile[],
+
+    // House Photo & Approval
+    housePhoto: undefined as DocumentFile | undefined,
+    volunteerApprovalStatus: '' as VolunteerApprovalStatus | '',
+
+    // Edit mode: FamilyIDs for existing family members
+    familyMemberIds: [] as number[],
   });
+
+  // ── Edit mode: load existing data ───────────────────────────────────────
+  useEffect(() => {
+    if (!editMode || !editApi || houseVisitId <= 0) return;
+
+    setIsLoadingEdit(true);
+    editApi.get(houseVisitId)
+      .then((res) => {
+        if (!res.success || !res.data) return;
+        const d = res.data;
+
+        // Parse comma-separated fields back to arrays
+        const csvToArray = (v: string | null): string[] =>
+          v ? v.split(',').map((s) => s.trim()).filter(Boolean) : [];
+
+        setFormData((prev) => ({
+          ...prev,
+          studentName: d.StudentName ?? prev.studentName,
+          courseInstitution: d.CourseInstitution ?? '',
+          address: d.Address ?? '',
+          visitDate: d.VisitDate || prev.visitDate,
+          fieldSupervisor: d.FieldSupervisorName ?? '',
+          personsInteracted: d.PersonsInteracted ?? '',
+          houseType: csvToArray(d.HouseType),
+          ownership: csvToArray(d.Ownership),
+          rooms: csvToArray(d.Rooms),
+          floor: csvToArray(d.Floor),
+          rationCard: d.RationCardType ?? '',
+          digitalAccess: d.DigitalAccess ?? '',
+          livingCondition: csvToArray(d.LivingCondition),
+          latestElecBill: d.LatestElecBill ?? '',
+          elecUnitsCons: d.ElecUnitsCons ?? '',
+          internetBillCharges: d.InternetBillCharges ?? '',
+          remarkLivingCondition: d.RemarkGeneralLivingCondition ?? '',
+          familyMembers: (d.FamilyMembers || []).map((m) => ({
+            name: m.Name ?? '',
+            relation: m.Relation ?? '',
+            age: m.Age ?? '',
+            education: m.Education ?? '',
+            occupation: m.Occupation ?? '',
+            income: m.MonthlyIncome ?? '',
+          })),
+          familyMemberIds: (d.FamilyMembers || []).map((m) => m.FamilyID),
+          totalFamily: d.Totalfamily ?? '',
+          primaryIncome: csvToArray(d.PrimaryIncomeSource),
+          natureOfIncome: csvToArray(d.NatureofIncome),
+          primaryEarningPerson: d.PrimaryEarning ?? '',
+          averageIncome: d.AverageIncome ?? '',
+          incomeShocks: csvToArray(d.IncomeShocks),
+          agriculturalLand: csvToArray(d.AgriculturalLand),
+          waterSource: csvToArray(d.WaterSource),
+          cropPattern: csvToArray(d.CropPattern),
+          otherLandHoldings: d.OtherLandHoldings ?? '',
+          totalChildrenStudying: d.TotalChildrenStudying ?? '',
+          annualEducationExpense: d.AnnualEducationExpense ?? '',
+          scholarshipSupport: d.ScholarshipSupport ?? '',
+          governmentSchemes: d.GovernmentSchemes ?? '',
+          educationalLoanAmount: d.EducationalLoanAmount ?? '',
+          outstandingLoans: csvToArray(d.AnyOutstandingLoans),
+          outstandingLoanAmount: d.OutstandingLoanAmount ?? '',
+          monthlyEMI: d.MonthlyEMI ?? '',
+          vulnerability: d.HealthVulnerability ?? '',
+          healthRemarks: d.HealthVulnerabilityRemarks ?? '',
+          assets: csvToArray(d.Assets),
+          extracurricular: csvToArray(d.Extracurricular),
+          studentAspiration: d.StudentAspiration ?? '',
+          consentParticipation: d.ConsentParticipation ?? '',
+          studentDevRemarks: d.Remarks ?? '',
+          vulnerabilityLevel: csvToArray(d.HouseholdVulnerabilityLevel),
+          studentMotivation: d.StudentMotivation ?? '',
+          recommendation: csvToArray(d.Recommendation),
+          justification: d.SupervisorJustification ?? '',
+          declaration: d.DeclarationConfirmation ?? '',
+          declarationDate: d.DeclarationDate || prev.declarationDate,
+          volunteerApprovalStatus: (d.VolunteerApprovalStatus as VolunteerApprovalStatus) || prev.volunteerApprovalStatus,
+        }));
+
+        // Store existing uploaded file names
+        setExistingFiles(d.Upload ? d.Upload.split(',').map((s) => s.trim()).filter(Boolean) : []);
+      })
+      .catch((err) => {
+        console.error('[HouseVisit] Edit load error:', err);
+        Alert.alert('Error', 'Failed to load house visit data');
+      })
+      .finally(() => setIsLoadingEdit(false));
+  }, [editMode, editApi, houseVisitId]);
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -249,90 +365,252 @@ export default function HouseVisitFormScreen() {
     }));
   };
 
+  const isImageFile = (file: DocumentFile): boolean => {
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    if (['jpg', 'jpeg', 'png'].includes(ext)) return true;
+    return ['image/jpeg', 'image/png'].includes(file.type);
+  };
+
+  const handlePhotoSelected = (file: DocumentFile) => {
+    if (!isImageFile(file)) {
+      Alert.alert('Invalid file', 'House Photo must be JPG, JPEG or PNG.');
+      return;
+    }
+    setFormData(prev => ({ ...prev, housePhoto: file }));
+  };
+
+  const removeHousePhoto = () => {
+    setFormData(prev => ({ ...prev, housePhoto: undefined }));
+  };
+
+  const showPhotoSourceSheet = () => {
+    const options = ['Take Photo', 'Choose from Gallery', 'Choose File', 'Cancel'];
+    const cancelIndex = 3;
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, cancelButtonIndex: cancelIndex, title: 'Upload House Photo' },
+        (buttonIndex) => {
+          if (buttonIndex === 0) {
+            setIsPhotoLoading(true);
+            takePhoto().then((photo) => { if (photo) handlePhotoSelected(photo); }).finally(() => setIsPhotoLoading(false));
+          } else if (buttonIndex === 1) {
+            setIsPhotoLoading(true);
+            pickFromGallery().then((photo) => { if (photo) handlePhotoSelected(photo); }).finally(() => setIsPhotoLoading(false));
+          } else if (buttonIndex === 2) {
+            setIsPhotoLoading(true);
+            pickDocument().then((file) => { if (file) handlePhotoSelected(file); }).finally(() => setIsPhotoLoading(false));
+          }
+        }
+      );
+    } else {
+      Alert.alert('Upload House Photo', 'Select a photo source', [
+        { text: 'Take Photo', onPress: () => { setIsPhotoLoading(true); takePhoto().then((photo) => { if (photo) handlePhotoSelected(photo); }).finally(() => setIsPhotoLoading(false)); } },
+        { text: 'Choose from Gallery', onPress: () => { setIsPhotoLoading(true); pickFromGallery().then((photo) => { if (photo) handlePhotoSelected(photo); }).finally(() => setIsPhotoLoading(false)); } },
+        { text: 'Choose File', onPress: () => { setIsPhotoLoading(true); pickDocument().then((file) => { if (file) handlePhotoSelected(file); }).finally(() => setIsPhotoLoading(false)); } },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
+  };
+
+  const showStatusSheet = () => {
+    const options = [...VOLUNTEER_APPROVAL_OPTIONS, 'Cancel'];
+    const cancelIndex = options.length - 1;
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, cancelButtonIndex: cancelIndex, title: 'Student Approval Status' },
+        (buttonIndex) => {
+          if (buttonIndex < cancelIndex) {
+            setFormData(prev => ({
+              ...prev,
+              volunteerApprovalStatus: options[buttonIndex] as VolunteerApprovalStatus,
+            }));
+          }
+        }
+      );
+    } else {
+      Alert.alert('Student Approval Status', 'Select status', [
+        ...VOLUNTEER_APPROVAL_OPTIONS.map((status) => ({
+          text: status,
+          onPress: () => setFormData(prev => ({ ...prev, volunteerApprovalStatus: status })),
+        })),
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
+  };
+
   const onSubmit = async () => {
-    if (!formData.studentName || !formData.address) {
-      Alert.alert('Error', 'Please fill in required fields (Student Name, Address)');
+    if (!formData.studentName || !formData.address || !formData.volunteerApprovalStatus) {
+      Alert.alert('Error', 'Please fill in required fields (Student Name, Address, Student Approval Status)');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Build payload
-      const payload = {
-        StudentID: studentId,
-        Source: source.toUpperCase(),
-        StudentName: formData.studentName,
-        CourseInstitution: formData.courseInstitution,
-        Address: formData.address,
-        VisitDate: formData.visitDate,
-        FieldSupervisorName: formData.fieldSupervisor,
-        PersonsInteracted: formData.personsInteracted,
-        HouseType: formData.houseType.join(','),
-        Ownership: formData.ownership.join(','),
-        Rooms: formData.rooms.join(','),
-        Floor: formData.floor.join(','),
-        RationCardType: formData.rationCard,
-        DigitalAccess: formData.digitalAccess,
-        LivingCondition: formData.livingCondition.join(','),
-        LatestElecBill: formData.latestElecBill,
-        ElecUnitsCons: formData.elecUnitsCons,
-        InternetBillCharges: formData.internetBillCharges,
-        RemarkGeneralLivingCondition: formData.remarkLivingCondition,
-        FamilyMembers: formData.familyMembers.map(m => ({
+      if (editMode && editApi) {
+        // ── Edit mode: partial update via edit API ──────────────────────────
+        const fields: Record<string, string> = {
+          StudentName: formData.studentName,
+          CourseInstitution: formData.courseInstitution,
+          Address: formData.address,
+          VisitDate: formData.visitDate,
+          FieldSupervisorName: formData.fieldSupervisor,
+          PersonsInteracted: formData.personsInteracted,
+          HouseType: formData.houseType.join(','),
+          Ownership: formData.ownership.join(','),
+          Rooms: formData.rooms.join(','),
+          Floor: formData.floor.join(','),
+          RationCardType: formData.rationCard,
+          DigitalAccess: formData.digitalAccess,
+          LivingCondition: formData.livingCondition.join(','),
+          LatestElecBill: formData.latestElecBill,
+          ElecUnitsCons: formData.elecUnitsCons,
+          InternetBillCharges: formData.internetBillCharges,
+          RemarkGeneralLivingCondition: formData.remarkLivingCondition,
+          Totalfamily: formData.totalFamily,
+          PrimaryIncomeSource: formData.primaryIncome.join(','),
+          NatureofIncome: formData.natureOfIncome.join(','),
+          PrimaryEarning: formData.primaryEarningPerson,
+          AverageIncome: formData.averageIncome,
+          IncomeShocks: formData.incomeShocks.join(','),
+          AgriculturalLand: formData.agriculturalLand.join(','),
+          WaterSource: formData.waterSource.join(','),
+          CropPattern: formData.cropPattern.join(','),
+          OtherLandHoldings: formData.otherLandHoldings,
+          TotalChildrenStudying: formData.totalChildrenStudying,
+          AnnualEducationExpense: formData.annualEducationExpense,
+          ScholarshipSupport: formData.scholarshipSupport,
+          GovernmentSchemes: formData.governmentSchemes,
+          EducationalLoanAmount: formData.educationalLoanAmount,
+          AnyOutstandingLoans: formData.outstandingLoans.join(','),
+          OutstandingLoanAmount: formData.outstandingLoanAmount,
+          MonthlyEMI: formData.monthlyEMI,
+          HealthVulnerability: formData.vulnerability,
+          HealthVulnerabilityRemarks: formData.healthRemarks,
+          Assets: formData.assets.join(','),
+          Extracurricular: formData.extracurricular.join(','),
+          StudentAspiration: formData.studentAspiration,
+          ConsentParticipation: formData.consentParticipation,
+          Remarks: formData.studentDevRemarks,
+          HouseholdVulnerabilityLevel: formData.vulnerabilityLevel.join(','),
+          StudentMotivation: formData.studentMotivation,
+          Recommendation: formData.recommendation.join(','),
+          SupervisorJustification: formData.justification,
+          DeclarationConfirmation: formData.declaration,
+          DeclarationDate: formData.declarationDate,
+        };
+
+        if (formData.volunteerApprovalStatus) {
+          fields.VolunteerApprovalStatus = formData.volunteerApprovalStatus;
+        }
+
+        const familyMembers = formData.familyMembers.map((m, idx) => ({
+          FamilyID: formData.familyMemberIds[idx] || 0,
           Name: m.name,
           Relation: m.relation,
           Age: m.age,
           Education: m.education,
           Occupation: m.occupation,
           MonthlyIncome: m.income,
-        })),
-        Totalfamily: formData.totalFamily,
-        PrimaryIncomeSource: formData.primaryIncome.join(','),
-        NatureofIncome: formData.natureOfIncome.join(','),
-        PrimaryEarning: formData.primaryEarningPerson,
-        AverageIncome: formData.averageIncome,
-        IncomeShocks: formData.incomeShocks.join(','),
-        AgriculturalLand: formData.agriculturalLand.join(','),
-        WaterSource: formData.waterSource.join(','),
-        CropPattern: formData.cropPattern.join(','),
-        OtherLandHoldings: formData.otherLandHoldings,
-        TotalChildrenStudying: formData.totalChildrenStudying,
-        AnnualEducationExpense: formData.annualEducationExpense,
-        ScholarshipSupport: formData.scholarshipSupport,
-        GovernmentSchemes: formData.governmentSchemes,
-        EducationalLoanAmount: formData.educationalLoanAmount,
-        AnyOutstandingLoans: formData.outstandingLoans.join(','),
-        OutstandingLoanAmount: formData.outstandingLoanAmount,
-        MonthlyEMI: formData.monthlyEMI,
-        HealthVulnerability: formData.vulnerability,
-        HealthVulnerabilityRemarks: formData.healthRemarks,
-        Assets: formData.assets.join(','),
-        Extracurricular: formData.extracurricular.join(','),
-        StudentAspiration: formData.studentAspiration,
-        ConsentParticipation: formData.consentParticipation,
-        Remarks: formData.studentDevRemarks,
-        HouseholdVulnerabilityLevel: formData.vulnerabilityLevel.join(','),
-        StudentMotivation: formData.studentMotivation,
-        Recommendation: formData.recommendation.join(','),
-        SupervisorJustification: formData.justification,
-        DeclarationConfirmation: formData.declaration,
-        DeclarationDate: formData.declarationDate,
-      };
+        })).filter((m) => m.FamilyID > 0);
 
-      console.log('[HouseVisit] Submitting payload:', JSON.stringify(payload, null, 2));
-      
-      const response = await houseVisitApi.create(payload);
+        const response = await editApi.update(houseVisitId, {
+          fields,
+          familyMembers: familyMembers.length > 0 ? familyMembers : undefined,
+          uploadedFiles: formData.uploadedFiles.length > 0 ? formData.uploadedFiles : undefined,
+        });
 
-      console.log('[HouseVisit] API response:', JSON.stringify(response, null, 2));
-
-      if (response.success) {
-        Alert.alert(
-          'Success',
-          'House visit form submitted successfully!',
-          [{ text: 'OK', onPress: () => router.back() }]
-        );
+        if (response.success) {
+          Alert.alert(
+            'Success',
+            'House visit updated successfully!',
+            [{ text: 'OK', onPress: () => router.back() }]
+          );
+        } else {
+          Alert.alert('Error', response.message || 'Failed to update house visit');
+        }
       } else {
-        Alert.alert('Error', response.message || 'Failed to submit form');
+        // ── Create mode: full payload via create API ────────────────────────
+        const payload = {
+          StudentID: studentId,
+          Source: normalizedSource,
+          StudentName: formData.studentName,
+          CourseInstitution: formData.courseInstitution,
+          Address: formData.address,
+          VisitDate: formData.visitDate,
+          FieldSupervisorName: formData.fieldSupervisor,
+          PersonsInteracted: formData.personsInteracted,
+          HouseType: formData.houseType.join(','),
+          Ownership: formData.ownership.join(','),
+          Rooms: formData.rooms.join(','),
+          Floor: formData.floor.join(','),
+          RationCardType: formData.rationCard,
+          DigitalAccess: formData.digitalAccess,
+          LivingCondition: formData.livingCondition.join(','),
+          LatestElecBill: formData.latestElecBill,
+          ElecUnitsCons: formData.elecUnitsCons,
+          InternetBillCharges: formData.internetBillCharges,
+          RemarkGeneralLivingCondition: formData.remarkLivingCondition,
+          FamilyMembers: formData.familyMembers.map(m => ({
+            Name: m.name,
+            Relation: m.relation,
+            Age: m.age,
+            Education: m.education,
+            Occupation: m.occupation,
+            MonthlyIncome: m.income,
+          })),
+          Totalfamily: formData.totalFamily,
+          PrimaryIncomeSource: formData.primaryIncome.join(','),
+          NatureofIncome: formData.natureOfIncome.join(','),
+          PrimaryEarning: formData.primaryEarningPerson,
+          AverageIncome: formData.averageIncome,
+          IncomeShocks: formData.incomeShocks.join(','),
+          AgriculturalLand: formData.agriculturalLand.join(','),
+          WaterSource: formData.waterSource.join(','),
+          CropPattern: formData.cropPattern.join(','),
+          OtherLandHoldings: formData.otherLandHoldings,
+          TotalChildrenStudying: formData.totalChildrenStudying,
+          AnnualEducationExpense: formData.annualEducationExpense,
+          ScholarshipSupport: formData.scholarshipSupport,
+          GovernmentSchemes: formData.governmentSchemes,
+          EducationalLoanAmount: formData.educationalLoanAmount,
+          AnyOutstandingLoans: formData.outstandingLoans.join(','),
+          OutstandingLoanAmount: formData.outstandingLoanAmount,
+          MonthlyEMI: formData.monthlyEMI,
+          HealthVulnerability: formData.vulnerability,
+          HealthVulnerabilityRemarks: formData.healthRemarks,
+          Assets: formData.assets.join(','),
+          Extracurricular: formData.extracurricular.join(','),
+          StudentAspiration: formData.studentAspiration,
+          ConsentParticipation: formData.consentParticipation,
+          Remarks: formData.studentDevRemarks,
+          HouseholdVulnerabilityLevel: formData.vulnerabilityLevel.join(','),
+          StudentMotivation: formData.studentMotivation,
+          Recommendation: formData.recommendation.join(','),
+          SupervisorJustification: formData.justification,
+          DeclarationConfirmation: formData.declaration,
+          DeclarationDate: formData.declarationDate,
+          VolunteerApprovalStatus: formData.volunteerApprovalStatus || undefined,
+          HousePhoto: formData.housePhoto,
+          UploadedFiles: formData.uploadedFiles,
+        };
+
+        console.log('[HouseVisit] Submitting payload:', JSON.stringify(payload, null, 2));
+
+        const response = await houseVisitApi.create(payload);
+
+        console.log('[HouseVisit] API response:', JSON.stringify(response, null, 2));
+
+        if (response.success) {
+          Alert.alert(
+            'Success',
+            'House visit form submitted successfully!',
+            [{ text: 'OK', onPress: () => router.back() }]
+          );
+        } else {
+          Alert.alert('Error', response.message || 'Failed to submit form');
+        }
       }
     } catch (error: any) {
       console.error('[HouseVisit] Submit error:', error);
@@ -351,14 +629,23 @@ export default function HouseVisitFormScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>House Visit Form</Text>
+        <Text style={styles.headerTitle}>{editMode ? 'Edit House Visit' : 'House Visit Form'}</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        {isLoadingEdit && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Loading house visit data...</Text>
+          </View>
+        )}
+
+        {!isLoadingEdit && (
+          <>
         <View style={styles.infoBanner}>
           <Ionicons name="information-circle" size={20} color={colors.primary} />
-          <Text style={styles.infoText}>Student ID: {studentId} | Type: {source.toUpperCase()}</Text>
+          <Text style={styles.infoText}>{editMode ? `House Visit #${houseVisitId} | ${editProgram}` : `Student ID: ${studentId} | Type: ${source.toUpperCase()}`}</Text>
         </View>
 
         {/* Section A: Basic Details */}
@@ -493,7 +780,7 @@ export default function HouseVisitFormScreen() {
 
         {/* Section K: Supervisor Assessment */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>K. Supervisor's Assessment</Text>
+          <Text style={styles.sectionTitle}>K. Supervisor&apos;s Assessment</Text>
           <CheckboxGroup label="Household Vulnerability Level" options={['High', 'Moderate', 'Low']} values={formData.vulnerabilityLevel} onToggle={(v) => toggleArrayValue('vulnerabilityLevel', v)} />
           <RadioGroup label="Student Motivation" options={['High', 'Average', 'Needs Support']} value={formData.studentMotivation} onSelect={(v) => updateField('studentMotivation', v)} />
           <CheckboxGroup label="Recommendation" options={['Strongly Recommended', 'Recommended', 'Not Recommended']} values={formData.recommendation} onToggle={(v) => toggleArrayValue('recommendation', v)} />
@@ -532,6 +819,20 @@ export default function HouseVisitFormScreen() {
           </View>
           <View style={styles.uploadSection}>
             <Text style={styles.label}>Upload Documents / Photos</Text>
+
+            {/* Existing files from server (edit mode only) */}
+            {editMode && existingFiles.length > 0 && (
+              <View style={styles.selectedFilesContainer}>
+                <Text style={styles.selectedFilesTitle}>Existing Files:</Text>
+                {existingFiles.map((name, index) => (
+                  <View key={`existing-${index}`} style={styles.fileItem}>
+                    <Ionicons name="document-outline" size={16} color={colors.textSecondary} />
+                    <Text style={styles.fileName} numberOfLines={1}>{name}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
             <TouchableOpacity style={styles.uploadButton} onPress={handleFilePick}>
               <Ionicons name="camera" size={20} color="#FFFFFF" />
               <Text style={styles.uploadButtonText}>Select Files</Text>
@@ -558,13 +859,62 @@ export default function HouseVisitFormScreen() {
           </View>
         </View>
 
+        {/* Section M: Student Approval & House Photo */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>M. Approval & House Photo</Text>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Student Approval *</Text>
+            <TouchableOpacity style={styles.selectButton} onPress={showStatusSheet} activeOpacity={0.7}>
+              <Text style={formData.volunteerApprovalStatus ? styles.selectButtonText : styles.selectButtonPlaceholder}>
+                {formData.volunteerApprovalStatus || '-- Select Status --'}
+              </Text>
+              <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>House Photo</Text>
+            <TouchableOpacity style={styles.uploadButton} onPress={showPhotoSourceSheet} activeOpacity={0.7} disabled={isPhotoLoading}>
+              {isPhotoLoading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <>
+                  <Ionicons name="camera" size={20} color="#FFFFFF" />
+                  <Text style={styles.uploadButtonText}>Select Photo</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <Text style={styles.uploadHint}>Only JPG, JPEG and PNG files are allowed.</Text>
+
+            {formData.housePhoto && (
+              <View style={styles.housePhotoContainer}>
+                <Image source={{ uri: formData.housePhoto.uri }} style={styles.housePhotoPreview} resizeMode="cover" />
+                <View style={styles.housePhotoMeta}>
+                  <Text style={styles.housePhotoName} numberOfLines={1}>{formData.housePhoto.name}</Text>
+                  <View style={styles.housePhotoActions}>
+                    <TouchableOpacity onPress={showPhotoSourceSheet} style={styles.housePhotoAction}>
+                      <Text style={styles.housePhotoActionText}>Change</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={removeHousePhoto} style={styles.housePhotoAction}>
+                      <Text style={[styles.housePhotoActionText, { color: colors.error }]}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+
         {/* Submit */}
         <TouchableOpacity style={[styles.submitButton, isSubmitting && { opacity: 0.7 }]} onPress={onSubmit} disabled={isSubmitting}>
-          {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitButtonText}>Submit House Visit</Text>}
+          {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.submitButtonText}>{editMode ? 'Update House Visit' : 'Submit House Visit'}</Text>}
         </TouchableOpacity>
 
         <AppFooter />
         <View style={{ height: 40 }} />
+          </>
+        )}
       </ScrollView>
 
       {/* iOS DateTimePicker Overlay - Outside ScrollView */}
@@ -693,5 +1043,69 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.primary,
+  },
+  selectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: '#9CA3AF',
+    borderRadius: 8,
+    padding: spacing.sm,
+    backgroundColor: '#FFFFFF',
+    minHeight: 44,
+  },
+  selectButtonText: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    fontWeight: '500',
+  },
+  selectButtonPlaceholder: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  housePhotoContainer: {
+    flexDirection: 'row',
+    marginTop: spacing.md,
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  housePhotoPreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: colors.background,
+  },
+  housePhotoMeta: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  housePhotoName: {
+    fontSize: 13,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  housePhotoActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  housePhotoAction: {
+    paddingVertical: spacing.xs,
+  },
+  housePhotoActionText: {
+    fontSize: 13,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: spacing.sm,
+    fontSize: 14,
+    color: colors.textSecondary,
   },
 });

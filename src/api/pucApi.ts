@@ -1,21 +1,26 @@
 /**
- * PUC Student API
- * Handles all PUC scholarship form API interactions
+ * PUC Format 1.1 Student API
+ * Handles all PUC scholarship form API interactions.
+ *
+ * Create:     POST /api/VP_Format1_1PUC          (multipart/form-data)
+ * Dropdowns:  GET  /api/VP_Format1_1PUC/dropdowns
  */
 
 import api from './client';
 import { normalizeApiError, normalizeApiResponse, NormalizedApiResponse } from './transformers/normalizeApiResponse';
 import { NormalizedDropdowns, normalizePUCDropdowns } from './transformers/normalizeDropdowns';
 
+const BASE_URL = '/VP_Format1_1PUC';
+
 /**
- * Creates a new PUC student application
- * POST /api/students/students/create
+ * Creates a new PUC Format 1.1 student application
+ * POST /api/VP_Format1_1PUC  (multipart/form-data)
  */
 export async function createPUCStudent(
   formData: FormData
 ): Promise<NormalizedApiResponse<any>> {
   try {
-    const response = await api.post('/students/students/create', formData);
+    const response = await api.post(BASE_URL, formData);
 
     return normalizeApiResponse(response.data);
   } catch (error: any) {
@@ -24,14 +29,14 @@ export async function createPUCStudent(
 }
 
 /**
- * Gets PUC dropdown data
- * GET /api/students/students/dropdowns
+ * Gets PUC Format 1.1 dropdown data
+ * GET /api/VP_Format1_1PUC/dropdowns
  */
 export async function getPUCDropdowns(): Promise<
   NormalizedApiResponse<NormalizedDropdowns>
 > {
   try {
-    const response = await api.get('/students/students/dropdowns');
+    const response = await api.get(`${BASE_URL}/dropdowns`);
     console.log('[getPUCDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
 
     // Handle both wrapped (data.Data) and unwrapped (data) responses

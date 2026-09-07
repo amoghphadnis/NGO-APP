@@ -188,15 +188,9 @@ export const PUC_REQUIRED_DOCUMENTS = [
 ] as const;
 
 export const SEMI_PROFESSIONAL_REQUIRED_DOCUMENTS = [
-  'studentSelfie',
-  'cetRankSheet',
-  'ptRankSheet',
-  'dwellingUnitPhoto',
-  'marksSheet12',
-  'houseVideo',
-  'electricityBill',
+  'pucMarksCard',
   'incomeCertificate',
-  'rationCard',
+  'aadharCard',
 ] as const;
 
 // ============================================================================

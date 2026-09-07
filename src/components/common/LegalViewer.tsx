@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Pdf from 'react-native-pdf';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LEGAL_DOCUMENTS, LegalDocumentType } from '@/config/legal';
@@ -31,22 +30,14 @@ export default function LegalViewer({ type }: LegalViewerProps) {
         <Text style={styles.headerTitle}>{document.title}</Text>
         <View style={styles.headerSpacer} />
       </View>
-      {document.pdfSource ? (
-        <Pdf
-          source={document.pdfSource}
-          style={styles.pdf}
-          trustAllCerts={false}
-        />
-      ) : (
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          {document.sections.map((section) => (
-            <View key={section.title} style={styles.sectionCard}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              <Text style={styles.sectionContent}>{section.content}</Text>
-            </View>
-          ))}
-        </ScrollView>
-      )}
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {document.sections.map((section) => (
+          <View key={section.title} style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <Text style={styles.sectionContent}>{section.content}</Text>
+          </View>
+        ))}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -79,10 +70,6 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: platform.touchTarget.iconButtonSize,
-  },
-  pdf: {
-    backgroundColor: colors.background,
-    flex: 1,
   },
   content: {
     padding: spacing.md,

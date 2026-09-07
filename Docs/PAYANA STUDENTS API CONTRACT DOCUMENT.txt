@@ -1,0 +1,1184 @@
+PAYANA STUDENTS API CONTRACT DOCUMENT
+
+=========================================================
+BASE ROUTE / ROUTE PREFIX
+=========================================================
+
+Base Route:
+api/payanastudents
+
+Controller:
+PayanaStudentsApiController
+
+API Description:
+This API provides functionality to:
+1. Create a new Payana Student application.
+2. Load all master dropdown data required by the Payana Student application form.
+3. Retrieve the approved Payana Student list.
+4. Retrieve the District dropdown independently.
+
+Authentication:
+- The controller itself does not have [JwtSessionFilter] at controller level.
+- The CREATE endpoint does not explicitly require JWT authentication in the supplied code.
+- The DROPDOWNS endpoint does not explicitly require JWT authentication in the supplied code.
+- The STUDENT LIST endpoint explicitly applies [JwtSessionFilter] and therefore requires authenticated JWT/session information.
+- The DISTRICTS endpoint does not explicitly require JWT authentication in the supplied code.
+- For authenticated requests, CurrentUser.Role and CurrentUser.UserID are used by the Student List endpoint.
+
+Important:
+The exact JWT header format, token expiry, token issuer, and token signing details are not defined in this controller and must be documented separately based on JwtSessionFilter implementation.
+
+=========================================================
+1. CREATE PAYANA STUDENT
+=========================================================
+
+Endpoint:
+POST /api/payanastudents/create
+
+Purpose:
+Creates and submits a new Payana Student application.
+
+The endpoint:
+- Accepts student application data.
+- Accepts optional uploaded documents/images using multipart/form-data.
+- Validates that StudentName is supplied.
+- Checks whether the submitted Email already exists in PayanaStudents.
+- Rejects duplicate email registrations with HTTP 409 Conflict.
+- Saves uploaded files to the ~/Uploads/ folder.
+- Generates a unique GUID-based filename for each uploaded file.
+- Stores the generated relative file paths in the PayanaStudents table.
+- Inserts the student application into the PayanaStudents table.
+- Returns a success response after successful database insertion.
+
+Content-Type:
+multipart/form-data
+
+Authorization:
+Not explicitly required by the supplied controller code.
+
+Path Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint has no path parameters. |
+
+Query Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint has no query parameters. |
+
+Request Body:
+The endpoint is designed for multipart/form-data. Therefore, the request should be sent as multipart form data rather than a raw JSON body.
+
+Example conceptual JSON representation of the normal form fields:
+
+{
+  "StudentName": "Rahul Kumar",
+  "DateOfBirth": "2005-06-15",
+  "GenderID": 1,
+  "ContactNumber": "9876543210",
+  "AlternateNumber": "9123456780",
+  "Email": "rahul.kumar@example.com",
+  "RAddress": "123 Main Road, Village",
+  "CAddress": "Government College Road, City",
+  "Taluka": "Tiptur",
+  "DistrictID": 12,
+  "OtherDistrict": null,
+  "PinCode": "572201",
+  "AreaTypeID": 1,
+  "CasteCategoryID": 2,
+  "HouseTypeID": 3,
+  "FatherName": "Ramesh Kumar",
+  "MotherName": "Suma Kumar",
+  "FatherOccupationID": 4,
+  "MotherOccupationID": 5,
+  "FamilyMembers": 5,
+  "FamilyIncome": 150000.00,
+  "ParentBank": 25000.00,
+  "CollegeName": "Government First Grade College",
+  "CollegeTypeID": 1,
+  "CollegeCNumber": "0801234567",
+  "CourseSA": "B.Com",
+  "CourseStream": "Commerce",
+  "AnnualFees": 25000.00,
+  "TotalExpenses": 75000.00,
+  "StudentAchivements": "District-level academic achievement",
+  "securedPercentage": 78.50,
+  "accountholdername": "Rahul Kumar",
+  "bankaccountno": "123456789012",
+  "ifsccode": "SBIN0001234",
+  "bankname": "State Bank of India",
+  "branchname": "Tiptur Branch",
+  "HouseVisitLink": "https://example.com/house-visit"
+}
+
+NOTE:
+The JSON above is a representation of the normal fields. The actual HTTP request must use multipart/form-data because the endpoint reads files through HttpContext.Current.Request.Files.
+
+Form Data / Multipart Fields:
+
+| Field | Type | Required | Description |
+|------|------|----------|-------------|
+| StudentName | string | Yes | Name of the student. The controller explicitly validates that this value is not null, empty, or whitespace. |
+| DateOfBirth | date/string | No | Student date of birth. Null is accepted by the controller. |
+| GenderID | integer | No | Gender master record ID. |
+| ContactNumber | string | No | Primary contact number. |
+| AlternateNumber | string | No | Alternate contact number. |
+| Email | string | No* | Student email address. If supplied, it is checked against existing records. |
+| RAddress | string | No | Residential address. |
+| CAddress | string | No | Current address. |
+| Taluka | string | No | Taluka name. |
+| DistrictID | integer | No | District master ID. |
+| OtherDistrict | string | No | Other district information. |
+| PinCode | string | No | Postal/PIN code. |
+| AreaTypeID | integer | No | Area type master ID. |
+| CasteCategoryID | integer | No | Caste category master ID. |
+| HouseTypeID | integer | No | House type master ID. |
+| FatherName | string | No | Father's name. |
+| MotherName | string | No | Mother's name. |
+| FatherOccupationID | integer | No | Father occupation master ID. |
+| MotherOccupationID | integer | No | Mother occupation master ID. |
+| FamilyMembers | integer | No | Number of family members. |
+| FamilyIncome | decimal | No | Family annual income/value submitted by the applicant. |
+| ParentBank | decimal | No | Parent bank balance. |
+| CollegeName | string | No | Name of the college. |
+| CollegeTypeID | integer | No | College type master ID. |
+| CollegeCNumber | string | No | College contact number. |
+| CourseSA | string | No | Course/subject or academic course information. |
+| CourseStream | string | No | Course stream. |
+| AnnualFees | decimal | No | Annual college/course fees. |
+| TotalExpenses | decimal | No | Total expenses. |
+| StudentAchivements | string | No | Student achievements. |
+| securedPercentage | decimal | No | Secured percentage/academic percentage. |
+| accountholdername | string | No | Bank account holder name. |
+| bankaccountno | string | No | Bank account number. |
+| ifsccode | string | No | IFSC code. |
+| bankname | string | No | Bank name. |
+| branchname | string | No | Bank branch name. |
+| HouseVisitLink | string | No | House visit link/reference. |
+
+IMPORTANT:
+- All fields except StudentName are treated as optional by the controller.
+- The controller passes missing/null fields to SQL as DBNull.Value.
+- Email is technically optional according to the controller because null is accepted.
+- However, the duplicate email check is always executed, including when Email is null.
+- Because the SQL query compares LOWER(Email) with LOWER(@Email), the actual database behavior for a null Email depends on existing database records and SQL NULL comparison semantics.
+- No explicit email format validation is implemented.
+- No explicit phone number validation is implemented.
+- No explicit numeric range validation is implemented.
+
+File Upload Fields:
+
+| Field | Type | Required | Allowed Extensions | Max Size |
+|------|------|----------|--------------------|----------|
+| latestmarkscard | file | No | Any extension accepted by the controller | Not specified in controller |
+| studentpassbookFP | file | No | Any extension accepted by the controller | Not specified in controller |
+| StudentPhoto | file | No | Any extension accepted by the controller | Not specified in controller |
+| dwellingunit | file | No | Any extension accepted by the controller | Not specified in controller |
+| adharcard | file | No | Any extension accepted by the controller | Not specified in controller |
+
+File Upload Notes:
+- The controller does not explicitly validate file extensions.
+- The controller does not explicitly validate MIME types.
+- The controller does not explicitly validate maximum file size.
+- If a file is null or ContentLength is 0, no file is saved and the corresponding database path is NULL.
+- Uploaded files are saved under the application ~/Uploads/ directory.
+- The physical directory is created automatically if it does not already exist.
+- A GUID is generated for the stored file name.
+- The original file extension is retained.
+- The generated path returned by SaveFile is in the format:
+  /Uploads/{GeneratedGuid}{OriginalExtension}
+
+File Mapping:
+
+| Request File Field | Database Column | Stored Value |
+|--------------------|-----------------|--------------|
+| latestmarkscard | MarksCardPath | /Uploads/{GUID}.{extension} |
+| studentpassbookFP | BankPassbookPath | /Uploads/{GUID}.{extension} |
+| StudentPhoto | StudentPhotoPath | /Uploads/{GUID}.{extension} |
+| dwellingunit | HousePhotoPath | /Uploads/{GUID}.{extension} |
+| adharcard | AadharPath | /Uploads/{GUID}.{extension} |
+
+Validation Rules:
+- StudentName is mandatory.
+- StudentName must not be null, empty, or whitespace.
+- No minimum length is explicitly enforced for StudentName.
+- No maximum length is explicitly enforced for StudentName.
+- Email is checked for duplicate registration.
+- Email comparison is case-insensitive using LOWER(Email) = LOWER(@Email).
+- Duplicate email results in HTTP 409 Conflict.
+- Email format is not validated by the controller.
+- All other model fields are nullable from the controller's perspective.
+- Missing nullable values are passed to SQL as DBNull.Value.
+- File fields are optional.
+- Files with ContentLength greater than 0 are saved.
+- Empty or missing files are ignored.
+- File extension validation is not implemented.
+- File size validation is not implemented.
+- MIME type validation is not implemented.
+- No explicit validation of foreign key IDs is implemented in the controller.
+- No explicit validation of bank account number or IFSC format is implemented.
+- No explicit validation of contact number format is implemented.
+- No explicit validation of percentage ranges is implemented.
+- No explicit validation of income/fees/expense ranges is implemented.
+
+Business Logic Notes:
+- The endpoint inserts a record into PayanaStudents.
+- StudentName is the only field explicitly required by the controller.
+- Email uniqueness is checked before insertion.
+- Duplicate email returns HTTP 409 Conflict with:
+  "This Email ID is already registered. Student can apply only once."
+- The duplicate email check is case-insensitive.
+- Uploaded files are stored with GUID-based names to reduce filename collision risk.
+- The original file extension is retained.
+- The API stores relative upload paths rather than physical server paths.
+- No application status is explicitly set by this controller during INSERT.
+- No approval status is explicitly assigned during creation.
+- No role-based creation logic is implemented.
+- No authenticated user ID is stored by this controller.
+- No transaction is used across file saving and database insertion.
+- If files are successfully saved but the database INSERT later fails, the uploaded files may remain on disk without a corresponding database record.
+- If database insertion succeeds, the API returns a generic success response.
+- The API does not return the newly generated StudentID.
+- The API does not return the uploaded file URLs individually.
+
+Success Response (200):
+
+{
+  "Success": true,
+  "Message": "Payana Student Application Submitted Successfully!"
+}
+
+Failure Responses:
+
+400 Bad Request
+
+Returned when StudentName is null, empty, or whitespace.
+
+Example:
+{
+  "Message": "StudentName is required"
+}
+
+401 Unauthorized
+
+Not explicitly returned by this controller.
+If JWT authentication is enforced elsewhere in the application pipeline, the authentication mechanism may return 401.
+
+Example:
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+
+403 Forbidden
+
+Not explicitly returned by this controller.
+
+Example:
+{
+  "success": false,
+  "message": "Forbidden"
+}
+
+404 Not Found
+
+Not explicitly returned by this controller.
+
+Example:
+{
+  "success": false,
+  "message": "Resource not found"
+}
+
+409 Conflict
+
+Returned when the submitted email already exists.
+
+Example:
+{
+  "Success": false,
+  "Message": "This Email ID is already registered. Student can apply only once."
+}
+
+500 Internal Server Error
+
+Returned when an unhandled exception occurs during:
+- Database connection.
+- Duplicate email checking.
+- File saving.
+- Database insertion.
+- Any other unexpected operation.
+
+Example:
+{
+  "Success": false,
+  "Message": "Error message"
+}
+
+Status Codes Used:
+- 200 OK
+- 400 Bad Request
+- 409 Conflict
+- 500 Internal Server Error
+
+Potentially handled externally:
+- 401 Unauthorized
+- 403 Forbidden
+- 404 Not Found
+
+
+=========================================================
+2. GET PAYANA STUDENT DROPDOWNS
+=========================================================
+
+Endpoint:
+GET /api/payanastudents/dropdowns
+
+Purpose:
+Returns all master dropdown lists required by the Payana Student application form in a single API response.
+
+The response contains:
+- Genders
+- Caste Categories
+- Area Types
+- House Types
+- College Types
+- Districts
+- Father Occupations
+- Mother Occupations
+
+Content-Type:
+application/json
+
+Authorization:
+Not explicitly required by the supplied controller code.
+
+Path Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint has no path parameters. |
+
+Query Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint has no query parameters. |
+
+Request Body:
+None.
+
+Form Data / Multipart Fields:
+
+| Field | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint does not accept form data. |
+
+File Upload Fields:
+
+| Field | Type | Required | Allowed Extensions | Max Size |
+|------|------|----------|--------------------|----------|
+| None | - | No | N/A | N/A |
+
+Validation Rules:
+- No request parameters are required.
+- No request body is required.
+- Dropdown data is retrieved directly from database master tables.
+- Father occupation records are filtered using Status = 1.
+- Mother occupation records are filtered using Status = 1.
+- Other dropdown master queries do not apply an explicit status filter.
+- No validation is performed on the client request because no input is accepted.
+
+Business Logic Notes:
+- This endpoint aggregates multiple database queries into one response.
+- Each dropdown uses the common GetDropdown method.
+- GetDropdown maps the first selected database column to Id.
+- GetDropdown maps the second selected database column to Name.
+- Gender data comes from GenderMaster.
+- Caste category data comes from CasteCategoryMaster.
+- Area type data comes from AreaTypeMaster.
+- House type data comes from HouseTypeMaster.
+- College type data comes from CollegeTypeMaster.
+- District data comes from DistrictMaster.
+- Father occupation data includes only records where Status = 1.
+- Mother occupation data includes only records where Status = 1.
+- No explicit ORDER BY is defined in these dropdown queries.
+- Therefore, the returned ordering is not guaranteed unless the database execution plan happens to return a consistent order.
+
+Success Response (200):
+
+{
+  "Genders": [
+    {
+      "Id": 1,
+      "Name": "Male"
+    },
+    {
+      "Id": 2,
+      "Name": "Female"
+    }
+  ],
+  "CasteCategories": [
+    {
+      "Id": 1,
+      "Name": "General"
+    },
+    {
+      "Id": 2,
+      "Name": "OBC"
+    }
+  ],
+  "AreaTypes": [
+    {
+      "Id": 1,
+      "Name": "Rural"
+    },
+    {
+      "Id": 2,
+      "Name": "Urban"
+    }
+  ],
+  "HouseTypes": [
+    {
+      "Id": 1,
+      "Name": "Own House"
+    },
+    {
+      "Id": 2,
+      "Name": "Rented House"
+    }
+  ],
+  "CollegeTypes": [
+    {
+      "Id": 1,
+      "Name": "Government"
+    },
+    {
+      "Id": 2,
+      "Name": "Private"
+    }
+  ],
+  "Districts": [
+    {
+      "Id": 1,
+      "Name": "Bengaluru Urban"
+    },
+    {
+      "Id": 2,
+      "Name": "Tumakuru"
+    }
+  ],
+  "FatherOccupations": [
+    {
+      "Id": 1,
+      "Name": "Farmer"
+    },
+    {
+      "Id": 2,
+      "Name": "Daily Wage Worker"
+    }
+  ],
+  "MotherOccupations": [
+    {
+      "Id": 1,
+      "Name": "Homemaker"
+    },
+    {
+      "Id": 2,
+      "Name": "Farmer"
+    }
+  ]
+}
+
+NOTE:
+The sample values above are illustrative. Actual values are determined by the database.
+
+Failure Responses:
+
+400 Bad Request
+Not explicitly returned by this endpoint.
+
+401 Unauthorized
+Not explicitly returned by this controller.
+
+403 Forbidden
+Not explicitly returned by this controller.
+
+404 Not Found
+Not explicitly returned by this endpoint.
+
+409 Conflict
+Not applicable to the supplied implementation.
+
+500 Internal Server Error
+
+Example:
+{
+  "Success": false,
+  "Message": "Error message"
+}
+
+Status Codes Used:
+- 200 OK
+- 500 Internal Server Error
+
+Potentially handled externally:
+- 401 Unauthorized
+- 403 Forbidden
+
+
+=========================================================
+3. GET PAYANA STUDENT LIST
+=========================================================
+
+Endpoint:
+GET /api/payanastudents/studentlist
+
+Purpose:
+Returns the list of approved Payana Students assigned to the logged-in volunteer or filtered by district for non-volunteer users.
+
+Optional examples:
+GET /api/payanastudents/studentlist
+GET /api/payanastudents/studentlist?search=Rahul
+GET /api/payanastudents/studentlist?districtId=1
+GET /api/payanastudents/studentlist?search=Rahul&districtId=1
+
+The endpoint also determines whether a House Visit exists for each student and returns the corresponding House Visit approval status.
+
+Content-Type:
+application/json
+
+Authorization:
+Required.
+
+This endpoint explicitly uses:
+[JwtSessionFilter]
+
+The authenticated JWT/session must provide the user information required by:
+- CurrentUser.Role
+- CurrentUser.UserID
+
+Path Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint has no path parameters. |
+
+Query Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| search | string | No | Filters students by StudentName using SQL LIKE matching. The supplied value is surrounded by % characters. |
+| districtId | integer | No | Filters students by DistrictID for non-volunteer users. This filter is ignored when the logged-in user's role is Volunteer. |
+
+Request Body:
+None.
+
+Form Data / Multipart Fields:
+
+| Field | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint does not accept form data. |
+
+File Upload Fields:
+
+| Field | Type | Required | Allowed Extensions | Max Size |
+|------|------|----------|--------------------|----------|
+| None | - | No | N/A | N/A |
+
+Validation Rules:
+- JWT/session authentication is required through JwtSessionFilter.
+- search is optional.
+- districtId is optional.
+- If search is null, empty, or whitespace, no search filter is applied.
+- If search is supplied, whitespace is not explicitly trimmed before creating the SQL LIKE parameter.
+- If districtId is supplied and the user is not a Volunteer, the district filter is applied.
+- If the user role is Volunteer, districtId is ignored.
+- Student records are returned only when PayanaStudents.ApproveStatus = 'Approved'.
+- StudentID is mapped from the PayanaStudents table.
+- FamilyIncome is nullable.
+- SecuredPercentage is nullable.
+- HouseVisitLink is nullable.
+- DistrictName is nullable.
+- CollegeName is nullable.
+- ApproveStatus is nullable.
+- IsVisited is represented as a Boolean.
+- No explicit maximum length validation is performed on search.
+- No explicit numeric range validation is performed on districtId.
+- No explicit validation is performed to verify that districtId exists in DistrictMaster.
+
+Business Logic Notes:
+- The endpoint reads the logged-in user's role from CurrentUser.Role.
+- If CurrentUser.Role == "Volunteer":
+  - The query is restricted to sva.VolunteerID = CurrentUser.UserID.
+  - districtId is ignored.
+- If CurrentUser.Role is not "Volunteer":
+  - The API allows districtId filtering when districtId is supplied.
+- The comparison for role is case-sensitive because the code uses:
+  role == "Volunteer"
+- Only approved Payana Students are returned.
+- The student assignment table is:
+  Payana_StudentVolunteerAssignment
+- Student data is loaded from:
+  PayanaStudents
+- District name is loaded from:
+  DistrictMaster
+- House visit information is loaded from:
+  HouseVisitForm
+- IsVisited is true when a matching HouseVisitForm record exists for the student.
+- IsVisited is false when no matching HouseVisitForm record exists.
+- HouseVisitForm.ApproveStatus is returned as ApproveStatus.
+- Student data is returned in the PayanaStudentListVM structure.
+- The response wraps the list inside ApiSuccessResponse.
+- No pagination is implemented.
+- No sorting/order by clause is explicitly defined.
+- Duplicate records may potentially occur if multiple assignment or house visit rows exist for the same student, depending on database relationships.
+
+Success Response (200):
+
+{
+  "Success": true,
+  "Message": "Student list loaded successfully",
+  "Data": [
+    {
+      "StudentID": 1001,
+      "StudentName": "Rahul Kumar",
+      "ContactNumber": "9876543210",
+      "Address": "123 Main Road",
+      "PinCode": "572201",
+      "HouseVisitLink": "/Uploads/housevisit123.jpg",
+      "Taluka": "Tiptur",
+      "DistrictName": "Tumakuru",
+      "CollegeName": "Government First Grade College",
+      "FamilyIncome": 150000.00,
+      "SecuredPercentage": 78.50,
+      "IsVisited": true,
+      "ApproveStatus": "Approved"
+    },
+    {
+      "StudentID": 1002,
+      "StudentName": "Anita Sharma",
+      "ContactNumber": "9876543211",
+      "Address": "456 Market Road",
+      "PinCode": "560001",
+      "HouseVisitLink": null,
+      "Taluka": "Bengaluru",
+      "DistrictName": "Bengaluru Urban",
+      "CollegeName": "Government College",
+      "FamilyIncome": null,
+      "SecuredPercentage": 82.00,
+      "IsVisited": false,
+      "ApproveStatus": null
+    }
+  ]
+}
+
+Failure Responses:
+
+400 Bad Request
+Not explicitly returned by this endpoint.
+
+Example:
+{
+  "success": false,
+  "message": "Invalid request"
+}
+
+401 Unauthorized
+
+Expected when authentication/session validation is enforced by JwtSessionFilter and the request does not contain valid authentication information.
+
+Example:
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+
+403 Forbidden
+
+Not explicitly returned by the controller.
+
+Example:
+{
+  "success": false,
+  "message": "Forbidden"
+}
+
+404 Not Found
+Not explicitly returned by the controller.
+An empty student list is returned as a successful 200 response rather than 404.
+
+409 Conflict
+Not applicable to the supplied implementation.
+
+500 Internal Server Error
+
+Returned when an exception occurs while:
+- Reading the authenticated user.
+- Connecting to the database.
+- Executing the student query.
+- Reading student records.
+- Mapping response data.
+
+Example:
+{
+  "Success": false,
+  "Message": "Error message"
+}
+
+Status Codes Used:
+- 200 OK
+- 500 Internal Server Error
+
+Potentially handled by authentication infrastructure:
+- 401 Unauthorized
+- 403 Forbidden
+
+
+=========================================================
+4. GET DISTRICTS DROPDOWN
+=========================================================
+
+Endpoint:
+GET /api/payanastudents/districts
+
+Purpose:
+Returns the complete District dropdown list from DistrictMaster.
+
+This endpoint is useful when the client needs only the District dropdown rather than all Payana Student application dropdown data.
+
+Content-Type:
+application/json
+
+Authorization:
+Not explicitly required by the supplied controller code.
+
+Path Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint has no path parameters. |
+
+Query Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint has no query parameters. |
+
+Request Body:
+None.
+
+Form Data / Multipart Fields:
+
+| Field | Type | Required | Description |
+|------|------|----------|-------------|
+| None | - | No | This endpoint does not accept form data. |
+
+File Upload Fields:
+
+| Field | Type | Required | Allowed Extensions | Max Size |
+|------|------|----------|--------------------|----------|
+| None | - | No | N/A | N/A |
+
+Validation Rules:
+- No request parameters are required.
+- No request body is required.
+- District records are retrieved directly from DistrictMaster.
+- No input validation is required.
+
+Business Logic Notes:
+- The API queries DistrictMaster.
+- Results are ordered by DistrictName.
+- DistrictID is mapped to DropdownDto.Id.
+- DistrictName is mapped to DropdownDto.Name.
+- The response is wrapped inside ApiSuccessResponse.
+- If there are no districts, the endpoint returns an empty Data array with HTTP 200.
+- No 404 response is generated for an empty result.
+
+Success Response (200):
+
+{
+  "Success": true,
+  "Message": "District list loaded successfully",
+  "Data": [
+    {
+      "Id": 1,
+      "Name": "Bengaluru Urban"
+    },
+    {
+      "Id": 2,
+      "Name": "Bengaluru Rural"
+    },
+    {
+      "Id": 3,
+      "Name": "Tumakuru"
+    }
+  ]
+}
+
+Failure Responses:
+
+400 Bad Request
+Not explicitly returned by this endpoint.
+
+401 Unauthorized
+Not explicitly returned by this endpoint.
+
+403 Forbidden
+Not explicitly returned by this endpoint.
+
+404 Not Found
+Not explicitly returned.
+An empty result returns 200 with an empty Data array.
+
+409 Conflict
+Not applicable.
+
+500 Internal Server Error
+
+Example:
+{
+  "Success": false,
+  "Message": "Error message"
+}
+
+Status Codes Used:
+- 200 OK
+- 500 Internal Server Error
+
+Potentially handled externally:
+- 401 Unauthorized
+- 403 Forbidden
+
+
+=========================================================
+COMMON DTOS
+=========================================================
+
+1. PayanaStudentViewModel
+
+Purpose:
+Request model used by the Create Payana Student endpoint.
+
+Sample:
+
+{
+  "StudentName": "Rahul Kumar",
+  "DateOfBirth": "2005-06-15",
+  "GenderID": 1,
+  "ContactNumber": "9876543210",
+  "AlternateNumber": "9123456780",
+  "Email": "rahul.kumar@example.com",
+  "RAddress": "123 Main Road",
+  "CAddress": "Government College Road",
+  "Taluka": "Tiptur",
+  "DistrictID": 12,
+  "OtherDistrict": null,
+  "PinCode": "572201",
+  "AreaTypeID": 1,
+  "CasteCategoryID": 2,
+  "HouseTypeID": 3,
+  "FatherName": "Ramesh Kumar",
+  "MotherName": "Suma Kumar",
+  "FatherOccupationID": 4,
+  "MotherOccupationID": 5,
+  "FamilyMembers": 5,
+  "FamilyIncome": 150000.00,
+  "ParentBank": 25000.00,
+  "CollegeName": "Government First Grade College",
+  "CollegeTypeID": 1,
+  "CollegeCNumber": "0801234567",
+  "CourseSA": "B.Com",
+  "CourseStream": "Commerce",
+  "AnnualFees": 25000.00,
+  "TotalExpenses": 75000.00,
+  "StudentAchivements": "District-level academic achievement",
+  "securedPercentage": 78.50,
+  "accountholdername": "Rahul Kumar",
+  "bankaccountno": "123456789012",
+  "ifsccode": "SBIN0001234",
+  "bankname": "State Bank of India",
+  "branchname": "Tiptur Branch",
+  "HouseVisitLink": "https://example.com/house-visit"
+}
+
+Note:
+The actual C# property types are defined in PayanaStudentViewModel, which is not included in the supplied controller code. The types above represent the expected API contract based on the controller's SQL parameter usage.
+
+
+---------------------------------------------------------
+2. PayanaStudentListVM
+---------------------------------------------------------
+
+Purpose:
+Response model used when returning Payana Student records.
+
+Sample:
+
+{
+  "StudentID": 1001,
+  "StudentName": "Rahul Kumar",
+  "ContactNumber": "9876543210",
+  "Address": "123 Main Road",
+  "PinCode": "572201",
+  "HouseVisitLink": "/Uploads/housevisit123.jpg",
+  "Taluka": "Tiptur",
+  "DistrictName": "Tumakuru",
+  "CollegeName": "Government First Grade College",
+  "FamilyIncome": 150000.00,
+  "SecuredPercentage": 78.50,
+  "IsVisited": true,
+  "ApproveStatus": "Approved"
+}
+
+
+---------------------------------------------------------
+3. DropdownDto
+---------------------------------------------------------
+
+Purpose:
+Common DTO used for dropdown values.
+
+Sample:
+
+{
+  "Id": 1,
+  "Name": "Tumakuru"
+}
+
+
+---------------------------------------------------------
+4. PayanaDropdownResponse
+---------------------------------------------------------
+
+Purpose:
+Response DTO returned by GET /api/payanastudents/dropdowns.
+
+Sample:
+
+{
+  "Genders": [
+    {
+      "Id": 1,
+      "Name": "Male"
+    }
+  ],
+  "CasteCategories": [
+    {
+      "Id": 1,
+      "Name": "General"
+    }
+  ],
+  "AreaTypes": [
+    {
+      "Id": 1,
+      "Name": "Rural"
+    }
+  ],
+  "HouseTypes": [
+    {
+      "Id": 1,
+      "Name": "Own House"
+    }
+  ],
+  "CollegeTypes": [
+    {
+      "Id": 1,
+      "Name": "Government"
+    }
+  ],
+  "Districts": [
+    {
+      "Id": 1,
+      "Name": "Tumakuru"
+    }
+  ],
+  "FatherOccupations": [
+    {
+      "Id": 1,
+      "Name": "Farmer"
+    }
+  ],
+  "MotherOccupations": [
+    {
+      "Id": 1,
+      "Name": "Homemaker"
+    }
+  ]
+}
+
+
+---------------------------------------------------------
+5. ApiSuccessResponse
+---------------------------------------------------------
+
+Purpose:
+Generic success response used by the Student List and Districts endpoints and potentially by other APIs.
+
+Sample:
+
+{
+  "Success": true,
+  "Message": "Operation completed successfully",
+  "Data": []
+}
+
+For Create endpoint, the supplied code returns:
+
+{
+  "Success": true,
+  "Message": "Payana Student Application Submitted Successfully!"
+}
+
+
+---------------------------------------------------------
+6. ApiErrorResponse
+---------------------------------------------------------
+
+Purpose:
+Generic error response used for internal server errors and duplicate email conflicts.
+
+Sample:
+
+{
+  "Success": false,
+  "Message": "Error message"
+}
+
+
+---------------------------------------------------------
+7. Create Payana Student Multipart Request
+---------------------------------------------------------
+
+Normal Fields:
+
+{
+  "StudentName": "Rahul Kumar",
+  "DateOfBirth": "2005-06-15",
+  "GenderID": 1,
+  "ContactNumber": "9876543210",
+  "AlternateNumber": "9123456780",
+  "Email": "rahul.kumar@example.com",
+  "RAddress": "123 Main Road",
+  "CAddress": "Government College Road",
+  "Taluka": "Tiptur",
+  "DistrictID": 12,
+  "OtherDistrict": null,
+  "PinCode": "572201",
+  "AreaTypeID": 1,
+  "CasteCategoryID": 2,
+  "HouseTypeID": 3,
+  "FatherName": "Ramesh Kumar",
+  "MotherName": "Suma Kumar",
+  "FatherOccupationID": 4,
+  "MotherOccupationID": 5,
+  "FamilyMembers": 5,
+  "FamilyIncome": 150000.00,
+  "ParentBank": 25000.00,
+  "CollegeName": "Government First Grade College",
+  "CollegeTypeID": 1,
+  "CollegeCNumber": "0801234567",
+  "CourseSA": "B.Com",
+  "CourseStream": "Commerce",
+  "AnnualFees": 25000.00,
+  "TotalExpenses": 75000.00,
+  "StudentAchivements": "District-level academic achievement",
+  "securedPercentage": 78.50,
+  "accountholdername": "Rahul Kumar",
+  "bankaccountno": "123456789012",
+  "ifsccode": "SBIN0001234",
+  "bankname": "State Bank of India",
+  "branchname": "Tiptur Branch",
+  "HouseVisitLink": "https://example.com/house-visit"
+}
+
+File Fields:
+
+- latestmarkscard
+- studentpassbookFP
+- StudentPhoto
+- dwellingunit
+- adharcard
+
+
+=========================================================
+API ENDPOINT SUMMARY
+=========================================================
+
+| # | HTTP Method | Endpoint | Authentication | Purpose |
+|---|-------------|----------|----------------|---------|
+| 1 | POST | /api/payanastudents/create | Not explicitly required | Creates a Payana Student application with optional file uploads. |
+| 2 | GET | /api/payanastudents/dropdowns | Not explicitly required | Returns all Payana application dropdown/master data. |
+| 3 | GET | /api/payanastudents/studentlist | JWT/session required | Returns approved Payana students with role-based volunteer/district filtering. |
+| 4 | GET | /api/payanastudents/districts | Not explicitly required | Returns the District dropdown list. |
+
+=========================================================
+IMPORTANT IMPLEMENTATION NOTES
+=========================================================
+
+1. The Create endpoint accepts multipart/form-data because it reads uploaded files from HttpContext.Current.Request.Files.
+
+2. The Create endpoint's method signature receives PayanaStudentViewModel model, while uploaded files are separately obtained from HttpContext.Current.Request.Files.
+
+3. The Create endpoint only explicitly validates StudentName.
+
+4. All other form fields are effectively optional from the controller's perspective.
+
+5. The Create endpoint does not explicitly set a default ApproveStatus.
+
+6. The Create endpoint does not explicitly set an application status.
+
+7. The Create endpoint does not return the newly created StudentID.
+
+8. The Create endpoint does not use a database transaction covering both file storage and database insertion.
+
+9. File extension, MIME type, and file size restrictions are not implemented in the supplied controller.
+
+10. The Student List endpoint is the only endpoint in this controller that explicitly has [JwtSessionFilter].
+
+11. For Student List:
+    - Volunteer users are restricted to their own assigned students.
+    - Volunteer users cannot use districtId to broaden/filter the result.
+    - Non-volunteer users can filter by districtId when supplied.
+    - Only students whose PayanaStudents.ApproveStatus equals "Approved" are returned.
+
+12. The Student List endpoint uses case-sensitive role comparison:
+    role == "Volunteer"
+
+13. The Student List endpoint returns an empty list with HTTP 200 if no students match the filters.
+
+14. The Districts endpoint returns an empty Data array with HTTP 200 if no district records are found.
+
+15. The Dropdowns endpoint returns multiple independent master lists in a single response.
+
+16. FatherOccupationMaster and MotherOccupationMaster are filtered using Status = 1.
+
+17. The other dropdown master queries do not use a Status filter.
+
+18. The exact DTO property types and nullable annotations for PayanaStudentViewModel, PayanaStudentListVM, DropdownDto, PayanaDropdownResponse, ApiSuccessResponse, and ApiErrorResponse should be verified against their actual model definitions before publishing this contract as a strict OpenAPI/Swagger specification.
+
+19. The exact authentication header format and JWT behavior should be verified from JwtSessionFilter and related JWT authentication code.
+
+20. The following response fields are case-sensitive according to the C# JSON serialization configuration in use:
+    - Success
+    - Message
+    - Data
+    - StudentID
+    - StudentName
+    - ContactNumber
+    - Address
+    - PinCode
+    - HouseVisitLink
+    - Taluka
+    - DistrictName
+    - CollegeName
+    - FamilyIncome
+    - SecuredPercentage
+    - IsVisited
+    - ApproveStatus
+
+=========================================================
+END OF API CONTRACT
+=========================================================

@@ -16,7 +16,6 @@ export default function FamilySection({ navigation }: any) {
 
   const [fatherOccupationOptions, setFatherOccupationOptions] = useState<Option<number>[]>([]);
   const [motherOccupationOptions, setMotherOccupationOptions] = useState<Option<number>[]>([]);
-  const [houseTypeOptions, setHouseTypeOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
@@ -31,10 +30,6 @@ export default function FamilySection({ navigation }: any) {
           value: Number(o.value),
           label: o.label
         })) || []);
-        setHouseTypeOptions(response.data.houseTypes?.map((h: any) => ({
-          value: Number(h.value),
-          label: h.label
-        })) || []);
       }
       setLoadingDropdowns(false);
     }
@@ -42,33 +37,22 @@ export default function FamilySection({ navigation }: any) {
   }, []);
 
   const familyData = (formData as any).family ?? {
-    fatherName: '',
-    motherName: '',
     fatherOccupationID: 0,
     motherOccupationID: 0,
     familyMembers: 1,
-    houseTypeID: 0,
-    monthlyRent: undefined,
-    familyIncome: 0,
+    annualIncome: 0,
   };
 
-  const { control, handleSubmit, formState, watch } = useForm<SemiProfFamilyFormValues>({
+  const { control, handleSubmit, formState } = useForm<SemiProfFamilyFormValues>({
     defaultValues: {
-      fatherName: familyData.fatherName ?? '',
-      motherName: familyData.motherName ?? '',
       fatherOccupationID: familyData.fatherOccupationID ?? 0,
       motherOccupationID: familyData.motherOccupationID ?? 0,
       familyMembers: familyData.familyMembers ?? 1,
-      houseTypeID: familyData.houseTypeID ?? 0,
-      monthlyRent: familyData.monthlyRent,
-      familyIncome: familyData.familyIncome ?? 0,
+      annualIncome: familyData.annualIncome ?? 0,
     },
     resolver: zodResolver(semiProfFamilySchema),
     mode: 'onChange',
   });
-
-  const selectedHouseType = watch('houseTypeID');
-  const showMonthlyRent = selectedHouseType === 2 || selectedHouseType === 3;
 
   const onSubmit = (data: SemiProfFamilyFormValues) => {
     updateSectionData('family', data);
@@ -96,36 +80,6 @@ export default function FamilySection({ navigation }: any) {
       />
 
       <FormCard>
-        <Controller
-          control={control}
-          name="fatherName"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Father's Name"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter father's full name"
-              error={formState.errors.fatherName?.message}
-              required
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="motherName"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Mother's Name"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter mother's full name"
-              error={formState.errors.motherName?.message}
-              required
-            />
-          )}
-        />
-
         <Controller
           control={control}
           name="fatherOccupationID"
@@ -163,8 +117,8 @@ export default function FamilySection({ navigation }: any) {
 
       <FormSectionHeader
         icon="home"
-        title="Family & Housing"
-        subtitle="Family size, housing and income details"
+        title="Family Information"
+        subtitle="Family size and income details"
         showRequired
       />
 
@@ -192,58 +146,20 @@ export default function FamilySection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="houseTypeID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="House Type"
-              placeholder="Select house type"
-              value={value}
-              onChange={onChange}
-              options={houseTypeOptions}
-              error={formState.errors.houseTypeID?.message}
-              required
-              disabled={loadingDropdowns}
-            />
-          )}
-        />
-
-        {showMonthlyRent && (
-          <Controller
-            control={control}
-            name="monthlyRent"
-            render={({ field: { onChange, value } }) => (
-              <VPInputField
-                label="Monthly Rent"
-                value={value?.toString() ?? ''}
-                onChangeText={(text) => {
-                  const num = parseFloat(text.replace(/[^0-9.]/g, ''));
-                  onChange(isNaN(num) ? '' : num);
-                }}
-                placeholder="Enter monthly rent amount"
-                keyboardType="numeric"
-                prefix="₹"
-                error={formState.errors.monthlyRent?.message}
-              />
-            )}
-          />
-        )}
-
-        <Controller
-          control={control}
-          name="familyIncome"
+          name="annualIncome"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Family Income"
+              label="Annual Income"
               value={value?.toString() ?? ''}
               onChangeText={(text) => {
                 const num = parseFloat(text.replace(/[^0-9.]/g, ''));
                 onChange(isNaN(num) ? '' : num);
               }}
-              placeholder="Enter total family income"
+              placeholder="Enter total annual income"
               keyboardType="numeric"
               prefix="₹"
-              error={formState.errors.familyIncome?.message}
-              helperText="Total income from all sources"
+              error={formState.errors.annualIncome?.message}
+              helperText="Total income from all sources per year"
               required
             />
           )}

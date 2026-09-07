@@ -1,44 +1,35 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, Text, View } from 'react-native';
-// Local Components
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import VPInputField from '@/components/common/VPInputField';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { getPUCDropdowns } from '@/api/pucApi';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { isPUCForm } from '@/types/forms';
-import { AddressDetailsFormValues, addressDetailsSchema } from '@/validation/sharedSchemas';
+import { PucFormat11AddressFormValues, pucFormat11AddressSchema } from '@/validation/pucFormat11Schemas';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function AddressSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
-  const [areaOptions, setAreaOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
     async function loadDropdowns() {
       const response = await getPUCDropdowns();
-      console.log('[AddressSection] Dropdown response:', response);
       if (response.success && response.data) {
         setDistrictOptions(response.data.districts?.map((d: any) => ({
           value: Number(d.value),
           label: d.label
         })) || []);
-        setAreaOptions(response.data.areaTypes?.map((a: any) => ({
-          value: Number(a.value),
-          label: a.label
-        })) || []);
-        console.log('[AddressSection] District options:', response.data.districts);
-        console.log('[AddressSection] Area options:', response.data.areaTypes);
       }
       setLoadingDropdowns(false);
     }
@@ -47,22 +38,20 @@ export default function AddressSection({ navigation }: any) {
 
   const addressData = isPUCForm(formData)
     ? formData.address
-    : { pincode: '', districtID: 0, otherDistrict: '', taluk: '', address: '', areaID: 0 };
+    : { District: 0, OtherDistrict: '', Taluk: '', ResidentialAddress: '' };
 
-  const { control, handleSubmit, formState } = useForm<AddressDetailsFormValues>({
+  const { control, handleSubmit, formState } = useForm<PucFormat11AddressFormValues>({
     defaultValues: {
-      pincode: addressData.pincode,
-      districtID: addressData.districtID || 0,
-      otherDistrict: addressData.otherDistrict,
-      taluk: addressData.taluk,
-      address: addressData.address,
-      areaID: addressData.areaID || 0,
+      District: addressData.District || 0,
+      OtherDistrict: addressData.OtherDistrict,
+      Taluk: addressData.Taluk,
+      ResidentialAddress: addressData.ResidentialAddress,
     },
-    resolver: zodResolver(addressDetailsSchema),
+    resolver: zodResolver(pucFormat11AddressSchema),
     mode: 'onChange',
   });
 
-  const onSubmit = (data: AddressDetailsFormValues) => {
+  const onSubmit = (data: PucFormat11AddressFormValues) => {
     updateSectionData('address', data);
     updateValidationState('address', { isValid: true, data });
     markStepComplete(3);
@@ -79,7 +68,6 @@ export default function AddressSection({ navigation }: any) {
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
     >
-      {/* Address Section */}
       <FormSectionHeader
         icon="location"
         title="Address Information"
@@ -90,16 +78,16 @@ export default function AddressSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="address"
+          name="ResidentialAddress"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Address"
+              label="Residential Address"
               value={value}
               onChangeText={onChange}
               placeholder="Enter your full address"
               multiline
               numberOfLines={3}
-              error={formState.errors.address?.message}
+              error={formState.errors.ResidentialAddress?.message}
               required
             />
           )}
@@ -107,23 +95,7 @@ export default function AddressSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="areaID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Area"
-              value={value}
-              onChange={onChange}
-              options={areaOptions}
-              placeholder="Select area type"
-              error={formState.errors.areaID?.message}
-              disabled={loadingDropdowns}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="districtID"
+          name="District"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="District"
@@ -131,7 +103,7 @@ export default function AddressSection({ navigation }: any) {
               onChange={onChange}
               options={districtOptions}
               placeholder="Select district"
-              error={formState.errors.districtID?.message}
+              error={formState.errors.District?.message}
               required
               disabled={loadingDropdowns}
             />
@@ -140,46 +112,40 @@ export default function AddressSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="taluk"
+          name="OtherDistrict"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Taluka"
+              label="Other District (if not listed)"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter taluka"
-              error={formState.errors.taluk?.message}
-              required
+              placeholder="Enter district name if not in list"
+              error={formState.errors.OtherDistrict?.message}
+              helperText="Fill only if your district is not in the list above"
             />
           )}
         />
 
         <Controller
           control={control}
-          name="pincode"
+          name="Taluk"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Pincode"
+              label="Taluk"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter 6-digit pincode"
-              keyboardType="numeric"
-              maxLength={6}
-              error={formState.errors.pincode?.message}
+              placeholder="Enter taluk"
+              error={formState.errors.Taluk?.message}
               required
             />
           )}
         />
       </FormCard>
 
-      {/* Address Guidelines */}
       <FormCard>
         <View style={styles.infoContainer}>
           <Text style={styles.infoTitle}>Address Guidelines:</Text>
           <Text style={styles.infoText}>
             • Provide accurate and complete address details
-          </Text>
-          <Text style={styles.infoText}>
-            • Ensure pincode matches your location
           </Text>
           <Text style={styles.infoText}>
             • This address will be used for document verification

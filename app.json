@@ -8,12 +8,17 @@
     "scheme": "VidyaPoshak",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/Logo.png"
+      "icon": "./assets/Logo.png",
+      "bundleIdentifier": "com.vidyaposhak.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs camera access to take house visit photos.",
+        "NSPhotoLibraryUsageDescription": "This app needs photo library access to upload house visit photos."
+      }
     },
     "android": {
       "package": "com.vidyaposhak.app",
       "versionCode": 1,
-      "permissions": ["INTERNET", "VIBRATE", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
+      "permissions": ["INTERNET", "VIBRATE", "CAMERA", "READ_MEDIA_IMAGES", "READ_MEDIA_VIDEO", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
       "predictiveBackGestureEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/Logo.png",
@@ -38,6 +43,13 @@
       ],
       "expo-font",
       "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "This app needs photo library access to upload house visit photos.",
+          "cameraPermission": "This app needs camera access to take house visit photos."
+        }
+      ],
       "@react-native-community/datetimepicker"
     ],
     "experiments": {
