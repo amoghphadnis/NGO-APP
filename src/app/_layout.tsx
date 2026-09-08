@@ -38,6 +38,7 @@ export default function RootLayout() {
           <Stack.Screen name="pdashboard" />
           <Stack.Screen name="my-applications" />
           <Stack.Screen name="help" />
+          <Stack.Screen name="diagnostics" />
           <Stack.Screen name="legal/terms" />
           <Stack.Screen name="legal/privacy" />
         </Stack>

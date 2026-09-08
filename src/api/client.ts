@@ -5,6 +5,7 @@
  */
 
 import { environment } from '@/config/environment';
+import { generateRequestId, error as logError, info as logInfo, warn as logWarn, truncateStack } from '@/diagnostics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ApiResponse {
@@ -179,56 +180,102 @@ async function request(
   const url = `${environment.API_BASE_URL}${path}`;
   console.log(`API ${method} ${url}`);
 
-  const headers: Record<string, string> = { ...customHeaders };
+  // Diagnostic instrumentation: every API call gets a requestId.
+  const requestId = generateRequestId();
+  const start = Date.now();
+  logInfo('api', 'request_started', { requestId, method, endpoint: path });
 
-  // Add Bearer token for protected paths
-  if (requiresBearerToken(path)) {
-    const token = await getAuthToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+  try {
+    const headers: Record<string, string> = { ...customHeaders };
+
+    // Add Bearer token for protected paths
+    if (requiresBearerToken(path)) {
+      const token = await getAuthToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
     }
+
+    // Only set Content-Type for non-FormData bodies
+    if (!(body instanceof FormData)) {
+      headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+    }
+
+    const options: RequestInit = {
+      method,
+      headers,
+      credentials: 'include',
+    };
+
+    if (body !== undefined) {
+      options.body = body instanceof FormData ? body : JSON.stringify(body);
+    }
+
+    const response = await fetchWithTimeout(url, options, environment.API_TIMEOUT);
+
+    // Handle 401 - clear auth and throw error
+    if (response.status === 401) {
+      logWarn('auth', 'session_expired', { requestId, endpoint: path });
+      await logout();
+      const durationMs = Date.now() - start;
+      logError('api', 'request_failed', {
+        requestId, method, endpoint: path,
+        statusCode: 401, errorCode: 'SESSION_EXPIRED', durationMs,
+      });
+      throw new ApiError('Session expired. Please login again.', 401, null, 'SESSION_EXPIRED');
+    }
+
+    let data: any;
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      data = await response.text();
+    }
+
+    if (!response.ok) {
+      const message =
+        (typeof data === 'object' && (data?.Message || data?.message)) ||
+        getStatusMessage(response.status) ||
+        'Request failed';
+      const durationMs = Date.now() - start;
+      logError('api', 'request_failed', {
+        requestId, method, endpoint: path,
+        statusCode: response.status,
+        errorCode: `HTTP_${response.status}`,
+        durationMs,
+      });
+      throw new ApiError(message, response.status, data);
+    }
+
+    const durationMs = Date.now() - start;
+    logInfo('api', 'request_success', {
+      requestId, method, endpoint: path,
+      statusCode: response.status, durationMs,
+    });
+
+    return { data, status: response.status, ok: response.ok };
+  } catch (error: any) {
+    // If this is an ApiError we already logged above (for 401 / !ok cases).
+    // Only log here if it's a network/timeout/unexpected error that wasn't caught above.
+    if (error instanceof ApiError && error.response?.status !== undefined) {
+      // Already logged as request_failed above for HTTP errors with a status.
+      throw error;
+    }
+
+    // Network error, timeout, or unexpected runtime error.
+    const durationMs = Date.now() - start;
+    const errorCode = (error instanceof ApiError && error.code)
+      ? error.code
+      : 'UNKNOWN_ERROR';
+    logError('api', 'request_failed', {
+      requestId, method, endpoint: path,
+      errorCode,
+      durationMs,
+      stack: truncateStack(error?.stack),
+    });
+    throw error;
   }
-
-  // Only set Content-Type for non-FormData bodies
-  if (!(body instanceof FormData)) {
-    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
-  }
-
-  const options: RequestInit = {
-    method,
-    headers,
-    credentials: 'include',
-  };
-
-  if (body !== undefined) {
-    options.body = body instanceof FormData ? body : JSON.stringify(body);
-  }
-
-  const response = await fetchWithTimeout(url, options, environment.API_TIMEOUT);
-
-  // Handle 401 - clear auth and throw error
-  if (response.status === 401) {
-    await logout();
-    throw new ApiError('Session expired. Please login again.', 401, null, 'SESSION_EXPIRED');
-  }
-
-  let data: any;
-  const contentType = response.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) {
-    data = await response.json();
-  } else {
-    data = await response.text();
-  }
-
-  if (!response.ok) {
-    const message =
-      (typeof data === 'object' && (data?.Message || data?.message)) ||
-      getStatusMessage(response.status) ||
-      'Request failed';
-    throw new ApiError(message, response.status, data);
-  }
-
-  return { data, status: response.status, ok: response.ok };
 }
 
 function getStatusMessage(status: number): string {

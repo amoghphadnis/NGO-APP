@@ -3,50 +3,75 @@ import { createProfessionalStudent } from '@/api/professionalApi';
 import { createPUCStudent } from '@/api/pucApi';
 import { createSemiProfessionalStudent } from '@/api/semiProfessionalApi';
 import { NormalizedApiResponse } from '@/api/transformers/normalizeApiResponse';
+import { generateSubmissionId, error as logError, info as logInfo, truncateStack } from '@/diagnostics';
+import { MAX_MESSAGE_LENGTH, SubmissionError } from '@/diagnostics/diagnosticTypes';
 import { FormType } from '@/forms/shared/types';
 import { SubmissionPayload } from './preparePayload';
+
+function truncateMessage(msg?: string): string | undefined {
+  if (!msg) return undefined;
+  return msg.length > MAX_MESSAGE_LENGTH ? msg.slice(0, MAX_MESSAGE_LENGTH) : msg;
+}
+
+function getErrorCode(error: any): string {
+  if (error?.code) return error.code;
+  if (error?.response?.status) return `HTTP_${error.response.status}`;
+  return 'SUBMISSION_ERROR';
+}
 
 export async function submitApplication(
   formType: FormType,
   payload: SubmissionPayload
-): Promise<NormalizedApiResponse<any>> {
-  console.log(`[submitApplication] Starting submission for formType: ${formType}`);
+): Promise<NormalizedApiResponse<any> & { submissionId?: string }> {
+  const submissionId = generateSubmissionId();
+  logInfo('submission', 'submission_started', { submissionId, formType });
 
   const keys = Array.from((payload as any).keys?.() ?? []);
-  console.log(`[submitApplication] FormData payload contains ${keys.length} fields:`, keys);
+  console.log(`[submitApplication] Starting submission for formType: ${formType}, fields: ${keys.length}`);
+  // NOTE: Do NOT log the field values or payload contents — they may contain PII.
 
   try {
     let response;
 
     if (formType === 'professional') {
-      console.log('[submitApplication] Routing to createProfessionalStudent');
       response = await createProfessionalStudent(payload);
     } else if (formType === 'payana') {
-      console.log('[submitApplication] Routing to createPayanaStudent');
       response = await createPayanaStudent(payload);
     } else if (formType === 'semiProfessional') {
-      console.log('[submitApplication] Routing to createSemiProfessionalStudent');
       response = await createSemiProfessionalStudent(payload);
     } else if (formType === 'puc') {
-      console.log('[submitApplication] Routing to createPUCStudent');
       response = await createPUCStudent(payload);
     } else {
-      console.error(`[submitApplication] ERROR: Unsupported form type "${formType}"`);
+      logError('submission', 'submission_failed', {
+        submissionId, formType,
+        errorCode: 'UNSUPPORTED_FORM_TYPE',
+        message: `Unsupported form type: ${formType}`,
+      });
       return {
         success: false,
         error: `Unsupported form type: ${formType}`,
         message: `Form type "${formType}" is not supported for submission`,
+        submissionId,
       };
     }
 
-    console.log(`[submitApplication] Response:`, response);
-    return response;
+    logInfo('submission', 'submission_succeeded', { submissionId, formType });
+    return { ...response, submissionId };
   } catch (error: any) {
-    console.error(`[submitApplication] Submission failed:`, error);
-    return {
-      success: false,
-      error: error?.message || 'Submission failed',
-      message: error?.message || 'An error occurred during submission',
-    };
+    logError('submission', 'submission_failed', {
+      submissionId,
+      formType,
+      errorCode: getErrorCode(error),
+      message: truncateMessage(error?.message),
+      stack: truncateStack(error?.stack),
+    });
+
+    // Attach submissionId to the thrown error so the UI can surface it.
+    const submissionError = new Error(
+      error instanceof Error ? error.message : 'Submission failed'
+    ) as SubmissionError;
+    submissionError.submissionId = submissionId;
+    submissionError.cause = error;
+    throw submissionError;
   }
 }

@@ -571,11 +571,14 @@ describe('Form Submission', () => {
       const mockPayload = new FormData();
       (createPayanaStudent as jest.Mock).mockRejectedValue(new Error('Network error'));
 
-      const result = await submitApplication('payana', mockPayload);
+      await expect(submitApplication('payana', mockPayload)).rejects.toThrow('Network error');
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error).toContain('Network error');
+      // Verify the thrown error carries a submissionId for UI correlation.
+      try {
+        await submitApplication('payana', mockPayload);
+      } catch (error: any) {
+        expect(error.submissionId).toBeDefined();
+        expect(error.submissionId).toMatch(/^sub_[0-9a-f]{8}$/);
       }
     });
   });

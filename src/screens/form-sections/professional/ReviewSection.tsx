@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import FormCard from '@/components/common/FormCard';
@@ -24,6 +24,7 @@ export default function ReviewSection({ navigation }: any) {
     setSubmissionError,
   } = useFormEngineStore();
   const [declarationAccepted, setDeclarationAccepted] = useState(false);
+  const submitLock = useRef(false);
 
   const isFormComplete = () => {
     if (isProfessionalForm(formData)) {
@@ -65,12 +66,17 @@ export default function ReviewSection({ navigation }: any) {
   const canSubmit = isFormComplete() && declarationAccepted;
 
   const onSubmit = async () => {
+    // Synchronous re-entry guard — prevents double-tap before React re-renders.
+    if (submitLock.current) return;
+    submitLock.current = true;
+
     updateValidationState('review', { isValid: true, data: { declarationAccepted } });
     setSubmissionLoading(true);
 
     if (!currentFormType) {
       setSubmissionLoading(false);
       setSubmissionError('Form type is not selected.');
+      submitLock.current = false;
       return;
     }
 
@@ -86,10 +92,28 @@ export default function ReviewSection({ navigation }: any) {
       markStepComplete(5);
       navigation.navigate('success');
     } catch (error: any) {
-      const message = error?.message || 'Failed to submit application. Please try again.';
-      setSubmissionError(message);
+      const submissionId = error?.submissionId;
+      const isNetworkError =
+        !error?.response?.status &&
+        (error?.code === 'ECONNABORTED' ||
+          error?.code === 'NETWORK_ERROR' ||
+          error?.code === 'UNKNOWN_ERROR' ||
+          error?.code === 'SESSION_EXPIRED' ||
+          !error?.code);
+
+      if (isNetworkError && submissionId) {
+        setSubmissionError(
+          `Submission status unknown. We could not confirm whether your application was submitted.\n\nReference: ${submissionId}\n\nPlease check your application list before submitting again.`
+        );
+      } else {
+        const baseMsg = error?.message || 'Failed to submit application. Please try again.';
+        setSubmissionError(
+          submissionId ? `${baseMsg}\n\nReference: ${submissionId}` : baseMsg
+        );
+      }
     } finally {
       setSubmissionLoading(false);
+      submitLock.current = false;
     }
   };
 

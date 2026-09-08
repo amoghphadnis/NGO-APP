@@ -6,7 +6,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     ActionSheetIOS,
     ActivityIndicator,
@@ -25,6 +25,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { houseVisitApi } from '@/api/houseVisitApi';
 import { HouseVisitEditApi, houseVisitEditApis } from '@/api/houseVisitEditApi';
 import AppFooter from '@/components/common/AppFooter';
+import { generateSubmissionId, error as logError, info as logInfo, truncateStack } from '@/diagnostics';
+import { MAX_MESSAGE_LENGTH } from '@/diagnostics/diagnosticTypes';
+import { FormType } from '@/forms/shared/types';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { DocumentFile } from '@/types/documents';
@@ -120,6 +123,7 @@ export default function HouseVisitFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ studentId: string; source: string; studentName?: string; houseVisitId?: string; program?: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitLock = useRef(false);
   const [isPhotoLoading, setIsPhotoLoading] = useState(false);
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
   const [existingFiles, setExistingFiles] = useState<string[]>([]);
@@ -441,10 +445,26 @@ export default function HouseVisitFormScreen() {
   };
 
   const onSubmit = async () => {
+    // Synchronous re-entry guard — prevents double-tap before React re-renders.
+    if (submitLock.current) return;
+
     if (!formData.studentName || !formData.address || !formData.volunteerApprovalStatus) {
       Alert.alert('Error', 'Please fill in required fields (Student Name, Address, Student Approval Status)');
       return;
     }
+
+    submitLock.current = true;
+
+    // Map source to FormType for diagnostics correlation.
+    const formType: FormType | undefined =
+      source === 'puc' ? 'puc' :
+      source === 'professional' ? 'professional' :
+      source === 'payana' ? 'payana' :
+      source === 'semiProfessional' ? 'semiProfessional' :
+      undefined;
+
+    const submissionId = generateSubmissionId();
+    logInfo('submission', 'submission_started', { submissionId, formType, screen: 'HouseVisitForm' });
 
     setIsSubmitting(true);
     try {
@@ -522,12 +542,14 @@ export default function HouseVisitFormScreen() {
         });
 
         if (response.success) {
+          logInfo('submission', 'submission_succeeded', { submissionId, formType, screen: 'HouseVisitForm' });
           Alert.alert(
             'Success',
             'House visit updated successfully!',
             [{ text: 'OK', onPress: () => router.back() }]
           );
         } else {
+          logError('submission', 'submission_failed', { submissionId, formType, errorCode: 'UPDATE_FAILED', message: response.message?.slice(0, 200), screen: 'HouseVisitForm' });
           Alert.alert('Error', response.message || 'Failed to update house visit');
         }
       } else {
@@ -603,23 +625,47 @@ export default function HouseVisitFormScreen() {
         console.log('[HouseVisit] API response:', JSON.stringify(response, null, 2));
 
         if (response.success) {
+          logInfo('submission', 'submission_succeeded', { submissionId, formType, screen: 'HouseVisitForm' });
           Alert.alert(
             'Success',
             'House visit form submitted successfully!',
             [{ text: 'OK', onPress: () => router.back() }]
           );
         } else {
+          logError('submission', 'submission_failed', { submissionId, formType, errorCode: 'CREATE_FAILED', message: response.message?.slice(0, 200), screen: 'HouseVisitForm' });
           Alert.alert('Error', response.message || 'Failed to submit form');
         }
       }
     } catch (error: any) {
       console.error('[HouseVisit] Submit error:', error);
-      Alert.alert(
-        'Error',
-        error?.message || 'An unexpected error occurred. Please try again.'
-      );
+      const errorCode = error?.code || 'UNKNOWN_ERROR';
+      const isNetworkError =
+        !error?.response?.status &&
+        (errorCode === 'ECONNABORTED' ||
+          errorCode === 'NETWORK_ERROR' ||
+          errorCode === 'UNKNOWN_ERROR');
+      logError('submission', 'submission_failed', {
+        submissionId, formType,
+        errorCode,
+        message: error?.message?.slice(0, MAX_MESSAGE_LENGTH),
+        stack: truncateStack(error?.stack),
+        screen: 'HouseVisitForm',
+      });
+      if (isNetworkError) {
+        Alert.alert(
+          'Submission Status Unknown',
+          `We could not confirm whether your house visit was submitted.\n\nReference: ${submissionId}\n\nPlease check before submitting again.`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Error',
+          error?.message || 'An unexpected error occurred. Please try again.'
+        );
+      }
     } finally {
       setIsSubmitting(false);
+      submitLock.current = false;
     }
   };
 

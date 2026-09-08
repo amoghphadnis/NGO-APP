@@ -199,6 +199,18 @@ function DrawerSidebar({
 
           <View style={styles.drawerDivider} />
 
+          {/* Diagnostics */}
+          <TouchableOpacity
+            style={styles.drawerItem}
+            onPress={() => onNavigate('/diagnostics')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="bug-outline" size={20} color={colors.textSecondary} />
+            <Text style={styles.drawerItemLabel}>Diagnostics</Text>
+          </TouchableOpacity>
+
+          <View style={styles.drawerDivider} />
+
           {/* Logout */}
           <TouchableOpacity style={styles.drawerItem} onPress={onLogout} activeOpacity={0.7}>
             <Ionicons name="log-out-outline" size={20} color={colors.error} />
