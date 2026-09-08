@@ -28,16 +28,16 @@ const DRAWER_WIDTH = 280;
 
 interface StatCardConfig {
   label: string;
-  field: keyof Omit<PDashboardResponseDto, 'Name' | 'Role'>;
+  field: keyof PDashboardResponseDto['notifications'];
   icon: React.ComponentProps<typeof Ionicons>['name'];
   route: string;
 }
 
 const STAT_CARDS: StatCardConfig[] = [
-  { label: 'Pending PUC Apps',          field: 'PendingPUC',          icon: 'school-outline',         route: '/approval/puc' },
-  { label: 'Pending Payana Apps',       field: 'PendingPayana',        icon: 'bicycle-outline',        route: '/approval/payana' },
-  { label: 'Pending Prof Apps',         field: 'PendingProfessional',  icon: 'briefcase-outline',      route: '/approval/professional' },
-  { label: 'Pending Semi Prof Apps',    field: 'PendingSemiProfessional', icon: 'book-outline',        route: '/approval/semi-professional' },
+  { label: 'Pending PUC Apps',          field: 'pendingPUC',          icon: 'school-outline',         route: '/approval/puc' },
+  { label: 'Pending Payana Apps',       field: 'pendingPayana',        icon: 'bicycle-outline',        route: '/approval/payana' },
+  { label: 'Pending Prof Apps',         field: 'pendingProfessional',  icon: 'briefcase-outline',      route: '/approval/professional' },
+  { label: 'Pending Semi Prof Apps',    field: 'pendingSemiProfessional', icon: 'book-outline',        route: '/approval/semi-professional' },
 ];
 
 interface DrawerNavItem {
@@ -84,25 +84,25 @@ function DrawerSidebar({
     {
       icon: 'school-outline',
       label: 'Pending PUC Apps',
-      badge: dashboard?.PendingPUC ?? 0,
+      badge: dashboard?.notifications?.pendingPUC ?? 0,
       route: '/approval/puc',
     },
     {
       icon: 'bicycle-outline',
       label: 'Pending Payana Apps',
-      badge: dashboard?.PendingPayana ?? 0,
+      badge: dashboard?.notifications?.pendingPayana ?? 0,
       route: '/approval/payana',
     },
     {
       icon: 'briefcase-outline',
       label: 'Pending Prof Apps',
-      badge: dashboard?.PendingProfessional ?? 0,
+      badge: dashboard?.notifications?.pendingProfessional ?? 0,
       route: '/approval/professional',
     },
     {
       icon: 'book-outline',
       label: 'Pending Semi Prof Apps',
-      badge: dashboard?.PendingSemiProfessional ?? 0,
+      badge: dashboard?.notifications?.pendingSemiProfessional ?? 0,
       route: '/approval/semi-professional',
     },
   ];
@@ -112,7 +112,7 @@ function DrawerSidebar({
   if (!open) return null;
 
   return (
-    <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       <TouchableWithoutFeedback onPress={onClose}>
         <Animated.View style={[styles.backdrop, { opacity: backdropAnim }]} />
       </TouchableWithoutFeedback>
@@ -260,7 +260,7 @@ export default function PDashboardScreen() {
   }, [fetchDashboard]);
 
   const getCountForCard = (field: StatCardConfig['field']): number => {
-    return dashboard?.[field] ?? 0;
+    return dashboard?.notifications?.[field] ?? 0;
   };
 
   const renderStatCard = ({ item }: { item: StatCardConfig }) => (
@@ -285,7 +285,7 @@ export default function PDashboardScreen() {
           {user?.Role ?? '—'} Dashboard
         </Text>
         <Text style={styles.welcomeSub}>
-          Welcome, {dashboard?.Name ?? user?.UserName ?? '—'}!  ·  Global View
+          Welcome, {user?.UserName ?? '—'}!  ·  Global View
         </Text>
       </View>
 
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   },
   // ── Drawer ──────────────────────────────────────────────
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.45)',
   },
   drawer: {

@@ -1,11 +1,10 @@
-import api from './client';
-import { ApiError } from './client';
 import {
-  DashboardResponseDto,
-  PDashboardResponseDto,
-  DashboardError,
-  DashboardErrorCode,
+    DashboardError,
+    DashboardErrorCode,
+    DashboardResponseDto,
+    PDashboardResponseDto,
 } from '@/types/dashboard';
+import api, { ApiError } from './client';
 
 function mapApiError(error: unknown): never {
   if (error instanceof ApiError) {
@@ -35,13 +34,13 @@ function mapApiError(error: unknown): never {
 export const dashboardApi = {
   async getDashboard(): Promise<DashboardResponseDto> {
     try {
-      const response = await api.get('/welcomedashboard/dashboard');
+      const response = await api.get('/welcome-dashboard/notifications');
       console.log('[Dashboard] getDashboard response:', JSON.stringify(response.data));
       const data = response.data;
-      if (!data || data.success === false || data.Success === false) {
+      if (!data || data.success === false) {
         throw new DashboardError(
           DashboardErrorCode.SESSION_EXPIRED,
-          data?.message || data?.Message || 'Session expired. Please login again.'
+          data?.message || 'Session expired. Please login again.'
         );
       }
       return data as DashboardResponseDto;
@@ -53,13 +52,13 @@ export const dashboardApi = {
 
   async getPDashboard(): Promise<PDashboardResponseDto> {
     try {
-      const response = await api.get('/welcomedashboard/pdashboard');
+      const response = await api.get('/welcome-dashboard/admin-notifications');
       console.log('[Dashboard] getPDashboard response:', JSON.stringify(response.data));
       const data = response.data;
-      if (!data || data.success === false || data.Success === false) {
+      if (!data || data.success === false) {
         throw new DashboardError(
           DashboardErrorCode.SESSION_EXPIRED,
-          data?.message || data?.Message || 'Session expired. Please login again.'
+          data?.message || 'Session expired. Please login again.'
         );
       }
       return data as PDashboardResponseDto;

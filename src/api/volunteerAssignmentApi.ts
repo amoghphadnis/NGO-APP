@@ -9,24 +9,27 @@
  * All endpoints require JWT (handled by client.ts BEARER_REQUIRED_PATHS).
  */
 
+import { SelectListItemDto } from '@/types/payana';
 import {
-  AssignVolunteerRequest,
-  CancelVolunteerAssignmentRequest,
-  VolunteerAssignmentDistrictsResponse,
-  VolunteerAssignmentMutationResponse,
-  VolunteerAssignmentPageDataResponse,
-  VolunteerAssignmentProgram,
-  VolunteerAssignmentStudentsResponse,
-  VolunteerAssignmentVolunteersResponse,
+    AssignVolunteerRequest,
+    CancelVolunteerAssignmentRequest,
+    VolunteerAssignmentDistrictsResponse,
+    VolunteerAssignmentMutationResponse,
+    VolunteerAssignmentPageDataResponse,
+    VolunteerAssignmentProgram,
+    VolunteerAssignmentStudentsResponse,
+    VolunteerAssignmentVolunteersResponse,
 } from '@/types/volunteerAssignment';
 import {
-  assignVolunteerRequestSchema,
-  cancelVolunteerAssignmentRequestSchema,
-  districtIdQuerySchema,
+    assignVolunteerRequestSchema,
+    cancelVolunteerAssignmentRequestSchema,
+    districtIdQuerySchema,
 } from '@/validation/volunteerAssignmentSchemas';
 import api from './client';
 
 type BodyCasing = 'ID' | 'Id';
+
+type DistrictFormat = 'selectListItem' | 'rawDistrict';
 
 interface ProgramConfig {
   prefix: string;
@@ -34,6 +37,7 @@ interface ProgramConfig {
   reassignMethod: 'PUT' | 'POST';
   cancelMode: 'delete-query' | 'post-body';
   pageDataPath?: string;
+  districtFormat: DistrictFormat;
 }
 
 const PROGRAM_CONFIG: Record<VolunteerAssignmentProgram, ProgramConfig> = {
@@ -42,6 +46,7 @@ const PROGRAM_CONFIG: Record<VolunteerAssignmentProgram, ProgramConfig> = {
     bodyCasing: 'ID',
     reassignMethod: 'PUT',
     cancelMode: 'delete-query',
+    districtFormat: 'selectListItem',
   },
   payana: {
     prefix: '/payana-volunteer-assignment',
@@ -49,6 +54,7 @@ const PROGRAM_CONFIG: Record<VolunteerAssignmentProgram, ProgramConfig> = {
     reassignMethod: 'POST',
     cancelMode: 'post-body',
     pageDataPath: '/initial-data',
+    districtFormat: 'rawDistrict',
   },
   professional: {
     prefix: '/professional-volunteer-assignment',
@@ -56,6 +62,7 @@ const PROGRAM_CONFIG: Record<VolunteerAssignmentProgram, ProgramConfig> = {
     reassignMethod: 'POST',
     cancelMode: 'post-body',
     pageDataPath: '/page',
+    districtFormat: 'rawDistrict',
   },
   semiProfessional: {
     prefix: '/semi-professional-volunteer-assignment',
@@ -63,6 +70,7 @@ const PROGRAM_CONFIG: Record<VolunteerAssignmentProgram, ProgramConfig> = {
     reassignMethod: 'POST',
     cancelMode: 'post-body',
     pageDataPath: '/initial-data',
+    districtFormat: 'rawDistrict',
   },
 };
 
@@ -95,6 +103,24 @@ export interface VolunteerAssignmentApi {
   };
 }
 
+function normalizeDistricts(raw: any): SelectListItemDto[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((d: any) =>
+    d.Value !== undefined && d.Text !== undefined
+      ? { Value: String(d.Value), Text: d.Text }
+      : { Value: String(d.DistrictID), Text: d.DistrictName }
+  );
+}
+
+function normalizeVolunteers(raw: any): SelectListItemDto[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((v: any) =>
+    v.Value !== undefined && v.Text !== undefined
+      ? { Value: String(v.Value), Text: v.Text }
+      : { Value: String(v.Id), Text: v.DisplayName || v.Name }
+  );
+}
+
 export function createVolunteerAssignmentApi(program: VolunteerAssignmentProgram): VolunteerAssignmentApi {
   const cfg = PROGRAM_CONFIG[program];
   const { prefix } = cfg;
@@ -104,7 +130,15 @@ export function createVolunteerAssignmentApi(program: VolunteerAssignmentProgram
 
     async getDistricts() {
       const res = await api.get(`${prefix}/districts`);
-      return res.data as VolunteerAssignmentDistrictsResponse;
+      const data = res.data as any;
+      if (cfg.districtFormat === 'rawDistrict') {
+        return {
+          success: data.success,
+          count: data.count ?? data.data?.length ?? 0,
+          data: normalizeDistricts(data.data),
+        } as VolunteerAssignmentDistrictsResponse;
+      }
+      return data as VolunteerAssignmentDistrictsResponse;
     },
 
     async getStudents(districtId) {
@@ -116,7 +150,15 @@ export function createVolunteerAssignmentApi(program: VolunteerAssignmentProgram
     async getVolunteers(districtId) {
       districtIdQuerySchema.parse(districtId);
       const res = await api.get(`${prefix}/volunteers?districtId=${districtId}`);
-      return res.data as VolunteerAssignmentVolunteersResponse;
+      const data = res.data as any;
+      if (cfg.districtFormat === 'rawDistrict') {
+        return {
+          success: data.success,
+          count: data.count ?? data.data?.length ?? 0,
+          data: normalizeVolunteers(data.data),
+        } as VolunteerAssignmentVolunteersResponse;
+      }
+      return data as VolunteerAssignmentVolunteersResponse;
     },
 
     async getPageData() {
@@ -125,7 +167,15 @@ export function createVolunteerAssignmentApi(program: VolunteerAssignmentProgram
         return { success: districts.success, districts: districts.data, students: [] };
       }
       const res = await api.get(`${prefix}${cfg.pageDataPath}`);
-      return res.data as VolunteerAssignmentPageDataResponse;
+      const data = res.data as any;
+      if (cfg.districtFormat === 'rawDistrict') {
+        return {
+          success: data.success,
+          districts: normalizeDistricts(data.districts),
+          students: data.data ?? [],
+        } as VolunteerAssignmentPageDataResponse;
+      }
+      return data as VolunteerAssignmentPageDataResponse;
     },
 
     async assign(req) {

@@ -76,7 +76,7 @@ async function fetchWithTimeout(
  */
 const BEARER_REQUIRED_PATHS = [
   // Legacy paths
-  '/welcomedashboard',
+  '/welcome-dashboard',
   '/pucstudents',
   '/professionalstudents',
   '/payanastudents',

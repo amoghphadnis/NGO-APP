@@ -1,30 +1,26 @@
+interface NotificationCounts {
+  pendingPUC: number;
+  pendingPayana: number;
+  pendingProfessional: number;
+  pendingSemiProfessional?: number;
+  pendingHousePUC: number;
+  pendingHousePayana: number;
+  pendingPUCRenewal: number;
+  pendingPayanaRenewal: number;
+  pendingVisitPUC?: number;
+  pendingVisitPayana?: number;
+}
+
 export interface DashboardResponseDto {
-  Name: string;
-  Role: string;
-  District: string;
-  PendingPUC: number;
-  PendingPayana: number;
-  PendingProfessional: number;
-  PendingSemiProfessional: number;
-  PendingHousePUC: number;
-  PendingHousePayana: number;
-  PendingPUCRenewal: number;
-  PendingPayanaRenewal: number;
-  PendingVisitPUC: number;
-  PendingVisitPayana: number;
+  success: boolean;
+  notifications: NotificationCounts;
+  totalPending: number;
 }
 
 export interface PDashboardResponseDto {
-  Name: string;
-  Role: string;
-  PendingPUC: number;
-  PendingPayana: number;
-  PendingProfessional: number;
-  PendingSemiProfessional: number;
-  PendingHousePUC: number;
-  PendingHousePayana: number;
-  PendingPUCRenewal: number;
-  PendingPayanaRenewal: number;
+  success: boolean;
+  notifications: NotificationCounts;
+  totalPending: number;
 }
 
 export enum DashboardErrorCode {

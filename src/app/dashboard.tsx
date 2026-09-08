@@ -6,21 +6,21 @@ import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { DashboardError, DashboardErrorCode, DashboardResponseDto } from '@/types/dashboard';
-import { canAssignVolunteers, canCreatePayana } from '@/utils/roleUtils';
+import { canApprove, canAssignVolunteers, canCreatePayana } from '@/utils/roleUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Animated,
-  FlatList,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    Animated,
+    FlatList,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -28,16 +28,16 @@ const DRAWER_WIDTH = 280;
 
 interface StatCardConfig {
   label: string;
-  field: keyof Omit<DashboardResponseDto, 'Name' | 'Role' | 'District'>;
+  field: keyof DashboardResponseDto['notifications'];
   icon: React.ComponentProps<typeof Ionicons>['name'];
   route: string;
 }
 
 const STAT_CARDS: StatCardConfig[] = [
-  { label: 'Pending PUC Apps',          field: 'PendingPUC',          icon: 'school-outline',         route: '/approval/puc' },
-  { label: 'Pending Payana Apps',       field: 'PendingPayana',        icon: 'bicycle-outline',        route: '/approval/payana' },
-  { label: 'Pending Prof Apps',         field: 'PendingProfessional',  icon: 'briefcase-outline',      route: '/approval/professional' },
-  { label: 'Pending Semi Prof Apps',    field: 'PendingSemiProfessional', icon: 'book-outline',        route: '/approval/semi-professional' },
+  { label: 'Pending PUC Apps',          field: 'pendingPUC',          icon: 'school-outline',         route: '/approval/puc' },
+  { label: 'Pending Payana Apps',       field: 'pendingPayana',        icon: 'bicycle-outline',        route: '/approval/payana' },
+  { label: 'Pending Prof Apps',         field: 'pendingProfessional',  icon: 'briefcase-outline',      route: '/approval/professional' },
+  { label: 'Pending Semi Prof Apps',    field: 'pendingSemiProfessional', icon: 'book-outline',        route: '/approval/semi-professional' },
 ];
 
 interface DrawerNavItem {
@@ -80,39 +80,40 @@ function DrawerSidebar({
   user,
   dashboard,
 }: DrawerProps) {
-  const navItems: DrawerNavItem[] = [
+  const userCanApprove = canApprove(user?.Role) || user?.Role === 'Branch Executives';
+  const navItems: DrawerNavItem[] = userCanApprove ? [
     {
       icon: 'school-outline',
       label: 'Pending PUC Apps',
-      badge: dashboard?.PendingPUC ?? 0,
+      badge: dashboard?.notifications?.pendingPUC ?? 0,
       route: '/approval/puc',
     },
     {
       icon: 'bicycle-outline',
       label: 'Pending Payana Apps',
-      badge: dashboard?.PendingPayana ?? 0,
+      badge: dashboard?.notifications?.pendingPayana ?? 0,
       route: '/approval/payana',
     },
     {
       icon: 'briefcase-outline',
       label: 'Pending Prof Apps',
-      badge: dashboard?.PendingProfessional ?? 0,
+      badge: dashboard?.notifications?.pendingProfessional ?? 0,
       route: '/approval/professional',
     },
     {
       icon: 'book-outline',
       label: 'Pending Semi Prof Apps',
-      badge: dashboard?.PendingSemiProfessional ?? 0,
+      badge: dashboard?.notifications?.pendingSemiProfessional ?? 0,
       route: '/approval/semi-professional',
     },
-  ];
+  ] : [];
 
   const initials = getInitials(user?.UserName ?? 'VP');
 
   if (!open) return null;
 
   return (
-    <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {/* Backdrop */}
       <TouchableWithoutFeedback onPress={onClose}>
         <Animated.View style={[styles.backdrop, { opacity: backdropAnim }]} />
@@ -304,15 +305,10 @@ export default function DashboardScreen() {
   }, [fetchDashboard]);
 
   const getCountForCard = (field: StatCardConfig['field']): number => {
-    return dashboard?.[field] ?? 0;
+    return dashboard?.notifications?.[field] ?? 0;
   };
 
-  const notificationCount = dashboard
-    ? Object.entries(dashboard).reduce((sum, [key, value]) => {
-        if (key.startsWith('Pending') && typeof value === 'number') return sum + (value || 0);
-        return sum;
-      }, 0)
-    : 0;
+  const notificationCount = dashboard?.totalPending ?? 0;
 
   const renderStatCard = ({ item }: { item: StatCardConfig }) => (
     <TouchableOpacity
@@ -339,7 +335,7 @@ export default function DashboardScreen() {
           <View style={styles.profileCard}>
             <Ionicons name="person-outline" size={20} color={colors.primary} />
             <Text style={styles.profileLabel}>USER NAME</Text>
-            <Text style={styles.profileValue}>{dashboard?.Name ?? user?.UserName ?? '—'}</Text>
+            <Text style={styles.profileValue}>{user?.UserName ?? '—'}</Text>
           </View>
           <View style={styles.profileCard}>
             <Ionicons name="briefcase-outline" size={20} color={colors.primary} />
@@ -349,7 +345,7 @@ export default function DashboardScreen() {
           <View style={styles.profileCard}>
             <Ionicons name="location-outline" size={20} color={colors.primary} />
             <Text style={styles.profileLabel}>DISTRICT</Text>
-            <Text style={styles.profileValue}>{dashboard?.District ?? user?.District ?? '—'}</Text>
+            <Text style={styles.profileValue}>{user?.District ?? '—'}</Text>
           </View>
         </View>
       </View>
@@ -704,7 +700,7 @@ const styles = StyleSheet.create({
   },
   // ── Drawer ──────────────────────────────────────────────
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.45)',
   },
   drawer: {

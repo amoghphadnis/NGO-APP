@@ -5,15 +5,15 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  FlatList,
-  Modal,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    FlatList,
+    Modal,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 import { colors } from '@/theme/colors';
@@ -41,7 +41,7 @@ export default function VolunteerPickerModal({
   const [search, setSearch] = useState('');
 
   const filtered = volunteers.filter((v) =>
-    v.Text.toLowerCase().includes(search.toLowerCase()),
+    (v.Text || '').toLowerCase().includes(search.toLowerCase()),
   );
 
   const renderItem = ({ item }: { item: SelectListItemDto }) => (
