@@ -80,6 +80,7 @@ const BEARER_REQUIRED_PATHS = [
   '/welcome-dashboard',
   '/pucstudents',
   '/professionalstudents',
+  // Payana students - specific JWT-required paths (create/dropdowns are public)
   '/payanastudents',
   '/semiprofessionalstudent',
   '/semiprofessional',
@@ -112,7 +113,14 @@ const BEARER_REQUIRED_PATHS = [
   '/students/districts',
   '/students/areas',
   '/branch-executive-district-mapping',
-  '/renewal-puc',
+  '/renewalpuc/list',
+  '/renewalpuc/approve/',
+  '/renewalpuc/reject/',
+  '/payana-renewal/list',
+  '/payana-renewal/approve/',
+  '/payana-renewal/reject/',
+  '/payana-renewal/delete/',
+  '/payana-renewal/import',
   '/edit-professional-renewal',
   // House Visit Grid (manager approval) — 3D-G
   '/puc-housevisits-grid',

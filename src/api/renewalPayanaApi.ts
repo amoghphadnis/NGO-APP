@@ -1,8 +1,8 @@
-import api from './client';
 import { environment } from '@/config/environment';
 import { RenewalPayanaFormValues } from '@/validation/renewalPayanaSchemas';
-import { normalizeApiResponse, normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
-import { normalizePayanaDropdowns, NormalizedDropdowns } from './transformers/normalizeDropdowns';
+import api from './client';
+import { normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
+import { NormalizedDropdowns, normalizePayanaDropdowns } from './transformers/normalizeDropdowns';
 
 const API_BASE_URL = environment.API_BASE_URL;
 
@@ -19,7 +19,7 @@ export async function getPayanaRenewalDropdowns(): Promise<
   NormalizedApiResponse<NormalizedDropdowns>
 > {
   try {
-    const response = await api.get('/payanarenewal/payanadropdowns');
+    const response = await api.get('/payana-renewal/dropdowns');
     console.log('[getPayanaRenewalDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
     
     // Handle both wrapped (data.Data) and unwrapped (data) responses
@@ -84,7 +84,7 @@ export async function submitPayanaRenewal(
   };
 
   try {
-    const response = await api.post('/payanarenewal/create', payload);
+    const response = await api.post('/payana-renewal/create', payload);
 
     const data = response.data;
 

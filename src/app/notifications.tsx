@@ -109,7 +109,7 @@ export default function NotificationsScreen() {
           icon: 'refresh-outline',
           title: 'Pending PUC Renewals',
           count: data.notifications?.pendingPUCRenewal ?? 0,
-          route: '/renewal-puc',
+          route: '/approval/renewal-puc',
           color: colors.warning,
         },
         {
@@ -117,7 +117,7 @@ export default function NotificationsScreen() {
           icon: 'refresh-outline',
           title: 'Pending Payana Renewals',
           count: data.notifications?.pendingPayanaRenewal ?? 0,
-          route: '/renewal-payana',
+          route: '/approval/renewal-payana',
           color: colors.warning,
         },
       ];

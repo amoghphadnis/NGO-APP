@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/Logo.png",
-    "scheme": "VidyaPoshak",
+    "scheme": "VPApp",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/Logo.png",
@@ -18,7 +18,16 @@
     "android": {
       "package": "com.vidyaposhak.app",
       "versionCode": 1,
-      "permissions": ["INTERNET", "VIBRATE", "CAMERA", "READ_MEDIA_IMAGES", "READ_MEDIA_VIDEO", "READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.VIBRATE",
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ],
       "predictiveBackGestureEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/Logo.png",
@@ -59,8 +68,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "f41c91fd-6fd3-48b1-b1a5-609f711d6283"
+        "projectId": "44fcbca0-20f3-4ba7-99f0-296d27988786"
       }
-    }
+    },
+    "owner": "amoghphadnis20"
   }
 }

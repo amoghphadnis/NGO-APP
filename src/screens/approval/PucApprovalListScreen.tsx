@@ -126,8 +126,11 @@ export default function PucApprovalListScreen() {
   const isMutating = approveMutation.isPending || rejectMutation.isPending;
 
   const renderItem = ({ item }: { item: PucApprovalStudent }) => {
-    const statusColor = STATUS_COLORS[item.ApprovalStatus] || colors.textSecondary;
-    const isPending = item.ApprovalStatus === 'Pending';
+    const statusKey = Object.keys(STATUS_COLORS).find(
+      (k) => k.toLowerCase() === (item.ApprovalStatus || '').toLowerCase()
+    );
+    const statusColor = statusKey ? STATUS_COLORS[statusKey] : colors.textSecondary;
+    const isPending = (item.ApprovalStatus || '').toLowerCase() === 'pending';
 
     return (
       <View style={styles.card}>

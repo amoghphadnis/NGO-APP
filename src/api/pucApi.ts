@@ -10,7 +10,7 @@ import api from './client';
 import { normalizeApiError, normalizeApiResponse, NormalizedApiResponse } from './transformers/normalizeApiResponse';
 import { NormalizedDropdowns, normalizePUCDropdowns } from './transformers/normalizeDropdowns';
 
-const BASE_URL = '/VP_Format1_1PUC';
+const BASE_URL = '/puc-format1-1';
 
 /**
  * Creates a new PUC Format 1.1 student application
@@ -20,7 +20,7 @@ export async function createPUCStudent(
   formData: FormData
 ): Promise<NormalizedApiResponse<any>> {
   try {
-    const response = await api.post(BASE_URL, formData);
+    const response = await api.post(`${BASE_URL}/create`, formData);
 
     return normalizeApiResponse(response.data);
   } catch (error: any) {

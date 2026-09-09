@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
     ActivityIndicator,
@@ -25,7 +25,6 @@ import {
     getPayanaRenewalDropdowns,
     submitPayanaRenewal,
 } from '@/api/renewalPayanaApi';
-import { getPUCDropdowns } from '@/api/pucApi';
 import { NormalizedDropdownOption } from '@/api/transformers/normalizeDropdowns';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
@@ -132,10 +131,7 @@ export default function RenewalPayanaForm({ navigation }: Props) {
   useEffect(() => {
     (async () => {
       try {
-        // Fetch Payana renewal dropdowns
         const payanaResponse = await getPayanaRenewalDropdowns();
-        // Fetch PUC dropdowns for occupations
-        const pucResponse = await getPUCDropdowns();
 
         if (payanaResponse.success && payanaResponse.data) {
           setDropdowns({
@@ -143,8 +139,8 @@ export default function RenewalPayanaForm({ navigation }: Props) {
             areaTypes: toOptions(payanaResponse.data.areaTypes || payanaResponse.data.places || []),
             casteCategories: toOptions(payanaResponse.data.castes || []),
             collegeTypes: toOptions(payanaResponse.data.collegeTypes || []),
-            fatherOccupations: toOptions((pucResponse.success && pucResponse.data?.fatherOcc) || []),
-            motherOccupations: toOptions((pucResponse.success && pucResponse.data?.motherOcc) || []),
+            fatherOccupations: toOptions(payanaResponse.data.fatherOcc || []),
+            motherOccupations: toOptions(payanaResponse.data.motherOcc || []),
           });
         }
       } catch (e) {

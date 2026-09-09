@@ -125,8 +125,11 @@ export default function GenericApprovalListScreen({ title, api }: ApprovalListSc
   const isMutating = approveMutation.isPending || rejectMutation.isPending;
 
   const renderItem = ({ item }: { item: ApprovalStudent }) => {
-    const statusColor = STATUS_COLORS[item.approvalStatus] || colors.textSecondary;
-    const isPending = item.approvalStatus === 'Pending';
+    const statusKey = Object.keys(STATUS_COLORS).find(
+      (k) => k.toLowerCase() === (item.approvalStatus || '').toLowerCase()
+    );
+    const statusColor = statusKey ? STATUS_COLORS[statusKey] : colors.textSecondary;
+    const isPending = (item.approvalStatus || '').toLowerCase() === 'pending';
 
     return (
       <View style={styles.card}>

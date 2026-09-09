@@ -20,7 +20,7 @@ export async function getRenewalPucDropdowns(): Promise<
   NormalizedApiResponse<NormalizedDropdowns>
 > {
   try {
-    const response = await api.get('/renewalpuc/dropdowns');
+    const response = await api.get('/renewalpuc/Getcreate');
     console.log('[getRenewalPucDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
     
     // Handle both wrapped (data.Data) and unwrapped (data) responses

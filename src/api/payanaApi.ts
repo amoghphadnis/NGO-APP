@@ -9,7 +9,7 @@ import { normalizeApiError, normalizeApiResponse, NormalizedApiResponse } from '
 import { NormalizedDropdowns, normalizePayanaDropdowns } from './transformers/normalizeDropdowns';
 
 /** Route prefix per PAYANA STUDENTS API CONTRACT (API_BASE_URL already ends with /api). */
-const BASE_URL = '/payanastudents';
+const BASE_URL = '/payana-students';
 
 /**
  * Creates a new Payana Student application

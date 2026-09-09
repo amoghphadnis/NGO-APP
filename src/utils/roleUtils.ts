@@ -19,5 +19,8 @@ export function canAssignVolunteers(role?: string): boolean {
 }
 
 export function canApprove(role?: string): boolean {
-  return APPROVAL_ROLES.includes(role as any);
+  if (!role) return false;
+  return APPROVAL_ROLES.some(
+    (r) => r.toLowerCase() === role.toLowerCase()
+  );
 }
