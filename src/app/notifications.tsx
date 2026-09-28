@@ -16,6 +16,7 @@ import { dashboardApi } from '@/api/dashboardApi';
 import AppFooter from '@/components/common/AppFooter';
 import { APP_TITLES } from '@/config/appContent';
 import { useAuthStore } from '@/store/useAuthStore';
+import { canApprove } from '@/utils/roleUtils';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
@@ -93,7 +94,8 @@ export default function NotificationsScreen() {
           icon: 'home-outline',
           title: 'Pending PUC House Visits',
           count: data.notifications?.pendingHousePUC ?? 0,
-          route: '/volunteer/puc',
+          // Approvers go to the approval grid; volunteers to their student list
+          route: canApprove(user?.Role) ? '/approval/house-visit/puc' : '/volunteer/puc',
           color: colors.warning,
         },
         {
@@ -101,7 +103,7 @@ export default function NotificationsScreen() {
           icon: 'home-outline',
           title: 'Pending Payana House Visits',
           count: data.notifications?.pendingHousePayana ?? 0,
-          route: '/volunteer/payana',
+          route: canApprove(user?.Role) ? '/approval/house-visit/payana' : '/volunteer/payana',
           color: colors.warning,
         },
         {

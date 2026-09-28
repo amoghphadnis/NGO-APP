@@ -34,8 +34,8 @@ export default function FormSectionHeader({
       {(subtitle || showRequired) && (
         <Text style={styles.subtitle}>
           {subtitle}
-          {subtitle && showRequired && ' · '}
-          {showRequired && 'Fields marked with * are required'}
+          {subtitle && showRequired && !subtitle.includes('Fields marked with * are required') && ' · '}
+          {showRequired && !subtitle?.includes('Fields marked with * are required') && 'Fields marked with * are required'}
         </Text>
       )}
     </View>

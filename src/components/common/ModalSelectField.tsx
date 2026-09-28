@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ScrollView,
   Platform
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -100,32 +101,34 @@ export default function ModalSelectField<T extends string | number>({
               {modalTitle || label}
             </Text>
 
-            {options.map((option) => {
-              const isSelected =
-                option.value === value;
+            <ScrollView style={styles.optionsList} nestedScrollEnabled>
+              {options.map((option) => {
+                const isSelected =
+                  option.value === value;
 
-              return (
-                <TouchableOpacity
-                  key={option.value}
-                  style={styles.optionRow}
-                  onPress={() =>
-                    handleSelect(option.value)
-                  }
-                >
-                  <Text style={styles.optionText}>
-                    {option.label}
-                  </Text>
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={styles.optionRow}
+                    onPress={() =>
+                      handleSelect(option.value)
+                    }
+                  >
+                    <Text style={styles.optionText}>
+                      {option.label}
+                    </Text>
 
-                  {isSelected && (
-                    <Ionicons
-                      name="checkmark"
-                      size={20}
-                      color={colors.primary}
-                    />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark"
+                        size={20}
+                        color={colors.primary}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -168,6 +171,10 @@ const styles = StyleSheet.create({
       color: colors.textPrimary,
       marginBottom: spacing.form.fieldSpacing,
       fontWeight: "600",
+    },
+    optionsList: {
+      maxHeight: 420,
+      flexGrow: 0,
     },
     optionRow: {
       flexDirection: "row",

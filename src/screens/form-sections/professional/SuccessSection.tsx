@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
@@ -10,14 +11,24 @@ import { spacing } from '@/theme/spacing';
 import { isProfessionalForm } from '@/types/forms';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
+const FORM_TYPE_LABELS: Record<string, string> = {
+  professional: 'Professional Scholarship',
+  puc: 'PUC Scholarship',
+  payana: 'Payana Scholarship',
+  semiProfessional: 'Semi Professional Scholarship',
+};
+
 export default function SuccessSection({ navigation }: any) {
-  const { formData, resetForm, submissionState } = useFormEngineStore();
-  
+  const router = useRouter();
+  const { formData, resetForm, submissionState, currentFormType } = useFormEngineStore();
+
   // Defensive rendering for nested state
   const personalData = isProfessionalForm(formData)
     ? formData.personal
     : { StudentName: '' };
-  const applicationId = submissionState?.applicationId || `VP${new Date().getFullYear()}${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+  // Never fabricate an ID the NGO has no record of — the real reference is
+  // communicated by the office after verification.
+  const applicationId = submissionState?.applicationId;
   const submissionDate = new Date().toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'long',
@@ -26,13 +37,12 @@ export default function SuccessSection({ navigation }: any) {
 
   const handleHome = () => {
     resetForm();
-    navigation.navigate('guidelines');
+    router.replace('/');
   };
 
   const handleExit = () => {
     resetForm();
-    // In a real app, this might navigate to login screen or close the app
-    navigation.navigate('guidelines');
+    router.replace('/form-selection');
   };
 
   return (
@@ -64,7 +74,7 @@ export default function SuccessSection({ navigation }: any) {
       <FormCard>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Application ID:</Text>
-          <Text style={styles.detailValue}>{applicationId}</Text>
+          <Text style={styles.detailValue}>{applicationId || 'Will be shared after verification'}</Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Student Name:</Text>
@@ -77,7 +87,7 @@ export default function SuccessSection({ navigation }: any) {
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Form Type:</Text>
           <Text style={styles.detailValue}>
-            {useFormEngineStore.getState().currentFormType === 'professional' ? 'Professional Scholarship' : 'PUC Scholarship'}
+            {FORM_TYPE_LABELS[currentFormType || ''] || 'Scholarship Application'}
           </Text>
         </View>
       </FormCard>

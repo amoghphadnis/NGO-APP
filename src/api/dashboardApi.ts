@@ -35,7 +35,6 @@ export const dashboardApi = {
   async getDashboard(): Promise<DashboardResponseDto> {
     try {
       const response = await api.get('/welcome-dashboard/notifications');
-      console.log('[Dashboard] getDashboard response:', JSON.stringify(response.data));
       const data = response.data;
       if (!data || data.success === false) {
         throw new DashboardError(
@@ -53,7 +52,6 @@ export const dashboardApi = {
   async getPDashboard(): Promise<PDashboardResponseDto> {
     try {
       const response = await api.get('/welcome-dashboard/admin-notifications');
-      console.log('[Dashboard] getPDashboard response:', JSON.stringify(response.data));
       const data = response.data;
       if (!data || data.success === false) {
         throw new DashboardError(

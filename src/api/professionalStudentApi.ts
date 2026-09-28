@@ -61,8 +61,6 @@ export async function getProfessionalStudentList(
   // Transform PascalCase API response to camelCase
   const data = response.data as any;
 
-  console.log('[ProfessionalStudentApi] Raw response data:', JSON.stringify(data, null, 2));
-
   const transformStudent = (s: any) => ({
     studentID: s.StudentID,
     studentName: s.StudentName,

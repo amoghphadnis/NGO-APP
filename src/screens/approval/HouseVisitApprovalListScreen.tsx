@@ -33,6 +33,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import { HouseVisitApprovalApi } from '@/api/houseVisitApprovalApi';
 import AppFooter from '@/components/common/AppFooter';
@@ -62,6 +63,7 @@ export interface HouseVisitApprovalScreenProps {
 
 export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitApprovalScreenProps) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [refreshing, setRefreshing] = useState(false);
   const [actionModal, setActionModal] = useState<{
@@ -137,7 +139,8 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
   const renderItem = ({ item }: { item: HouseVisitApprovalItem }) => {
     const managerColor = MANAGER_STATUS_COLORS[item.approveStatus] || colors.textSecondary;
     const volunteerColor = VOLUNTEER_STATUS_COLORS[item.volunteerApprovalStatus || ''] || colors.textSecondary;
-    const isPending = item.approveStatus === 'Pending';
+    // Treat a blank manager status as Pending (backend sends "" for awaiting records)
+    const isPending = !item.approveStatus || item.approveStatus === 'Pending';
 
     return (
       <View style={styles.card}>
@@ -150,8 +153,8 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
               {item.courseInstitution || 'No course info'}
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: managerColor }]}>
-            <Text style={styles.statusText}>{item.approveStatus}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: isPending ? MANAGER_STATUS_COLORS.Pending : managerColor }]}>
+            <Text style={styles.statusText}>{item.approveStatus || 'Pending'}</Text>
           </View>
         </View>
 
@@ -159,8 +162,8 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
         <View style={styles.dualStatusRow}>
           <View style={styles.dualStatusItem}>
             <Text style={styles.dualStatusLabel}>Manager</Text>
-            <View style={[styles.miniBadge, { backgroundColor: managerColor }]}>
-              <Text style={styles.miniBadgeText}>{item.approveStatus}</Text>
+            <View style={[styles.miniBadge, { backgroundColor: isPending ? MANAGER_STATUS_COLORS.Pending : managerColor }]}>
+              <Text style={styles.miniBadgeText}>{item.approveStatus || 'Pending'}</Text>
             </View>
           </View>
           <View style={styles.dualStatusItem}>
@@ -208,7 +211,7 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
 
   if (!userCanApprove && !isBranchExecutive) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.errorContainer}>
           <Ionicons name="lock-closed-outline" size={48} color={colors.textSecondary} />
           <Text style={styles.errorText}>
@@ -222,7 +225,7 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading house visit approvals...</Text>
@@ -234,7 +237,7 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
           <Text style={styles.errorText}>
@@ -250,12 +253,25 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{title}</Text>
-        <Text style={styles.headerSubtitle}>
-          {items?.length || 0} house visit{items?.length === 1 ? '' : 's'}
-        </Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          </TouchableOpacity>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>{title}</Text>
+            <Text style={styles.headerSubtitle}>
+              {items?.length || 0} house visit{items?.length === 1 ? '' : 's'}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <FlatList
@@ -358,6 +374,21 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: spacing.sm,
+    padding: spacing.xs,
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: platform.normalize.fontSize.h2,

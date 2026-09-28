@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     FlatList,
     RefreshControl,
@@ -106,14 +106,21 @@ function mapToViewModel(
 export default function StudentListScreen({ studentType, title }: StudentListScreenProps) {
   const router = useRouter();
   const [searchText, setSearchText] = useState('');
+  // Debounced search: the raw text drives the input, only this value hits the API
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | undefined>();
   const [showDistrictDropdown, setShowDistrictDropdown] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentListViewModel | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchText.trim()), 350);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
   // Build query params
   const queryParams: StudentListQueryParams = {
-    ...(searchText && { search: searchText }),
+    ...(debouncedSearch && { search: debouncedSearch }),
     ...(selectedDistrictId !== undefined && { districtId: selectedDistrictId }),
   };
 

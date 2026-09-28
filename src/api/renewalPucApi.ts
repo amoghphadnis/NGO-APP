@@ -21,7 +21,6 @@ export async function getRenewalPucDropdowns(): Promise<
 > {
   try {
     const response = await api.get('/renewalpuc/Getcreate');
-    console.log('[getRenewalPucDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
     
     // Handle both wrapped (data.Data) and unwrapped (data) responses
     const dropdownData = response.data.Data || response.data;
@@ -98,9 +97,7 @@ export async function submitRenewalPuc(
   } catch (error: any) {
     console.error('[submitRenewalPuc] Error:', {
       message: error.message,
-      response: error.response?.data,
       status: error.response?.status,
-      payload: payload,
     });
     throw error;
   }

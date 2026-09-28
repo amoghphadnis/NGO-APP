@@ -1,13 +1,12 @@
 /**
  * Payana Student List API
  *
- * Endpoint: GET /payanastudents/studentlist
+ * Endpoints (JWT required, both in the client's bearer allow-list):
+ * - GET /payana-students/list?districtId&search  — student list
+ * - GET /payana-students/districts               — district filter options
  *
- * Features:
- * - Student name search
- * - District filtering
- * - Volunteer-based filtering (via session)
- * - Returns house visit status
+ * Note: the legacy /payanastudents/studentlist route no longer exists on the server
+ * (404) — do not revert to it.
  */
 
 import {
@@ -17,7 +16,7 @@ import {
 } from '@/types/studentList';
 import api from './client';
 
-const BASE_URL = '/payanastudents';
+const BASE_URL = '/payana-students';
 
 /**
  * Fetch Payana student list for volunteers
@@ -49,9 +48,12 @@ export async function getPayanaStudentList(
   }
 
   const queryString = queryParams.toString();
-  const url = `${BASE_URL}/studentlist${queryString ? `?${queryString}` : ''}`;
+  const url = `${BASE_URL}/list${queryString ? `?${queryString}` : ''}`;
 
-  const response = await api.get(url);
+  const [response, districtsResponse] = await Promise.all([
+    api.get(url),
+    api.get(`${BASE_URL}/districts`).catch(() => null),
+  ]);
 
   if (!response.ok) {
     const errorData = response.data as StudentListError;
@@ -60,8 +62,6 @@ export async function getPayanaStudentList(
 
   // Transform PascalCase API response to camelCase
   const data = response.data as any;
-
-  console.log('[PayanaStudentApi] Raw response data:', JSON.stringify(data, null, 2));
 
   const transformStudent = (s: any) => ({
     studentID: s.StudentID,
@@ -85,11 +85,11 @@ export async function getPayanaStudentList(
     districtName: d.DistrictName,
   });
 
-  // API returns data in "Data" field, not "Students"
-  const studentsArray = data.Data || data.Students || [];
-  const districtsArray = data.Districts || [];
-
-  console.log('[PayanaStudentApi] Parsed students count:', studentsArray.length);
+  // List endpoint returns { success, count, data: [...] }; legacy shapes kept for safety
+  const studentsArray = data.data || data.Data || data.Students || [];
+  // Districts come from the separate /districts endpoint ({ success, data: [...] })
+  const districtsRaw = districtsResponse?.data?.data || districtsResponse?.data?.Data || data.Districts || [];
+  const districtsArray = districtsRaw;
 
   return {
     students: studentsArray.map(transformStudent),

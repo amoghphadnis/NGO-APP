@@ -54,8 +54,6 @@ export async function getSemiProfessionalStudentList(
 
   const data = response.data as any;
 
-  console.log('[SemiProfessionalStudentApi] Raw response data:', JSON.stringify(data, null, 2));
-
   const transformStudent = (s: any): SemiProfessionalStudent => ({
     studentID: s.StudentID,
     studentName: s.StudentName,

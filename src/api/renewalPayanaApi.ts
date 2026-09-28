@@ -1,4 +1,5 @@
 import { environment } from '@/config/environment';
+import { UploadedDocument } from '@/types/documents';
 import { RenewalPayanaFormValues } from '@/validation/renewalPayanaSchemas';
 import api from './client';
 import { normalizeApiError, NormalizedApiResponse } from './transformers/normalizeApiResponse';
@@ -13,15 +14,14 @@ export interface PayanaRenewalSubmitResponse {
 
 /**
  * Gets Payana Renewal dropdown data
- * GET /payanarenewal/payanadropdowns
+ * GET /payana-renewal/dropdowns
  */
 export async function getPayanaRenewalDropdowns(): Promise<
   NormalizedApiResponse<NormalizedDropdowns>
 > {
   try {
     const response = await api.get('/payana-renewal/dropdowns');
-    console.log('[getPayanaRenewalDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
-    
+
     // Handle both wrapped (data.Data) and unwrapped (data) responses
     const dropdownData = response.data.Data || response.data;
     const normalizedDropdowns = normalizePayanaDropdowns(dropdownData);
@@ -37,54 +37,70 @@ export async function getPayanaRenewalDropdowns(): Promise<
   }
 }
 
+function appendFileToFormData(
+  formData: FormData,
+  key: string,
+  doc: UploadedDocument | undefined
+): void {
+  if (!doc?.file?.uri) return;
+  formData.append(key, {
+    uri: doc.file.uri,
+    name: doc.file.name || `${key}.jpg`,
+    type: doc.file.type || 'application/octet-stream',
+  } as any);
+}
+
 export async function submitPayanaRenewal(
   values: RenewalPayanaFormValues
 ): Promise<PayanaRenewalSubmitResponse> {
-  // Build JSON payload - backend expects JSON, not multipart/form-data
-  const payload: Record<string, any> = {
-    EmailId: values.emailId,
-    StudentName: values.studentName,
-    District: values.district || '',
-    Taluk: values.taluk || '',
-    PayanaId: values.payanaId || '',
-    DateOfBirth: values.dateOfBirth || '',
-    ResidentialAddress: values.residentialAddress || '',
-    CurrentAddress: values.currentAddress || '',
-    PrimaryNumber: values.primaryNumber || '',
-    AlternateNumber: values.alternateNumber || '',
-    Place: values.place || '',
-    Caste: values.caste || '',
-    FatherOccupation: values.fatherOccupation || '',
-    MotherOccupation: values.motherOccupation || '',
-    FamilyIncome: values.familyIncome ?? '',
-    BankBalance: values.bankBalance ?? '',
-    CollegeName: values.collegeName || '',
-    CollegeType: values.collegeType || '',
-    CollegeContact: values.collegeContact || '',
-    CourseS: values.courseS || '',
-    CourseStream: values.courseStream || '',
-    AnnualFees: values.annualFees ?? '',
-    TotalExpenses: values.totalExpenses ?? '',
-    ScholarshipAmount: values.scholarshipAmount ?? '',
-    DonorName: values.donorName || '',
-    LettersWritten: values.lettersWritten ?? '',
-    Achievement: values.achievement || '',
-    Percentage: values.percentage || '',
-    AccountHolder: values.accountHolder,
-    AccountNumber: values.accountNumber,
-    IFSC: values.ifsc,
-    BankName: values.bankName,
-    Branch: values.branch,
-    // File URIs for backend to process separately
-    MarksheetFile: values.marksheetFile?.file?.uri || '',
-    FeesReceiptFile: values.feesReceiptFile?.file?.uri || '',
-    PassbookFile: values.passbookFile?.file?.uri || '',
-    SelfieFile: values.selfieFile?.file?.uri || '',
-    AadhaarFile: values.aadhaarFile?.file?.uri || '',
-  };
+  // Contract (PAYANA RENEWAL API CONTRACT): POST /payana-renewal/create must be
+  // multipart/form-data with real file parts — JSON is rejected with 400.
+  const formData = new FormData();
+
+  // Text fields (names per contract)
+  formData.append('EmailId', values.emailId);
+  formData.append('StudentName', values.studentName);
+  formData.append('PayanaId', values.payanaId || '');
+  formData.append('District', values.district || '');
+  formData.append('Taluk', values.taluk || '');
+  formData.append('DateOfBirth', values.dateOfBirth || '');
+  formData.append('ResidentialAddress', values.residentialAddress || '');
+  formData.append('CurrentAddress', values.currentAddress || '');
+  formData.append('PrimaryNumber', values.primaryNumber || '');
+  formData.append('AlternateNumber', values.alternateNumber || '');
+  formData.append('Place', values.place || '');
+  formData.append('Caste', values.caste || '');
+  formData.append('FatherOccupation', values.fatherOccupation || '');
+  formData.append('MotherOccupation', values.motherOccupation || '');
+  formData.append('FamilyIncome', String(values.familyIncome ?? ''));
+  formData.append('BankBalance', String(values.bankBalance ?? ''));
+  formData.append('CollegeName', values.collegeName || '');
+  formData.append('CollegeType', values.collegeType || '');
+  formData.append('CollegeContact', values.collegeContact || '');
+  formData.append('CourseS', values.courseS || '');
+  formData.append('CourseStream', values.courseStream || '');
+  formData.append('AnnualFees', String(values.annualFees ?? ''));
+  formData.append('TotalExpenses', String(values.totalExpenses ?? ''));
+  formData.append('ScholarshipAmount', String(values.scholarshipAmount ?? ''));
+  formData.append('DonorName', values.donorName || '');
+  formData.append('LettersWritten', String(values.lettersWritten ?? ''));
+  formData.append('Achievement', values.achievement || '');
+  formData.append('Percentage', values.percentage || '');
+  formData.append('AccountHolder', values.accountHolder);
+  formData.append('AccountNumber', values.accountNumber);
+  formData.append('IFSC', values.ifsc);
+  formData.append('BankName', values.bankName);
+  formData.append('Branch', values.branch);
+
+  // File parts (uploaded at submit time)
+  appendFileToFormData(formData, 'MarksheetFile', values.marksheetFile);
+  appendFileToFormData(formData, 'FeesReceiptFile', values.feesReceiptFile);
+  appendFileToFormData(formData, 'PassbookFile', values.passbookFile);
+  appendFileToFormData(formData, 'SelfieFile', values.selfieFile);
+  appendFileToFormData(formData, 'AadhaarFile', values.aadhaarFile);
 
   try {
-    const response = await api.post('/payana-renewal/create', payload);
+    const response = await api.post('/payana-renewal/create', formData);
 
     const data = response.data;
 
@@ -99,9 +115,7 @@ export async function submitPayanaRenewal(
   } catch (error: any) {
     console.error('[submitPayanaRenewal] Error:', {
       message: error.message,
-      response: error.response?.data,
       status: error.response?.status,
-      payload,
     });
     throw error;
   }

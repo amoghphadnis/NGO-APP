@@ -618,11 +618,7 @@ export default function HouseVisitFormScreen() {
           UploadedFiles: formData.uploadedFiles,
         };
 
-        console.log('[HouseVisit] Submitting payload:', JSON.stringify(payload, null, 2));
-
         const response = await houseVisitApi.create(payload);
-
-        console.log('[HouseVisit] API response:', JSON.stringify(response, null, 2));
 
         if (response.success) {
           logInfo('submission', 'submission_succeeded', { submissionId, formType, screen: 'HouseVisitForm' });
@@ -1017,7 +1013,7 @@ const styles = StyleSheet.create({
   familyLabel: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, marginBottom: spacing.sm },
   addButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, padding: spacing.sm, borderRadius: 8, gap: spacing.xs },
   addButtonText: { color: '#FFFFFF', fontWeight: '500' },
-  submitButton: { backgroundColor: colors.success, padding: spacing.md, borderRadius: 12, alignItems: 'center', marginTop: spacing.lg },
+  submitButton: { backgroundColor: colors.primary, padding: spacing.md, borderRadius: 12, alignItems: 'center', marginTop: spacing.lg },
   submitButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
   uploadSection: { marginTop: spacing.md, padding: spacing.md, backgroundColor: colors.background, borderRadius: 8, borderWidth: 1, borderColor: colors.border },
   uploadButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, padding: spacing.sm, borderRadius: 8, gap: spacing.xs, marginTop: spacing.sm },

@@ -22,6 +22,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import AppFooter from '@/components/common/AppFooter';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -52,6 +53,7 @@ export interface ApprovalListScreenProps {
 
 export default function GenericApprovalListScreen({ title, api }: ApprovalListScreenProps) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [refreshing, setRefreshing] = useState(false);
   const [actionModal, setActionModal] = useState<{
@@ -128,8 +130,16 @@ export default function GenericApprovalListScreen({ title, api }: ApprovalListSc
     const statusKey = Object.keys(STATUS_COLORS).find(
       (k) => k.toLowerCase() === (item.approvalStatus || '').toLowerCase()
     );
-    const statusColor = statusKey ? STATUS_COLORS[statusKey] : colors.textSecondary;
-    const isPending = (item.approvalStatus || '').toLowerCase() === 'pending';
+    // Backend may return an empty status for students that are actually awaiting
+    // approval (dashboard counts them as pending) — treat blank as Pending.
+    const normalizedStatus = (item.approvalStatus || '').trim().toLowerCase();
+    const isPending = normalizedStatus === '' || normalizedStatus === 'pending';
+    const statusColor = isPending
+      ? STATUS_COLORS.Pending
+      : statusKey
+        ? STATUS_COLORS[statusKey]
+        : colors.textSecondary;
+    const displayStatus = item.approvalStatus?.trim() || 'Pending';
 
     return (
       <View style={styles.card}>
@@ -143,7 +153,7 @@ export default function GenericApprovalListScreen({ title, api }: ApprovalListSc
             </Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{item.approvalStatus}</Text>
+            <Text style={styles.statusText}>{displayStatus}</Text>
           </View>
         </View>
 
@@ -180,7 +190,7 @@ export default function GenericApprovalListScreen({ title, api }: ApprovalListSc
 
   if (!userCanApprove && !isBranchExecutive) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.errorContainer}>
           <Ionicons name="lock-closed-outline" size={48} color={colors.textSecondary} />
           <Text style={styles.errorText}>
@@ -194,7 +204,7 @@ export default function GenericApprovalListScreen({ title, api }: ApprovalListSc
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading approval list...</Text>
@@ -206,7 +216,7 @@ export default function GenericApprovalListScreen({ title, api }: ApprovalListSc
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
           <Text style={styles.errorText}>
@@ -222,12 +232,25 @@ export default function GenericApprovalListScreen({ title, api }: ApprovalListSc
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{title}</Text>
-        <Text style={styles.headerSubtitle}>
-          {students?.length || 0} student{students?.length === 1 ? '' : 's'}
-        </Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          </TouchableOpacity>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>{title}</Text>
+            <Text style={styles.headerSubtitle}>
+              {students?.length || 0} student{students?.length === 1 ? '' : 's'}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <FlatList
@@ -330,6 +353,21 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: spacing.sm,
+    padding: spacing.xs,
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: platform.normalize.fontSize.h2,

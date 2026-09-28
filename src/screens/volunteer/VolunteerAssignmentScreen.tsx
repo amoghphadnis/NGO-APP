@@ -170,7 +170,15 @@ export default function VolunteerAssignmentScreen({
   };
 
   const handleEditHouseVisit = (student: VolunteerAssignmentStudentDto) => {
-    if (!student.HouseVisitID) return;
+    if (!student.HouseVisitID) {
+      // The visit is marked complete but its record id is missing — tell the
+      // volunteer instead of doing nothing.
+      Alert.alert(
+        'House visit record not found',
+        `No saved house visit record was found for ${student.StudentName || 'this student'}. Please contact your coordinator.`
+      );
+      return;
+    }
     const link = `/housevisit/edit?houseVisitId=${student.HouseVisitID}&program=${program}`;
     router.push(link as any);
   };

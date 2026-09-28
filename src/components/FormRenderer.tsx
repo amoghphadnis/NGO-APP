@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { getFormConfig } from '../forms/shared/registry';
 import { useFormEngineStore } from '../store/useFormEngineStore';
 
@@ -100,7 +101,10 @@ const payanaComponentMap: Record<string, React.ComponentType<any>> = {
 };
 
 export default function FormRenderer({ navigation, route }: FormRendererProps) {
-  const { currentStep, initializeForm } = useFormEngineStore();
+  const router = useRouter();
+  // All hooks must run unconditionally (rules-of-hooks): never add hook calls
+  // below the early returns in this component.
+  const { currentStep, setCurrentStep, initializeForm } = useFormEngineStore();
   const { formType = 'professional' } = route.params || {};
 
   // Initialize form when component mounts or formType changes
@@ -147,13 +151,14 @@ export default function FormRenderer({ navigation, route }: FormRendererProps) {
     );
   }
 
-  // Create navigation object that uses step-based navigation instead of screen navigation
-  const { setCurrentStep } = useFormEngineStore();
-  
+  // Step-based section navigation. At the first step, Back exits to the
+  // scholarship selection screen instead of doing nothing.
   const sectionNavigation = {
     goBack: () => {
       if (currentStep > 0) {
         setCurrentStep(currentStep - 1);
+      } else {
+        router.replace('/form-selection');
       }
     },
     navigate: (stepName: string) => {

@@ -811,12 +811,12 @@ export default function RenewalPayanaForm({ navigation }: Props) {
           <FormCard>
             <Text style={styles.docNote}>
               Make sure you upload clear photos of all documents.{'\n'}
-              Only one file per document is allowed (Max: 10 MB).
+              Only one file per document is allowed (Max: 5 MB).
             </Text>
 
             <FileUploadField
               title="Latest Marksheet / Semester Result"
-              subtitle="Max file size: 10 MB"
+              subtitle="Max file size: 5 MB"
               badge="Optional"
               file={marksheet?.file}
               meta={uploadMeta.marksheetFile}
@@ -827,7 +827,7 @@ export default function RenewalPayanaForm({ navigation }: Props) {
 
             <FileUploadField
               title="Fees Receipt"
-              subtitle="Max file size: 10 MB"
+              subtitle="Max file size: 5 MB"
               badge="Optional"
               file={feesReceipt?.file}
               meta={uploadMeta.feesReceiptFile}
@@ -838,7 +838,7 @@ export default function RenewalPayanaForm({ navigation }: Props) {
 
             <FileUploadField
               title="Student Bank Passbook (First Page)"
-              subtitle="Max file size: 10 MB"
+              subtitle="Max file size: 5 MB"
               badge="Optional"
               file={passbook?.file}
               meta={uploadMeta.passbookFile}
@@ -849,7 +849,7 @@ export default function RenewalPayanaForm({ navigation }: Props) {
 
             <FileUploadField
               title="Student Latest Selfie / Photo"
-              subtitle="Max file size: 10 MB"
+              subtitle="Max file size: 5 MB"
               badge="Optional"
               file={selfie?.file}
               meta={uploadMeta.selfieFile}
@@ -860,7 +860,7 @@ export default function RenewalPayanaForm({ navigation }: Props) {
 
             <FileUploadField
               title="Student Aadhaar Card Photo"
-              subtitle="Max file size: 10 MB"
+              subtitle="Max file size: 5 MB"
               badge="Optional"
               file={aadhaar?.file}
               meta={uploadMeta.aadhaarFile}
@@ -1037,7 +1037,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.success,
+    backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     borderRadius: 16,
     minHeight: 56,

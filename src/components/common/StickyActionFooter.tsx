@@ -48,6 +48,7 @@ export default function StickyActionFooter({
             title={nextLabel}
             onPress={onNext || (() => {})}
             disabled={nextDisabled}
+            loading={loading}
             style={styles.nextButton}
           />
         )}

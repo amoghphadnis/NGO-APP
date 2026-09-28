@@ -107,7 +107,7 @@ export default function VPDatePickerField({
         <Text
           style={[
             styles.dateText,
-            !dateValue && styles.placeholderText,
+            !isValidDate(dateValue) && styles.placeholderText,
             disabled && styles.disabledText,
           ]}
         >
@@ -173,7 +173,7 @@ export default function VPDatePickerField({
       )}
       {Platform.OS === 'android' && showPicker && (
         <DateTimePicker
-          value={dateValue || new Date()}
+          value={isValidDate(dateValue) ? dateValue : isValidDate(tempDate) ? tempDate : new Date()}
           mode="date"
           display="default"
           onChange={handleDateChange}

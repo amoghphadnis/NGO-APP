@@ -9,7 +9,8 @@ export const renewalPayanaSchema = z.object({
   // Basic info
   district: z.string().optional().or(z.literal('')),
   taluk: z.string().optional().or(z.literal('')),
-  payanaId: z.string().optional().or(z.literal('')),
+  // Required by contract (duplicate check depends on it); the form already marks it required
+  payanaId: z.string().min(1, { message: 'Payana ID is required' }),
   dateOfBirth: z.string().optional().or(z.literal('')),
   residentialAddress: z.string().optional().or(z.literal('')),
   currentAddress: z.string().optional().or(z.literal('')),

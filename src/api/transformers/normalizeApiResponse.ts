@@ -49,8 +49,11 @@ export function normalizeApiResponse<T>(
 
   const lowered = message.toLowerCase();
   const isSuccessMessage = lowered.includes('success') || lowered.includes('saved');
+  // An explicit success:false from the server is authoritative — only fall back
+  // to the message heuristic when the flag itself is missing.
+  const hasExplicitFlag = raw.success !== undefined || raw.Status !== undefined;
 
-  if (flag || isSuccessMessage) {
+  if (flag || (!hasExplicitFlag && isSuccessMessage)) {
     return {
       success: true,
       data,

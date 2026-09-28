@@ -37,7 +37,6 @@ export async function getPUCDropdowns(): Promise<
 > {
   try {
     const response = await api.get(`${BASE_URL}/dropdowns`);
-    console.log('[getPUCDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
 
     // Handle both wrapped (data.Data) and unwrapped (data) responses
     const dropdownData = response.data.Data || response.data;

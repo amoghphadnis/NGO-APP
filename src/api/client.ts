@@ -186,7 +186,9 @@ async function request(
   customHeaders?: Record<string, string>
 ): Promise<ApiResponse> {
   const url = `${environment.API_BASE_URL}${path}`;
-  console.log(`API ${method} ${url}`);
+  if (environment.ENABLE_DEBUG_LOGGING) {
+    console.log(`API ${method} ${url}`);
+  }
 
   // Diagnostic instrumentation: every API call gets a requestId.
   const requestId = generateRequestId();
@@ -196,11 +198,14 @@ async function request(
   try {
     const headers: Record<string, string> = { ...customHeaders };
 
-    // Add Bearer token for protected paths
+    // Add Bearer token for protected paths; remember whether we actually sent
+    // one so a 401 can be attributed to an expired session vs bad credentials.
+    let tokenAttached = false;
     if (requiresBearerToken(path)) {
       const token = await getAuthToken();
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        tokenAttached = true;
       }
     }
 
@@ -221,16 +226,25 @@ async function request(
 
     const response = await fetchWithTimeout(url, options, environment.API_TIMEOUT);
 
-    // Handle 401 - clear auth and throw error
+    // Handle 401 — only treat it as an expired session (and clear auth) when the
+    // request actually carried a token. A 401 on an unauthenticated call
+    // (e.g. wrong password on login) must NOT wipe the stored session.
     if (response.status === 401) {
-      logWarn('auth', 'session_expired', { requestId, endpoint: path });
-      await logout();
       const durationMs = Date.now() - start;
+      if (tokenAttached) {
+        logWarn('auth', 'session_expired', { requestId, endpoint: path });
+        await logout();
+        logError('api', 'request_failed', {
+          requestId, method, endpoint: path,
+          statusCode: 401, errorCode: 'SESSION_EXPIRED', durationMs,
+        });
+        throw new ApiError('Session expired. Please login again.', 401, null, 'SESSION_EXPIRED');
+      }
       logError('api', 'request_failed', {
         requestId, method, endpoint: path,
-        statusCode: 401, errorCode: 'SESSION_EXPIRED', durationMs,
+        statusCode: 401, errorCode: 'HTTP_401', durationMs,
       });
-      throw new ApiError('Session expired. Please login again.', 401, null, 'SESSION_EXPIRED');
+      throw new ApiError('Authentication failed. Please login again.', 401, null, 'HTTP_401');
     }
 
     let data: any;

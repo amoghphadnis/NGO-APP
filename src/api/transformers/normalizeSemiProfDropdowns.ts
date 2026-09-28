@@ -21,7 +21,6 @@ export interface NormalizedSemiProfDropdowns {
  * Normalizes the GET /form-data response for Semi Professional dropdowns
  */
 export function normalizeSemiProfessionalDropdowns(apiResponse: any): NormalizedSemiProfDropdowns {
-  console.log('[normalizeSemiProfDropdowns] Raw API response:', JSON.stringify(apiResponse, null, 2));
 
   // The contract wraps master lists inside a `Masters` object; fall back to the root object
   const masters = apiResponse.Masters || apiResponse;

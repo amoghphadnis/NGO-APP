@@ -105,6 +105,18 @@ function DrawerSidebar({
       badge: dashboard?.notifications?.pendingSemiProfessional ?? 0,
       route: '/approval/semi-professional',
     },
+    {
+      icon: 'home-outline',
+      label: 'PUC House Visit Approvals',
+      badge: dashboard?.notifications?.pendingHousePUC ?? 0,
+      route: '/approval/house-visit/puc',
+    },
+    {
+      icon: 'home-outline',
+      label: 'Payana House Visit Approvals',
+      badge: dashboard?.notifications?.pendingHousePayana ?? 0,
+      route: '/approval/house-visit/payana',
+    },
   ];
 
   const initials = getInitials(user?.UserName ?? 'VP');
