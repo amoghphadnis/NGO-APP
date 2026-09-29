@@ -33,12 +33,23 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
           label: d.label
         })) || []);
         // Place dropdown uses AreaTypes from API
-        setPlaceOptions(response.data.areaTypes?.map((a: any) => ({
+        const places = response.data.areaTypes?.map((a: any) => ({
           value: Number(a.value),
           label: a.label
-        })) || []);
+        })) || [];
+        setPlaceOptions(places.length > 0 ? places : [
+          { value: 1, label: 'Urban' },
+          { value: 2, label: 'Rural' },
+          { value: 3, label: 'Semi-Urban' },
+        ]);
         console.log('[Payana AddressSection] District options:', response.data.districts);
         console.log('[Payana AddressSection] AreaTypes for Place:', response.data.areaTypes);
+      } else {
+        setPlaceOptions([
+          { value: 1, label: 'Urban' },
+          { value: 2, label: 'Rural' },
+          { value: 3, label: 'Semi-Urban' },
+        ]);
       }
       setLoadingDropdowns(false);
     }

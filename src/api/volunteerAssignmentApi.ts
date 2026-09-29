@@ -144,7 +144,15 @@ export function createVolunteerAssignmentApi(program: VolunteerAssignmentProgram
     async getStudents(districtId) {
       districtIdQuerySchema.parse(districtId);
       const res = await api.get(`${prefix}/students?districtId=${districtId}`);
-      return res.data as VolunteerAssignmentStudentsResponse;
+      const data = res.data as VolunteerAssignmentStudentsResponse;
+      // Program-specific field normalization: Professional / Semi-Professional
+      // controllers expose AnnualIncome instead of FamilyIncome.
+      const rows = (data.data ?? []).map((s: any) => ({
+        ...s,
+        FamilyIncome:
+          s.FamilyIncome ?? (s.AnnualIncome != null ? Number(s.AnnualIncome) : null),
+      }));
+      return { ...data, data: rows } as VolunteerAssignmentStudentsResponse;
     },
 
     async getVolunteers(districtId) {

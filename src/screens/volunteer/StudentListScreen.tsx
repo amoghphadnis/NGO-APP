@@ -511,6 +511,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     ...platform.elevation.card,
     maxHeight: 200,
+    overflow: 'hidden',
     zIndex: 100,
   },
   dropdownItem: {

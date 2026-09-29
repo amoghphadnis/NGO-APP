@@ -1,3 +1,4 @@
+import '@/utils/polyfillFormData';
 import { payanaMapper } from '@/forms/payana/mapper';
 import { professionalMapper } from '@/forms/professional/mapper';
 import { pucMapper } from '@/forms/puc/mapper';
@@ -27,7 +28,7 @@ export function preparePayload(
     payload = pucMapper(formData as unknown as PucFormat11FormValues);
   }
 
-  const keys = Array.from((payload as any).keys());
+  const keys = typeof (payload as any).keys === 'function' ? Array.from((payload as any).keys()) : [];
   console.log(`[preparePayload] Output payload contains ${keys.length} fields:`, keys);
 
   return payload;

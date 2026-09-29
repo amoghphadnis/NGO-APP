@@ -37,10 +37,21 @@ export default function PersonalSection({ navigation }: any) {
           value: Number(d.value),
           label: d.label
         })) || []);
-        setAreaTypeOptions(response.data.areaTypes?.map((a: any) => ({
+        const areas = response.data.areaTypes?.map((a: any) => ({
           value: Number(a.value),
           label: a.label
-        })) || []);
+        })) || [];
+        setAreaTypeOptions(areas.length > 0 ? areas : [
+          { value: 1, label: 'Urban' },
+          { value: 2, label: 'Rural' },
+          { value: 3, label: 'Semi-Urban' },
+        ]);
+      } else {
+        setAreaTypeOptions([
+          { value: 1, label: 'Urban' },
+          { value: 2, label: 'Rural' },
+          { value: 3, label: 'Semi-Urban' },
+        ]);
       }
       setLoadingDropdowns(false);
     }

@@ -4,6 +4,7 @@
  * so consumer files (pucApi, professionalApi, etc.) need no changes.
  */
 
+import '@/utils/polyfillFormData';
 import { environment } from '@/config/environment';
 import { generateRequestId, error as logError, info as logInfo, warn as logWarn, truncateStack } from '@/diagnostics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -177,6 +178,66 @@ async function logout(): Promise<void> {
 }
 
 /**
+ * Sends multipart FormData using React Native's native XMLHttpRequest.
+ * This streams files directly from Android/iOS disk/content URIs via native OkHttp,
+ * bypassing Expo's WinterCG convertFormDataAsync which has issues with React Native FormData.
+ */
+function sendFormDataViaXHR(
+  url: string,
+  method: string,
+  formData: FormData,
+  headers: Record<string, string>,
+  timeout: number
+): Promise<ApiResponse> {
+  return new Promise((resolve, reject) => {
+    if (typeof XMLHttpRequest === 'undefined') {
+      return reject(new Error('XMLHttpRequest is not available'));
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+    xhr.timeout = timeout;
+
+    for (const [key, value] of Object.entries(headers)) {
+      if (key.toLowerCase() !== 'content-type') {
+        xhr.setRequestHeader(key, value);
+      }
+    }
+
+    xhr.onload = () => {
+      let data: any;
+      const responseText = xhr.responseText;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        data = responseText;
+      }
+
+      const ok = xhr.status >= 200 && xhr.status < 300;
+      if (ok) {
+        resolve({ data, status: xhr.status, ok: true });
+      } else {
+        const message =
+          (typeof data === 'object' && (data?.Message || data?.message)) ||
+          getStatusMessage(xhr.status) ||
+          'Request failed';
+        reject(new ApiError(message, xhr.status, data));
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new ApiError('Network error. Please check your internet connection.'));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new ApiError('Request timeout. Please try again.', undefined, undefined, 'ECONNABORTED'));
+    };
+
+    xhr.send(formData);
+  });
+}
+
+/**
  * Core request function
  */
 async function request(
@@ -209,10 +270,24 @@ async function request(
       }
     }
 
-    // Only set Content-Type for non-FormData bodies
-    // For FormData bodies, delete any manually passed Content-Type header so the boundary is set automatically
+    // For FormData bodies, stream files directly via native XMLHttpRequest
     if (body instanceof FormData) {
       delete headers['Content-Type'];
+      try {
+        const xhrResponse = await sendFormDataViaXHR(url, method, body, headers, environment.API_TIMEOUT);
+        const durationMs = Date.now() - start;
+        logInfo('api', 'request_success', {
+          requestId, method, endpoint: path,
+          statusCode: xhrResponse.status, durationMs,
+        });
+        return xhrResponse;
+      } catch (xhrError: any) {
+        if (xhrError?.message === 'XMLHttpRequest is not available') {
+          // Fall through to fetchWithTimeout below (e.g. Node.js unit test runner)
+        } else {
+          throw xhrError;
+        }
+      }
     } else {
       headers['Content-Type'] = headers['Content-Type'] || 'application/json';
     }

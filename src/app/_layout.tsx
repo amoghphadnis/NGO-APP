@@ -1,3 +1,4 @@
+import '@/utils/polyfillFormData';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';

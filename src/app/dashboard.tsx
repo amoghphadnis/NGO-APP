@@ -40,6 +40,13 @@ const STAT_CARDS: StatCardConfig[] = [
   { label: 'Pending Semi Prof Apps',    field: 'pendingSemiProfessional', icon: 'book-outline',        route: '/approval/semi-professional' },
 ];
 
+const VOLUNTEER_CARDS = [
+  { label: 'PUC Students', field: 'puc', icon: 'school-outline' as const, route: '/volunteer-assignment/puc' },
+  { label: 'Payana Students', field: 'payana', icon: 'bicycle-outline' as const, route: '/volunteer-assignment/payana' },
+  { label: 'Prof Students', field: 'prof', icon: 'briefcase-outline' as const, route: '/volunteer-assignment/professional' },
+  { label: 'Semi-Prof Students', field: 'semiProf', icon: 'book-outline' as const, route: '/volunteer-assignment/semi-professional' },
+];
+
 interface DrawerNavItem {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   label: string;
@@ -150,29 +157,37 @@ function DrawerSidebar({
 
         {/* Nav items */}
         <ScrollView style={styles.drawerNav} showsVerticalScrollIndicator={false}>
-          <Text style={styles.drawerSectionLabel}>{DASHBOARD_MENU_SECTIONS.approvals.toUpperCase()}</Text>
-          {navItems.map((item) => (
-            <TouchableOpacity
-              key={item.label}
-              style={styles.drawerItem}
-              onPress={() => onNavigate(item.route)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name={item.icon} size={20} color={colors.primary} />
-              <Text style={styles.drawerItemLabel}>{item.label}</Text>
-              {item.badge > 0 && (
-                <View style={styles.drawerBadge}>
-                  <Text style={styles.drawerBadgeText}>
-                    {item.badge > 99 ? '99+' : String(item.badge)}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+          {userCanApprove && (
+            <>
+              <Text style={styles.drawerSectionLabel}>
+                {DASHBOARD_MENU_SECTIONS.approvals.toUpperCase()}
+              </Text>
+              {navItems.map((item) => (
+                <TouchableOpacity
+                  key={item.label}
+                  style={styles.drawerItem}
+                  onPress={() => onNavigate(item.route)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name={item.icon} size={20} color={colors.primary} />
+                  <Text style={styles.drawerItemLabel}>{item.label}</Text>
+                  {item.badge > 0 && (
+                    <View style={styles.drawerBadge}>
+                      <Text style={styles.drawerBadgeText}>
+                        {item.badge > 99 ? '99+' : String(item.badge)}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
 
-          <View style={styles.drawerDivider} />
+              <View style={styles.drawerDivider} />
+            </>
+          )}
 
-          <Text style={styles.drawerSectionLabel}>VOLUNTEER ASSIGNMENT</Text>
+          <Text style={styles.drawerSectionLabel}>
+            {user?.Role === 'Volunteer' ? 'HOUSE VISITS' : 'VOLUNTEER ASSIGNMENT'}
+          </Text>
           {[
             { label: 'PUC',               route: '/volunteer-assignment/puc',               icon: 'school-outline' as const },
             { label: 'Payana',            route: '/volunteer-assignment/payana',            icon: 'bicycle-outline' as const },
@@ -334,17 +349,21 @@ export default function DashboardScreen() {
 
   const notificationCount = dashboard?.totalPending ?? 0;
 
-  const renderStatCard = ({ item }: { item: StatCardConfig }) => (
+  const isVolunteer = user?.Role === 'Volunteer';
+
+  const renderStatCard = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={styles.statCard}
       onPress={() => (router.push as any)(item.route)}
       activeOpacity={0.75}
     >
       <Ionicons name={item.icon} size={24} color={colors.primary} style={styles.statIcon} />
-      <Text style={styles.statCount}>
-        {loading ? '—' : String(getCountForCard(item.field))}
-      </Text>
-      <Text style={styles.statLabel}>{item.label}</Text>
+      {!isVolunteer && (
+        <Text style={styles.statCount}>
+          {loading ? '—' : String(getCountForCard(item.field))}
+        </Text>
+      )}
+      <Text style={[styles.statLabel, isVolunteer && { marginTop: spacing.sm, fontWeight: '600' }]}>{item.label}</Text>
       <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} style={styles.statChevron} />
     </TouchableOpacity>
   );
@@ -430,8 +449,11 @@ export default function DashboardScreen() {
         </>
       )}
 
-      {!loading && !error && user?.Role !== 'Volunteer' && (
+      {!loading && !error && !isVolunteer && (
         <Text style={styles.sectionTitle}>Pending Approvals</Text>
+      )}
+      {!loading && !error && isVolunteer && (
+        <Text style={styles.sectionTitle}>Assigned House Visits</Text>
       )}
     </>
   );
@@ -474,7 +496,7 @@ export default function DashboardScreen() {
       {/* Main content */}
       <View style={styles.mainContent}>
         <FlatList
-          data={!loading && !error && user?.Role !== 'Volunteer' ? STAT_CARDS : []}
+          data={!loading && !error ? (isVolunteer ? VOLUNTEER_CARDS : STAT_CARDS) : []}
           keyExtractor={(item) => item.field}
           renderItem={renderStatCard}
           numColumns={2}
