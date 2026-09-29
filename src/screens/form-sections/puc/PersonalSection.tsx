@@ -47,10 +47,21 @@ export default function PersonalSection({ navigation }: any) {
           value: Number(c.value),
           label: c.label
         })) || []);
-        setPlaceOptions(response.data.places?.map((p: any) => ({
+        const places = response.data.places?.map((p: any) => ({
           value: Number(p.value),
           label: p.label
-        })) || []);
+        })) || [];
+        setPlaceOptions(places.length > 0 ? places : [
+          { value: 1, label: 'Urban' },
+          { value: 2, label: 'Rural' },
+          { value: 3, label: 'Semi-Urban' },
+        ]);
+      } else {
+        setPlaceOptions([
+          { value: 1, label: 'Urban' },
+          { value: 2, label: 'Rural' },
+          { value: 3, label: 'Semi-Urban' },
+        ]);
       }
       setLoadingDropdowns(false);
     }

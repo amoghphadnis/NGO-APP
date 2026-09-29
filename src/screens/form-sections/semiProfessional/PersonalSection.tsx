@@ -42,10 +42,21 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
           value: Number(d.value),
           label: d.label
         })) || []);
-        setPlaceOptions(response.data.places?.map((p: any) => ({
+        const places = response.data.places?.map((p: any) => ({
           value: Number(p.value),
           label: p.label
-        })) || []);
+        })) || [];
+        setPlaceOptions(places.length > 0 ? places : [
+          { value: 1, label: 'Rural' },
+          { value: 2, label: 'Urban' },
+          { value: 3, label: 'Semi_Urban' },
+        ]);
+      } else {
+        setPlaceOptions([
+          { value: 1, label: 'Rural' },
+          { value: 2, label: 'Urban' },
+          { value: 3, label: 'Semi_Urban' },
+        ]);
       }
       setLoadingDropdowns(false);
     }

@@ -581,5 +581,54 @@ describe('Form Submission', () => {
         expect(error.submissionId).toMatch(/^sub_[0-9a-f]{8}$/);
       }
     });
+
+    it('should normalize areas into places for PUC dropdowns', () => {
+      const { normalizePUCDropdowns } = require('@/api/transformers/normalizeDropdowns');
+      const apiResponse = {
+        success: true,
+        areas: [
+          { Disabled: false, Group: null, Selected: false, Text: 'Urban', Value: '1' },
+          { Disabled: false, Group: null, Selected: false, Text: 'Rural', Value: '2' },
+          { Disabled: false, Group: null, Selected: false, Text: 'Semi-Urban', Value: '3' },
+        ],
+      };
+      const normalized = normalizePUCDropdowns(apiResponse);
+      expect(normalized.places).toBeDefined();
+      expect(normalized.places).toHaveLength(3);
+      expect(normalized.places![0]).toEqual({ value: '1', label: 'Urban' });
+      expect(normalized.places![1]).toEqual({ value: '2', label: 'Rural' });
+      expect(normalized.places![2]).toEqual({ value: '3', label: 'Semi-Urban' });
+    });
+
+    it('should allow Expo convertFormDataAsync to process attached files without throwing Unsupported FormDataPart implementation', async () => {
+      const { convertFormDataAsync } = require('expo/src/winter/fetch/convertFormData');
+      const mockFormData = buildValidPucFormat11({
+        documents: {
+          StudentSelfie: {
+            file: { uri: 'file://selfie.jpg', name: 'selfie.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+          SSLCMarksCard: {
+            file: { uri: 'file://sslc.jpg', name: 'sslc.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+          FeeReceipts: {
+            file: { uri: 'file://fees.pdf', name: 'fees.pdf', type: 'application/pdf' },
+            uploadedAt: new Date().toISOString(),
+          },
+          BankPassbook: {
+            file: { uri: 'file://passbook.jpg', name: 'passbook.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+          AadhaarCard: {
+            file: { uri: 'file://aadhaar.jpg', name: 'aadhaar.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+        },
+      });
+
+      const payload = preparePayload('puc', mockFormData);
+      await expect(convertFormDataAsync(payload)).resolves.toHaveProperty('boundary');
+    });
   });
 });

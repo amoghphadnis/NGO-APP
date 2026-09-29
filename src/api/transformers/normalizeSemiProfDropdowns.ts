@@ -49,7 +49,15 @@ export function normalizeSemiProfessionalDropdowns(apiResponse: any): Normalized
       masters.MotherOcc ||
       masters.motherOcc ||
       [],
-    places: masters.PlaceList || masters.Places || masters.places || [],
+    places:
+      masters.PlaceList ||
+      masters.Places ||
+      masters.places ||
+      masters.AreaList ||
+      masters.AreaTypes ||
+      masters.areaTypes ||
+      masters.areas ||
+      [],
     collegeTypes: masters.CollegeTypeList || masters.CollegeTypes || masters.collegeTypes || [],
     semiProfessionalCourses:
       masters.SemiProfessionalCourseList ||
@@ -81,8 +89,8 @@ function normalizeGenericDropdown(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.Id ?? item.ID ?? item.id ?? item.value,
-      label: item.Name ?? item.name ?? item.label ?? '',
+      value: item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value ?? item.PlaceID ?? item.DistrictID,
+      label: item.Name ?? item.name ?? item.label ?? item.Text ?? item.PlaceName ?? item.DistrictName ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }

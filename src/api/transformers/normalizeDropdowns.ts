@@ -85,7 +85,15 @@ export function normalizePUCDropdowns(apiResponse: any): NormalizedDropdowns {
   const genders = apiResponse.GenderList || apiResponse.Genders || apiResponse.genders || [];
   const castes = apiResponse.CasteList || apiResponse.CasteCategories || apiResponse.castes || apiResponse.Castes || [];
   const courses = apiResponse.CourseList || apiResponse.Courses || apiResponse.courses || [];
-  const places = apiResponse.PlaceList || apiResponse.Places || apiResponse.places || [];
+  const places =
+    apiResponse.PlaceList ||
+    apiResponse.Places ||
+    apiResponse.places ||
+    apiResponse.AreaList ||
+    apiResponse.AreaTypes ||
+    apiResponse.areaTypes ||
+    apiResponse.areas ||
+    [];
   const collegeTypes = apiResponse.CollegeTypeList || apiResponse.CollegeTypes || apiResponse.collegeTypes || [];
   const areaTypes = apiResponse.AreaList || apiResponse.AreaTypes || apiResponse.areaTypes || apiResponse.areas || [];
   const fatherOcc = apiResponse.FatherOccupationList || apiResponse.FatherOccupations || apiResponse.fatherOccupations || apiResponse.FatherOcc || apiResponse.fatherOcc || [];

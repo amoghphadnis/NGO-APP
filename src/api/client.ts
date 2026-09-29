@@ -210,7 +210,10 @@ async function request(
     }
 
     // Only set Content-Type for non-FormData bodies
-    if (!(body instanceof FormData)) {
+    // For FormData bodies, delete any manually passed Content-Type header so the boundary is set automatically
+    if (body instanceof FormData) {
+      delete headers['Content-Type'];
+    } else {
       headers['Content-Type'] = headers['Content-Type'] || 'application/json';
     }
 

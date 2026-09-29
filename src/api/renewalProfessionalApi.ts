@@ -38,18 +38,7 @@ export async function getRenewalProfessionalDropdowns(): Promise<
   }
 }
 
-function appendFileToFormData(
-  formData: FormData,
-  key: string,
-  doc: UploadedDocument | undefined
-): void {
-  if (!doc?.file?.uri) return;
-  formData.append(key, {
-    uri: doc.file.uri,
-    name: doc.file.name || `${key}.jpg`,
-    type: doc.file.type || 'application/octet-stream',
-  } as any);
-}
+import { appendFileToFormData } from '@/submission/attachFiles';
 
 export async function submitRenewalProfessional(
   values: RenewalProfessionalFormValues
