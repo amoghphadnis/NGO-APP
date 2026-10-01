@@ -57,7 +57,7 @@ export const semiProfessionalStepConfigs = [
   {
     id: 'academic' as FormStep,
     title: 'Academic Details',
-    subtitle: 'PU percentage, course, college details',
+    subtitle: 'PU percentage, CET/PT rank and course details',
     component: 'AcademicSection',
     validation: 'semiProfAcademicSchema',
     required: true,

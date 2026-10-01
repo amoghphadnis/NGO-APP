@@ -2,7 +2,7 @@ import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { getPUCDropdowns } from '@/api/pucApi';
 import FormCard from '@/components/common/FormCard';
@@ -43,14 +43,14 @@ export default function FamilySection({ navigation }: any) {
 
   const familyData = isPUCForm(formData)
     ? formData.family
-    : { FatherOccupation: 0, MotherOccupation: 0, TotalFamilyMembers: 1, FamilyAnnualIncome: 0 };
+    : { FatherOccupation: 0, MotherOccupation: 0, TotalFamilyMembers: undefined as any, FamilyAnnualIncome: undefined as any };
 
   const { control, handleSubmit, formState } = useForm<PucFormat11FamilyFormValues>({
     defaultValues: {
       FatherOccupation: familyData.FatherOccupation || 0,
       MotherOccupation: familyData.MotherOccupation || 0,
-      TotalFamilyMembers: familyData.TotalFamilyMembers || 1,
-      FamilyAnnualIncome: familyData.FamilyAnnualIncome || 0,
+      TotalFamilyMembers: familyData.TotalFamilyMembers || undefined,
+      FamilyAnnualIncome: familyData.FamilyAnnualIncome || undefined,
     },
     resolver: zodResolver(pucFormat11FamilySchema),
     mode: 'onChange',
@@ -63,14 +63,18 @@ export default function FamilySection({ navigation }: any) {
     navigation.navigate('academic');
   };
 
-  const isNextDisabled = !formState.isValid || loadingDropdowns;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = loadingDropdowns;
 
   return (
     <FormScreenLayout
       title="Family Information"
       step={5}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader
@@ -121,8 +125,11 @@ export default function FamilySection({ navigation }: any) {
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Total Family Members"
-              value={String(value)}
-              onChangeText={(text) => onChange(Number(text))}
+              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
+              onChangeText={(text) => {
+                const clean = text.replace(/[^0-9]/g, '');
+                onChange(clean === '' ? undefined : Number(clean));
+              }}
               placeholder="Enter total family members"
               keyboardType="numeric"
               error={formState.errors.TotalFamilyMembers?.message}
@@ -138,10 +145,14 @@ export default function FamilySection({ navigation }: any) {
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Family Annual Income"
-              value={String(value)}
-              onChangeText={(text) => onChange(Number(text))}
+              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
+              onChangeText={(text) => {
+                const clean = text.replace(/[^0-9.]/g, '');
+                onChange(clean === '' ? undefined : Number(clean));
+              }}
               placeholder="Enter annual family income"
               keyboardType="numeric"
+              prefix="₹"
               error={formState.errors.FamilyAnnualIncome?.message}
               helperText="Total annual income from all sources"
               required

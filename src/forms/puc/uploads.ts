@@ -60,8 +60,8 @@ export const PUC_UPLOAD_RULES: UploadRule[] = [
     key: PUC_FILE_KEYS.HOUSE_VIDEO,
     label: 'House Video',
     required: false,
-    maxSize: 10 * 1024 * 1024, // 10MB for video
-    acceptedTypes: ['video/mp4', 'video/quicktime', 'video/x-msvideo'],
+    maxSize: 50 * 1024 * 1024, // 50MB for video
+    acceptedTypes: ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/avi', 'video/webm', 'video/3gpp', 'video/mkv'],
   },
 ];
 
@@ -108,8 +108,14 @@ export const PUC_FORMAT11_UPLOAD_RULES: UploadRule[] = [
   },
 ];
 
+const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.3gp', '.wmv', '.m4v'];
+const DOCUMENT_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.pdf'];
+
 export function getUploadRule(key: string): UploadRule | undefined {
-  return PUC_UPLOAD_RULES.find((rule) => rule.key === key);
+  return (
+    PUC_FORMAT11_UPLOAD_RULES.find((rule) => rule.key === key) ||
+    PUC_UPLOAD_RULES.find((rule) => rule.key === key)
+  );
 }
 
 export function validateUpload(file: any, key: string): { valid: boolean; error?: string } {
@@ -122,12 +128,43 @@ export function validateUpload(file: any, key: string): { valid: boolean; error?
     return rule.required ? { valid: false, error: `${rule.label} is required` } : { valid: true };
   }
 
-  if (file.size > rule.maxSize) {
-    return { valid: false, error: `${rule.label} must be less than ${rule.maxSize / (1024 * 1024)}MB` };
+  const fileName = (file.name || '').toLowerCase();
+  const fileType = (file.type || '').toLowerCase();
+  const isVideo = fileType.startsWith('video/') || VIDEO_EXTENSIONS.some((ext) => fileName.endsWith(ext));
+  const isTargetingVideo = key === PUC_FILE_KEYS.HOUSE_VIDEO;
+
+  // If this is a document/image field but a video was selected, reject it immediately
+  if (!isTargetingVideo && isVideo) {
+    return {
+      valid: false,
+      error: `${rule.label} cannot be a video. Only images (JPG, PNG) and PDF files up to 2MB are allowed.`,
+    };
   }
 
-  if (!rule.acceptedTypes.includes(file.type)) {
-    return { valid: false, error: `${rule.label} must be ${rule.acceptedTypes.join(', ')}` };
+  // If this is a video field but an image/PDF was selected, reject it
+  if (isTargetingVideo && !isVideo) {
+    return {
+      valid: false,
+      error: `${rule.label} must be a video file (MP4, MOV, etc.) and cannot be an image or PDF.`,
+    };
+  }
+
+  // Check file size
+  if (file.size > rule.maxSize) {
+    const limitMB = Math.round(rule.maxSize / (1024 * 1024));
+    return {
+      valid: false,
+      error: `${rule.label} exceeds ${limitMB}MB limit (file size: ${(file.size / (1024 * 1024)).toFixed(2)}MB). Maximum allowed is ${limitMB}MB.`,
+    };
+  }
+
+  // For non-video files, verify extension or MIME type
+  if (!isTargetingVideo) {
+    const hasAllowedExt = DOCUMENT_EXTENSIONS.some((ext) => fileName.endsWith(ext));
+    const hasAllowedMime = rule.acceptedTypes.includes(file.type);
+    if (!hasAllowedExt && !hasAllowedMime) {
+      return { valid: false, error: `${rule.label} must be a JPG, PNG, or PDF file` };
+    }
   }
 
   return { valid: true };

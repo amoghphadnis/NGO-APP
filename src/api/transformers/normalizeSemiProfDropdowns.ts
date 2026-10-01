@@ -12,6 +12,8 @@ export interface NormalizedSemiProfDropdowns {
   fatherOccupations: NormalizedDropdownOption[];
   motherOccupations: NormalizedDropdownOption[];
   places: NormalizedDropdownOption[];
+  areaTypes: NormalizedDropdownOption[];
+  houseTypes: NormalizedDropdownOption[];
   collegeTypes: NormalizedDropdownOption[];
   semiProfessionalCourses: NormalizedDropdownOption[];
   lastDate?: string;
@@ -53,10 +55,19 @@ export function normalizeSemiProfessionalDropdowns(apiResponse: any): Normalized
       masters.PlaceList ||
       masters.Places ||
       masters.places ||
+      [],
+    areaTypes:
       masters.AreaList ||
       masters.AreaTypes ||
       masters.areaTypes ||
       masters.areas ||
+      [],
+    houseTypes:
+      masters.HouseList ||
+      masters.HouseTypes ||
+      masters.houseTypes ||
+      masters.Houses ||
+      masters.houses ||
       [],
     collegeTypes: masters.CollegeTypeList || masters.CollegeTypes || masters.collegeTypes || [],
     semiProfessionalCourses:
@@ -74,6 +85,8 @@ export function normalizeSemiProfessionalDropdowns(apiResponse: any): Normalized
     fatherOccupations: normalizeGenericDropdown(raw.fatherOccupations),
     motherOccupations: normalizeGenericDropdown(raw.motherOccupations),
     places: normalizeGenericDropdown(raw.places),
+    areaTypes: normalizeAreaTypes(raw.areaTypes),
+    houseTypes: normalizeHouseTypes(raw.houseTypes),
     collegeTypes: normalizeGenericDropdown(raw.collegeTypes),
     semiProfessionalCourses: normalizeGenericDropdown(raw.semiProfessionalCourses),
   };
@@ -91,6 +104,30 @@ function normalizeGenericDropdown(data: any[]): NormalizedDropdownOption[] {
     .map((item) => ({
       value: item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value ?? item.PlaceID ?? item.DistrictID,
       label: item.Name ?? item.name ?? item.label ?? item.Text ?? item.PlaceName ?? item.DistrictName ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
+}
+
+function normalizeAreaTypes(data: any[]): NormalizedDropdownOption[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return data
+    .map((item) => ({
+      value: item.AreaTypeID ?? item.AreaTypeId ?? item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value,
+      label: item.AreaTypeName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
+}
+
+function normalizeHouseTypes(data: any[]): NormalizedDropdownOption[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return data
+    .map((item) => ({
+      value: item.HouseTypeID ?? item.HouseTypeId ?? item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value,
+      label: item.HouseTypeName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }

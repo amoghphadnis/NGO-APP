@@ -1,16 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
+import { NormalizedDropdownOption } from '@/api/transformers/normalizeDropdowns';
+import { SEMI_PROFESSIONAL_FILE_KEYS } from '@/forms/semiProfessional/fileKeys';
 import { preparePayload, submitApplication } from '@/submission';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { SemiProfessionalFormValues } from '@/validation/semiProfessionalSchemas';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
+
+const labelFor = (options: NormalizedDropdownOption[], value: number | undefined | null): string => {
+  if (value === undefined || value === null || value === 0) return 'N/A';
+  const found = options.find((o) => Number(o.value) === Number(value));
+  return found ? found.label : `ID ${value}`;
+};
 
 export default function ReviewSection({ navigation }: any) {
   const {
@@ -26,13 +35,63 @@ export default function ReviewSection({ navigation }: any) {
   const [declarationAccepted, setDeclarationAccepted] = useState(false);
   const submitLock = useRef(false);
 
+  const [dropdowns, setDropdowns] = useState<{
+    genders: NormalizedDropdownOption[];
+    casteCategories: NormalizedDropdownOption[];
+    areaTypes: NormalizedDropdownOption[];
+    districts: NormalizedDropdownOption[];
+    fatherOccupations: NormalizedDropdownOption[];
+    motherOccupations: NormalizedDropdownOption[];
+    houseTypes: NormalizedDropdownOption[];
+  }>({
+    genders: [],
+    casteCategories: [],
+    areaTypes: [],
+    districts: [],
+    fatherOccupations: [],
+    motherOccupations: [],
+    houseTypes: [],
+  });
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      const response = await getSemiProfessionalDropdowns();
+      if (response.success && response.data) {
+        setDropdowns({
+          genders: response.data.genders ?? [],
+          casteCategories: response.data.casteCategories ?? [],
+          areaTypes: response.data.areaTypes ?? [],
+          districts: response.data.districts ?? [],
+          fatherOccupations: response.data.fatherOccupations ?? [],
+          motherOccupations: response.data.motherOccupations ?? [],
+          houseTypes: response.data.houseTypes ?? [],
+        });
+      }
+    }
+    loadDropdowns();
+  }, []);
+
   const spFormData = formData as unknown as SemiProfessionalFormValues;
 
   const isFormComplete = () => {
-    const hasPersonal = spFormData.personal?.studentName && spFormData.personal?.email;
-    const hasFamily = spFormData.family?.familyMembers > 0 && spFormData.family?.fatherOccupationID > 0;
-    const hasAcademic = spFormData.academic?.semiProfessionalCourseID > 0 && spFormData.academic?.collegeName;
-    return hasPersonal && hasFamily && hasAcademic;
+    const p = spFormData.personal;
+    const hasPersonal = p?.studentName && p?.email && p?.dateOfBirth && p?.contactNumber && p?.genderID && p?.casteCategoryID && p?.areaTypeID && p?.districtID && p?.residentialAddress;
+    const f = spFormData.family;
+    const hasFamily = f?.fatherName && f?.motherName && f?.fatherOccupationID && f?.motherOccupationID && f?.familyMembers > 0 && f?.houseTypeID && f?.familyIncome > 0;
+    const a = spFormData.academic;
+    const hasAcademic = a?.puPercentage !== undefined && a?.cetRank && a?.ptRank && a?.courseApplying && a?.courseStream;
+    const d = spFormData.documents;
+    const hasAllDocuments =
+      d?.studentSelfie &&
+      d?.cetRankSheet &&
+      d?.ptRankSheet &&
+      d?.dwellingUnitPhoto &&
+      d?.marksSheet12 &&
+      d?.houseVideo &&
+      d?.electricityBill &&
+      d?.incomeCertificate &&
+      d?.rationCard;
+    return hasPersonal && hasFamily && hasAcademic && hasAllDocuments;
   };
 
   const canSubmit = isFormComplete() && declarationAccepted;
@@ -60,7 +119,7 @@ export default function ReviewSection({ navigation }: any) {
         throw new Error(response.error || response.message);
       }
 
-      setSubmissionSuccess(true, response.data?.studentId?.toString() || response.data?.applicationId || undefined);
+      setSubmissionSuccess(true, response.data?.applicationId || undefined);
       markStepComplete(5);
       navigation.navigate('success');
     } catch (error: any) {
@@ -105,10 +164,9 @@ export default function ReviewSection({ navigation }: any) {
       <View style={styles.sectionContent}>
         {Object.entries(data).map(([key, value]) => {
           if (!value) return null;
-          const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
           return (
             <View key={key} style={styles.dataRow}>
-              <Text style={styles.dataLabel}>{label}:</Text>
+              <Text style={styles.dataLabel}>{key}:</Text>
               <Text style={styles.dataValue}>{String(value)}</Text>
             </View>
           );
@@ -116,6 +174,27 @@ export default function ReviewSection({ navigation }: any) {
       </View>
     </FormCard>
   );
+
+  const renderDocumentStatus = (label: string, uploaded: boolean) => (
+    <View style={styles.documentRow}>
+      <Text style={styles.documentLabel}>{label}</Text>
+      <Text style={uploaded ? styles.documentUploaded : styles.documentPending}>
+        {uploaded ? '✓' : '○'}
+      </Text>
+    </View>
+  );
+
+  const p = spFormData.personal;
+  const f = spFormData.family;
+  const a = spFormData.academic;
+  const d = spFormData.documents;
+
+  const formatDate = (date: string | undefined) => {
+    if (!date) return 'N/A';
+    const [y, m, day] = date.split('-');
+    if (y && m && day) return `${day}/${m}/${y}`;
+    return date;
+  };
 
   return (
     <FormScreenLayout
@@ -128,67 +207,66 @@ export default function ReviewSection({ navigation }: any) {
       nextLabel="Submit Application"
       loading={submissionState.isSubmitting}
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Application Summary */}
-        <FormSectionHeader
+      <FormSectionHeader
           icon="checkmark-circle"
           title="Application Summary"
           subtitle="Review all information before submitting"
         />
 
-        {/* Applicant's Information */}
         {renderSection(
           "Applicant's Information",
           {
-            "Name": spFormData.personal?.studentName,
-            "Email": spFormData.personal?.email,
-            "Date of Birth": spFormData.personal?.dateOfBirth,
-            "Contact": spFormData.personal?.contactNumber,
-            "Gender ID": spFormData.personal?.genderID,
-            "Caste Category ID": spFormData.personal?.casteCategoryID,
-            "Place ID": spFormData.personal?.placeID,
-            "District ID": spFormData.personal?.districtID,
-            "Other District": spFormData.personal?.otherDistrict || undefined,
-            "Taluk": spFormData.personal?.taluk,
-            "Address": spFormData.personal?.address,
+            "Email": p?.email,
+            "Student Name": p?.studentName,
+            "Date of Birth": formatDate(p?.dateOfBirth),
+            "Contact Number": p?.contactNumber,
+            "Alternate Number": p?.alternateNumber || 'N/A',
+            "Gender": labelFor(dropdowns.genders, p?.genderID),
+            "Caste Category": labelFor(dropdowns.casteCategories, p?.casteCategoryID),
+            "Area Type": labelFor(dropdowns.areaTypes, p?.areaTypeID),
+            "District": labelFor(dropdowns.districts, p?.districtID),
+            "Other District": p?.otherDistrict || 'N/A',
+            "Residential Address": p?.residentialAddress,
+            "Google Map Link": p?.googleMapLink || 'N/A',
           },
           "person",
           () => navigation.navigate('personal')
         )}
 
-        {/* Family Details */}
         {renderSection(
           "Family Details",
           {
-            "Father Occupation ID": spFormData.family?.fatherOccupationID,
-            "Mother Occupation ID": spFormData.family?.motherOccupationID,
-            "Family Members": spFormData.family?.familyMembers,
-            "Annual Income": spFormData.family?.annualIncome ? `₹${spFormData.family.annualIncome}` : undefined,
+            "Father's Name": f?.fatherName,
+            "Mother's Name": f?.motherName,
+            "Father's Occupation": labelFor(dropdowns.fatherOccupations, f?.fatherOccupationID),
+            "Mother's Occupation": labelFor(dropdowns.motherOccupations, f?.motherOccupationID),
+            "Family Members": f?.familyMembers,
+            "House Type": labelFor(dropdowns.houseTypes, f?.houseTypeID),
+            "Monthly Rent": f?.monthlyRent ? `₹${f.monthlyRent}` : 'N/A',
+            "Family Income": f?.familyIncome ? `₹${f.familyIncome}` : 'N/A',
           },
           "people",
           () => navigation.navigate('family')
         )}
 
-        {/* Academic Details */}
         {renderSection(
           "Academic Details",
           {
-            "PU Percentage": spFormData.academic?.puPercentage ? `${spFormData.academic.puPercentage}%` : undefined,
-            "Course ID": spFormData.academic?.semiProfessionalCourseID,
-            "College Name": spFormData.academic?.collegeName,
-            "College Type ID": spFormData.academic?.collegeTypeID,
-            "College Fees": spFormData.academic?.collegeFees ? `₹${spFormData.academic.collegeFees}` : undefined,
+            "PUC II / 12th Percentage": a?.puPercentage !== undefined ? `${a.puPercentage}%` : 'N/A',
+            "CET Rank": a?.cetRank || 'N/A',
+            "Agriculture/Veterinary/Horticulture (PT Rank)": a?.ptRank || 'N/A',
+            "Course Applying For": a?.courseApplying,
+            "Course Stream": a?.courseStream,
           },
           "school",
           () => navigation.navigate('academic')
         )}
 
-        {/* Documents */}
         <FormCard>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleContainer}>
               <Ionicons name="attach" size={20} color={colors.primary} style={styles.sectionIcon} />
-              <Text style={styles.sectionTitle}>Documents</Text>
+              <Text style={styles.sectionTitle}>Documents (9 Required)</Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('documents')} style={styles.editButton}>
               <Ionicons name="create" size={16} color={colors.primary} />
@@ -197,22 +275,18 @@ export default function ReviewSection({ navigation }: any) {
           </View>
 
           <View style={styles.sectionContent}>
-            {[
-              { label: 'PUC Marks Card', key: 'pucMarksCard' },
-              { label: 'Income Certificate', key: 'incomeCertificate' },
-              { label: 'Aadhar Card', key: 'aadharCard' },
-            ].map((doc) => (
-              <View key={doc.key} style={styles.documentRow}>
-                <Text style={styles.documentLabel}>{doc.label}:</Text>
-                <Text style={(spFormData.documents as any)?.[doc.key] ? styles.documentUploaded : styles.documentPending}>
-                  {(spFormData.documents as any)?.[doc.key] ? '✓ Uploaded' : 'Not uploaded'}
-                </Text>
-              </View>
-            ))}
+            {renderDocumentStatus("1. Student's Selfie", !!d?.studentSelfie)}
+            {renderDocumentStatus('2. CET Rank Sheet', !!d?.cetRankSheet)}
+            {renderDocumentStatus('3. Agriculture/Veterinary/Horticulture (PT Rank)', !!d?.ptRankSheet)}
+            {renderDocumentStatus('4. Dwelling Unit Photograph', !!d?.dwellingUnitPhoto)}
+            {renderDocumentStatus('5. PUC II / 12th Marks Sheet', !!d?.marksSheet12)}
+            {renderDocumentStatus('6. Short Video of the House', !!d?.houseVideo)}
+            {renderDocumentStatus('7. Electricity Bill / Bhagyajyothi Document', !!d?.electricityBill)}
+            {renderDocumentStatus('8. Income Certificate', !!d?.incomeCertificate)}
+            {renderDocumentStatus('9. Ration Card Copy (Both Sides)', !!d?.rationCard)}
           </View>
         </FormCard>
 
-        {/* Declaration */}
         <FormSectionHeader
           icon="shield-checkmark"
           title="Declaration"
@@ -222,7 +296,7 @@ export default function ReviewSection({ navigation }: any) {
         <FormCard>
           <View style={styles.declarationContainer}>
             <Text style={styles.declarationText}>
-              I hereby declare that all the information provided by me in this application is true, correct, and complete to the best of my knowledge and belief. I understand that any false or misleading information may result in the rejection of my application.
+              I hereby declare that all the information provided by me in this scholarship application is true, correct, and complete to the best of my knowledge and belief. I understand that any false or misleading information may result in the rejection of my application and disqualification from future scholarship opportunities.
             </Text>
 
             <TouchableOpacity
@@ -236,7 +310,7 @@ export default function ReviewSection({ navigation }: any) {
                 )}
               </View>
               <Text style={styles.checkboxLabel}>
-                I accept the declaration and confirm that all information is accurate
+                I have read and agree to the Terms & Conditions
               </Text>
             </TouchableOpacity>
           </View>
@@ -251,7 +325,6 @@ export default function ReviewSection({ navigation }: any) {
           </FormCard>
         ) : null}
 
-        {/* Submission Notice */}
         <FormCard>
           <View style={styles.noticeContainer}>
             <Ionicons name="information-circle" size={24} color={colors.primary} style={styles.noticeIcon} />
@@ -260,7 +333,6 @@ export default function ReviewSection({ navigation }: any) {
             </Text>
           </View>
         </FormCard>
-      </ScrollView>
     </FormScreenLayout>
   );
 }

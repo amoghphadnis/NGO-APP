@@ -51,9 +51,8 @@ export default function GuidelinesSection({ navigation }: any) {
       nextDisabled={isNextDisabled}
       nextLabel="Accept & Continue"
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Eligibility Section */}
-        <FormSectionHeader
+      {/* Eligibility Section */}
+      <FormSectionHeader
           icon="checkmark-circle"
           title="Eligibility Criteria"
           subtitle="Please ensure you meet these requirements"
@@ -241,7 +240,6 @@ export default function GuidelinesSection({ navigation }: any) {
             )}
           />
         </FormCard>
-      </ScrollView>
     </FormScreenLayout>
   );
 }

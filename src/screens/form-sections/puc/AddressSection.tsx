@@ -6,7 +6,7 @@ import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { getPUCDropdowns } from '@/api/pucApi';
 import { colors } from '@/theme/colors';
@@ -58,14 +58,18 @@ export default function AddressSection({ navigation }: any) {
     navigation.navigate('family');
   };
 
-  const isNextDisabled = !formState.isValid || loadingDropdowns;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = loadingDropdowns;
 
   return (
     <FormScreenLayout
       title="Address Details"
       step={4}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader

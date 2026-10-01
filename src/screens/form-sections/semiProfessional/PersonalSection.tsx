@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { Alert } from 'react-native';
 
 import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
 import FormCard from '@/components/common/FormCard';
@@ -16,19 +17,25 @@ interface PersonalSectionProps {
   navigation: any;
 }
 
+// Web fallback order: 1 = Urban, 2 = Rural, 3 = Semi Urban
+const FALLBACK_AREA_TYPES: Option<number>[] = [
+  { value: 1, label: 'Urban' },
+  { value: 2, label: 'Rural' },
+  { value: 3, label: 'Semi Urban' },
+];
+
 export default function PersonalSection({ navigation }: PersonalSectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const [genderOptions, setGenderOptions] = useState<Option<number>[]>([]);
   const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
   const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
-  const [placeOptions, setPlaceOptions] = useState<Option<number>[]>([]);
+  const [areaTypeOptions, setAreaTypeOptions] = useState<Option<number>[]>(FALLBACK_AREA_TYPES);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
     async function loadDropdowns() {
       const response = await getSemiProfessionalDropdowns();
-      console.log('[SemiPro PersonalSection] Dropdown response:', response);
       if (response.success && response.data) {
         setGenderOptions(response.data.genders?.map((g: any) => ({
           value: Number(g.value),
@@ -42,21 +49,13 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
           value: Number(d.value),
           label: d.label
         })) || []);
-        const places = response.data.places?.map((p: any) => ({
-          value: Number(p.value),
-          label: p.label
+        const areaTypes = response.data.areaTypes?.map((a: any) => ({
+          value: Number(a.value),
+          label: a.label
         })) || [];
-        setPlaceOptions(places.length > 0 ? places : [
-          { value: 1, label: 'Rural' },
-          { value: 2, label: 'Urban' },
-          { value: 3, label: 'Semi_Urban' },
-        ]);
-      } else {
-        setPlaceOptions([
-          { value: 1, label: 'Rural' },
-          { value: 2, label: 'Urban' },
-          { value: 3, label: 'Semi_Urban' },
-        ]);
+        if (areaTypes.length > 0) {
+          setAreaTypeOptions(areaTypes);
+        }
       }
       setLoadingDropdowns(false);
     }
@@ -68,13 +67,14 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
     studentName: '',
     dateOfBirth: '',
     contactNumber: '',
+    alternateNumber: '',
     genderID: 0,
     casteCategoryID: 0,
+    areaTypeID: 0,
     districtID: 0,
     otherDistrict: '',
-    taluk: '',
-    address: '',
-    placeID: 0,
+    residentialAddress: '',
+    googleMapLink: '',
   };
 
   const { control, handleSubmit, formState, watch } = useForm<SemiProfPersonalFormValues>({
@@ -83,13 +83,14 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
       studentName: personalData.studentName ?? '',
       dateOfBirth: personalData.dateOfBirth ?? '',
       contactNumber: personalData.contactNumber ?? '',
+      alternateNumber: personalData.alternateNumber ?? '',
       genderID: personalData.genderID ?? 0,
       casteCategoryID: personalData.casteCategoryID ?? 0,
+      areaTypeID: personalData.areaTypeID ?? 0,
       districtID: personalData.districtID ?? 0,
       otherDistrict: personalData.otherDistrict ?? '',
-      taluk: personalData.taluk ?? '',
-      address: personalData.address ?? '',
-      placeID: personalData.placeID ?? 0,
+      residentialAddress: personalData.residentialAddress ?? '',
+      googleMapLink: personalData.googleMapLink ?? '',
     },
     resolver: zodResolver(semiProfPersonalSchema),
     mode: 'onChange',
@@ -107,7 +108,11 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
     navigation.navigate('family');
   };
 
-  const isNextDisabled = !formState.isValid || loadingDropdowns;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -115,7 +120,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
       step={2}
       totalSteps={7}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader
@@ -194,6 +199,22 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
 
         <Controller
           control={control}
+          name="alternateNumber"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Alternate Number"
+              value={value ?? ''}
+              onChangeText={onChange}
+              placeholder="Enter alternate number (optional)"
+              keyboardType="phone-pad"
+              maxLength={10}
+              error={formState.errors.alternateNumber?.message}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
           name="genderID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
@@ -237,15 +258,15 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
       <FormCard>
         <Controller
           control={control}
-          name="placeID"
+          name="areaTypeID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Place"
+              label="Area Type"
               value={value}
-              options={placeOptions}
+              options={areaTypeOptions}
               onChange={onChange}
-              placeholder="Select place"
-              error={formState.errors.placeID?.message}
+              placeholder="Select area type"
+              error={formState.errors.areaTypeID?.message}
               required
               disabled={loadingDropdowns}
             />
@@ -288,14 +309,17 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
 
         <Controller
           control={control}
-          name="taluk"
+          name="residentialAddress"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Taluk"
+              label="Residential Address"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter taluk name"
-              error={formState.errors.taluk?.message}
+              placeholder="Enter complete address"
+              multiline
+              numberOfLines={3}
+              error={formState.errors.residentialAddress?.message}
+              helperText="Include house number, street name, and landmarks"
               required
             />
           )}
@@ -303,17 +327,16 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
 
         <Controller
           control={control}
-          name="address"
+          name="googleMapLink"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Address"
-              value={value}
+              label="Google Map Link"
+              value={value ?? ''}
               onChangeText={onChange}
-              placeholder="Enter complete address"
-              multiline
-              numberOfLines={3}
-              error={formState.errors.address?.message}
-              helperText="Include house number, street name, and landmarks"
+              placeholder="Paste Google Maps location link"
+              autoCapitalize="none"
+              error={formState.errors.googleMapLink?.message}
+              helperText="Open Google Maps, find your home, and paste the share link"
               required
             />
           )}

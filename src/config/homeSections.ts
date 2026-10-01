@@ -54,9 +54,9 @@ export const homeSections: HomeSection[] = [
         id: 'semi-professional',
         title: 'Semi Professional',
         formType: 'semiProfessional',
-        icon: 'hammer-outline',
-        description: 'For Diploma, ITI, Nursing, Pharmacy, and similar courses',
-        benefits: ['Diploma & ITI', 'Need-based', 'Document verification'],
+        icon: 'medkit-outline',
+        description: 'For B.Sc Nursing, GNM, Physiotherapy, Agriculture, Veterinary, Horticulture and similar courses',
+        benefits: ['Nursing & Agriculture', 'Need-based', 'Document verification'],
       },
 
     ],

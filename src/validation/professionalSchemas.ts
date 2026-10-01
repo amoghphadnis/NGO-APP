@@ -34,7 +34,7 @@ export const professionalFamilyDetailsSchema = z.object({
   MotherName: z.string().min(1, { message: 'Mother name is required' }),
   FatherOccupationID: z.number().min(1, { message: 'Father occupation is required' }),
   MotherOccupationID: z.number().min(1, { message: 'Mother occupation is required' }),
-  FamilyMembers: z.number().min(1, { message: 'At least 1 family member required' }),
+  FamilyMembers: z.number({ message: 'Total family members is required' }).min(1, { message: 'At least 1 family member required' }),
   HouseTypeID: z.number().min(1, { message: 'House type is required' }),
   MonthlyRent: z.number().optional(),
   FamilyIncome: z.number().positive({ message: 'Family income must be positive' }),
@@ -42,8 +42,8 @@ export const professionalFamilyDetailsSchema = z.object({
 
 // Professional Academic schema
 export const academicDetailsSchema = z.object({
-  PUPercentage: z.number()
-    .min(0, { message: 'Percentage must be at least 0' })
+  PUPercentage: z.number({ message: 'PU/12th percentage is required' })
+    .min(1, { message: 'Percentage must be greater than 0' })
     .max(100, { message: 'Percentage cannot exceed 100' }),
   CETRank: z.number().optional(),
   NEETRank: z.number().optional(),

@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { Alert } from 'react-native';
 
 import { getProfessionalDropdowns } from '@/api/professionalApi';
 import FormCard from '@/components/common/FormCard';
@@ -46,7 +47,7 @@ export default function FamilySection({ navigation }: any) {
     MotherName: '',
     FatherOccupationID: 0,
     MotherOccupationID: 0,
-    FamilyMembers: 1,
+    FamilyMembers: undefined,
     HouseTypeID: 0,
     MonthlyRent: undefined,
     FamilyIncome: 0,
@@ -58,7 +59,7 @@ export default function FamilySection({ navigation }: any) {
       MotherName: familyData.MotherName ?? '',
       FatherOccupationID: familyData.FatherOccupationID ?? 0,
       MotherOccupationID: familyData.MotherOccupationID ?? 0,
-      FamilyMembers: familyData.FamilyMembers ?? 1,
+      FamilyMembers: familyData.FamilyMembers || undefined,
       HouseTypeID: familyData.HouseTypeID ?? 0,
       MonthlyRent: familyData.MonthlyRent,
       FamilyIncome: familyData.FamilyIncome ?? 0,
@@ -77,7 +78,11 @@ export default function FamilySection({ navigation }: any) {
     navigation.navigate('academic');
   };
 
-  const isNextDisabled = !formState.isValid || loadingDropdowns;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -85,7 +90,7 @@ export default function FamilySection({ navigation }: any) {
       step={3}
       totalSteps={7}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader

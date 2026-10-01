@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Modal } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
@@ -59,28 +59,43 @@ export default function VPDatePickerField({
   ) => {
     if (!selectedDate) return;
 
-    if (Platform.OS === 'android') {
-      setShowPicker(false);
-      // Convert Date to YYYY-MM-DD string for schema compatibility
-      const year = selectedDate.getFullYear();
-      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-      const day = String(selectedDate.getDate()).padStart(2, '0');
-      onChange(`${year}-${month}-${day}`);
-    } else {
-      setTempDate(selectedDate);
-    }
+    // iOS only — Android uses the imperative DateTimePickerAndroid API.
+    setTempDate(selectedDate);
+  };
+
+  const commitDate = (selected: Date) => {
+    // Convert Date to YYYY-MM-DD string for schema compatibility
+    const year = selected.getFullYear();
+    const month = String(selected.getMonth() + 1).padStart(2, '0');
+    const day = String(selected.getDate()).padStart(2, '0');
+    onChange(`${year}-${month}-${day}`);
   };
 
   const showDatePicker = () => {
     if (disabled) return;
 
-    setTempDate(
-      isValidDate(dateValue)
-        ? dateValue
-        : new Date()
-    );
+    const initial = isValidDate(dateValue) ? dateValue : new Date();
+    setTempDate(initial);
 
-    setShowPicker(true);
+    if (Platform.OS === 'android') {
+      // Imperative API (v9): avoids the deprecated `onChange` prop and uses the
+      // spinner display, whose year wheel is fully touch-scrollable.
+      DateTimePickerAndroid.open({
+        value: initial,
+        mode: 'date',
+        display: 'spinner',
+        minimumDate,
+        maximumDate,
+        onValueChange: (_event, date) => {
+          if (date) {
+            commitDate(date);
+          }
+        },
+        onDismiss: () => {},
+      });
+    } else {
+      setShowPicker(true);
+    }
   };
 
   const displayValue = isValidDate(dateValue) ? formatDate(dateValue) : placeholder;
@@ -170,16 +185,6 @@ export default function VPDatePickerField({
             </View>
           </View>
         </Modal>
-      )}
-      {Platform.OS === 'android' && showPicker && (
-        <DateTimePicker
-          value={isValidDate(dateValue) ? dateValue : isValidDate(tempDate) ? tempDate : new Date()}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
-          maximumDate={maximumDate}
-          minimumDate={minimumDate}
-        />
       )}
     </View>
   );

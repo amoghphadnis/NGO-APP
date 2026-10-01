@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { Alert } from 'react-native';
 
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
@@ -12,7 +13,7 @@ export default function AcademicSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const academicData = (formData as any).academic ?? {
-    PUPercentage: 0,
+    PUPercentage: undefined,
     CETRank: undefined,
     NEETRank: undefined,
     CourseApplying: '',
@@ -21,7 +22,7 @@ export default function AcademicSection({ navigation }: any) {
 
   const { control, handleSubmit, formState } = useForm<AcademicDetailsFormValues>({
     defaultValues: {
-      PUPercentage: academicData.PUPercentage ?? 0,
+      PUPercentage: academicData.PUPercentage || undefined,
       CETRank: academicData.CETRank,
       NEETRank: academicData.NEETRank,
       CourseApplying: academicData.CourseApplying ?? '',
@@ -38,7 +39,11 @@ export default function AcademicSection({ navigation }: any) {
     navigation.navigate('documents');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = false;
 
   return (
     <FormScreenLayout
@@ -46,7 +51,7 @@ export default function AcademicSection({ navigation }: any) {
       step={4}
       totalSteps={7}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader
@@ -63,8 +68,11 @@ export default function AcademicSection({ navigation }: any) {
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="PU/12th Percentage"
-              value={value?.toString() ?? ''}
-              onChangeText={(text) => onChange(parseFloat(text) || 0)}
+              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
+              onChangeText={(text) => {
+                const clean = text.replace(/[^0-9.]/g, '');
+                onChange(clean === '' ? undefined : parseFloat(clean));
+              }}
               placeholder="Enter percentage"
               keyboardType="numeric"
               suffix="%"

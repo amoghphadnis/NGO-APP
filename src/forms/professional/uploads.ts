@@ -13,6 +13,22 @@ export interface UploadRule {
   acceptedTypes: string[];
 }
 
+export const PROFESSIONAL_VIDEO_TYPES = [
+  'video/mp4',
+  'video/quicktime',
+  'video/x-quicktime',
+  'video/mov',
+  'video/avi',
+  'video/x-msvideo',
+  'video/x-m4v',
+  'video/3gpp',
+  'video/webm',
+  'video/mkv',
+  'video/x-matroska',
+];
+
+const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.3gp', '.wmv', '.m4v'];
+
 export const PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
   {
     key: PROFESSIONAL_FILE_KEYS.STUDENT_SELFIE,
@@ -53,8 +69,8 @@ export const PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
     key: PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO,
     label: 'House Video',
     required: false,
-    maxSize: 2 * 1024 * 1024,
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
+    maxSize: 50 * 1024 * 1024,
+    acceptedTypes: PROFESSIONAL_VIDEO_TYPES,
   },
   {
     key: PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL,
@@ -93,12 +109,48 @@ export function validateUpload(file: any, key: string): { valid: boolean; error?
     return rule.required ? { valid: false, error: `${rule.label} is required` } : { valid: true };
   }
 
-  if (file.size > rule.maxSize) {
-    return { valid: false, error: `${rule.label} must be less than ${rule.maxSize / (1024 * 1024)}MB` };
+  const fileName = (file.name || '').toLowerCase();
+  const fileType = (file.type || '').toLowerCase();
+  const isVideo = fileType.startsWith('video/') || VIDEO_EXTENSIONS.some((ext) => fileName.endsWith(ext));
+  const isTargetingVideo = key === PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO;
+
+  // Reject videos on document/image fields
+  if (!isTargetingVideo && isVideo) {
+    return {
+      valid: false,
+      error: `${rule.label} cannot be a video. Only images (JPG, PNG) and PDF files up to 2MB are allowed.`,
+    };
   }
 
-  if (!rule.acceptedTypes.includes(file.type)) {
-    return { valid: false, error: `${rule.label} must be ${rule.acceptedTypes.join(', ')}` };
+  // Reject images/PDFs on video field
+  if (isTargetingVideo && !isVideo) {
+    return {
+      valid: false,
+      error: 'House Video must be a video file (MP4, MOV, etc.) and cannot be an image or PDF',
+    };
+  }
+
+  // Check file size
+  if (file.size > rule.maxSize) {
+    const limitMB = Math.round(rule.maxSize / (1024 * 1024));
+    return {
+      valid: false,
+      error: `${rule.label} exceeds ${limitMB}MB limit (file size: ${(file.size / (1024 * 1024)).toFixed(2)}MB). Maximum allowed is ${limitMB}MB.`,
+    };
+  }
+
+  if (isTargetingVideo) {
+    const isVideoExt = VIDEO_EXTENSIONS.some((ext) => fileName.endsWith(ext));
+    const isVideoMime = (file.type && file.type.startsWith('video/')) || rule.acceptedTypes.includes(file.type);
+    if (!isVideoMime && !isVideoExt) {
+      return { valid: false, error: 'House Video must be a video file (MP4, MOV, etc.)' };
+    }
+  } else {
+    const hasAllowedExt = ['.jpg', '.jpeg', '.png', '.pdf'].some((ext) => fileName.endsWith(ext));
+    const hasAllowedMime = rule.acceptedTypes.includes(file.type);
+    if (!hasAllowedExt && !hasAllowedMime) {
+      return { valid: false, error: `${rule.label} must be ${rule.acceptedTypes.join(', ')}` };
+    }
   }
 
   return { valid: true };

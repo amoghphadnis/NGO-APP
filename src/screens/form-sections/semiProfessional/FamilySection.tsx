@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { Alert } from 'react-native';
 
 import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
 import FormCard from '@/components/common/FormCard';
@@ -11,11 +12,19 @@ import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { SemiProfFamilyFormValues, semiProfFamilySchema } from '@/validation/semiProfessionalSchemas';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
+// Web fallback: 1 = Own, 2 = Rent, 3 = Leased
+const FALLBACK_HOUSE_TYPES: Option<number>[] = [
+  { value: 1, label: 'Own' },
+  { value: 2, label: 'Rent' },
+  { value: 3, label: 'Leased' },
+];
+
 export default function FamilySection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const [fatherOccupationOptions, setFatherOccupationOptions] = useState<Option<number>[]>([]);
   const [motherOccupationOptions, setMotherOccupationOptions] = useState<Option<number>[]>([]);
+  const [houseTypeOptions, setHouseTypeOptions] = useState<Option<number>[]>(FALLBACK_HOUSE_TYPES);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
@@ -30,6 +39,13 @@ export default function FamilySection({ navigation }: any) {
           value: Number(o.value),
           label: o.label
         })) || []);
+        const houseTypes = response.data.houseTypes?.map((h: any) => ({
+          value: Number(h.value),
+          label: h.label
+        })) || [];
+        if (houseTypes.length > 0) {
+          setHouseTypeOptions(houseTypes);
+        }
       }
       setLoadingDropdowns(false);
     }
@@ -37,22 +53,33 @@ export default function FamilySection({ navigation }: any) {
   }, []);
 
   const familyData = (formData as any).family ?? {
+    fatherName: '',
+    motherName: '',
     fatherOccupationID: 0,
     motherOccupationID: 0,
-    familyMembers: 1,
-    annualIncome: 0,
+    familyMembers: undefined,
+    houseTypeID: 0,
+    monthlyRent: undefined as number | undefined,
+    familyIncome: undefined as any,
   };
 
-  const { control, handleSubmit, formState } = useForm<SemiProfFamilyFormValues>({
+  const { control, handleSubmit, formState, watch } = useForm<SemiProfFamilyFormValues>({
     defaultValues: {
+      fatherName: familyData.fatherName ?? '',
+      motherName: familyData.motherName ?? '',
       fatherOccupationID: familyData.fatherOccupationID ?? 0,
       motherOccupationID: familyData.motherOccupationID ?? 0,
-      familyMembers: familyData.familyMembers ?? 1,
-      annualIncome: familyData.annualIncome ?? 0,
+      familyMembers: familyData.familyMembers || undefined,
+      houseTypeID: familyData.houseTypeID ?? 0,
+      monthlyRent: familyData.monthlyRent,
+      familyIncome: familyData.familyIncome || undefined,
     },
     resolver: zodResolver(semiProfFamilySchema),
     mode: 'onChange',
   });
+
+  const watchedHouseType = watch('houseTypeID');
+  const showMonthlyRent = watchedHouseType === 2;
 
   const onSubmit = (data: SemiProfFamilyFormValues) => {
     updateSectionData('family', data);
@@ -61,7 +88,11 @@ export default function FamilySection({ navigation }: any) {
     navigation.navigate('academic');
   };
 
-  const isNextDisabled = !formState.isValid || loadingDropdowns;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -69,7 +100,7 @@ export default function FamilySection({ navigation }: any) {
       step={3}
       totalSteps={7}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader
@@ -80,6 +111,36 @@ export default function FamilySection({ navigation }: any) {
       />
 
       <FormCard>
+        <Controller
+          control={control}
+          name="fatherName"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Father's Name"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter father's full name"
+              error={formState.errors.fatherName?.message}
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="motherName"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Mother's Name"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter mother's full name"
+              error={formState.errors.motherName?.message}
+              required
+            />
+          )}
+        />
+
         <Controller
           control={control}
           name="fatherOccupationID"
@@ -118,7 +179,7 @@ export default function FamilySection({ navigation }: any) {
       <FormSectionHeader
         icon="home"
         title="Family Information"
-        subtitle="Family size and income details"
+        subtitle="Family size, housing and income details"
         showRequired
       />
 
@@ -128,11 +189,12 @@ export default function FamilySection({ navigation }: any) {
           name="familyMembers"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Number of Family Members"
-              value={value?.toString() ?? ''}
+              label="Total Number of Family Members"
+              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
               onChangeText={(text) => {
-                const num = parseInt(text.replace(/[^0-9]/g, ''), 10);
-                onChange(isNaN(num) ? '' : num);
+                const cleanText = text.replace(/[^0-9]/g, '');
+                const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
+                onChange(num);
               }}
               placeholder="Enter total family members"
               keyboardType="numeric"
@@ -146,20 +208,60 @@ export default function FamilySection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="annualIncome"
+          name="houseTypeID"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="House Type"
+              value={value}
+              onChange={onChange}
+              options={houseTypeOptions}
+              placeholder="Select house type"
+              error={formState.errors.houseTypeID?.message}
+              required
+              disabled={loadingDropdowns}
+            />
+          )}
+        />
+
+        {showMonthlyRent && (
+          <Controller
+            control={control}
+            name="monthlyRent"
+            render={({ field: { onChange, value } }) => (
+              <VPInputField
+                label="Monthly Rent Amount"
+                value={value?.toString() ?? ''}
+                onChangeText={(text) => {
+                  const num = parseFloat(text.replace(/[^0-9.]/g, ''));
+                  onChange(isNaN(num) ? '' : num);
+                }}
+                placeholder="Enter monthly rent"
+                keyboardType="numeric"
+                prefix="₹"
+                error={formState.errors.monthlyRent?.message}
+                helperText="If you are staying in a rented house, kindly mention the monthly rent amount"
+                required
+              />
+            )}
+          />
+        )}
+
+        <Controller
+          control={control}
+          name="familyIncome"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Annual Income"
+              label="Total Monthly Family Income"
               value={value?.toString() ?? ''}
               onChangeText={(text) => {
                 const num = parseFloat(text.replace(/[^0-9.]/g, ''));
-                onChange(isNaN(num) ? '' : num);
+                onChange(isNaN(num) ? undefined : num);
               }}
-              placeholder="Enter total annual income"
+              placeholder="Enter total family income"
               keyboardType="numeric"
               prefix="₹"
-              error={formState.errors.annualIncome?.message}
-              helperText="Total income from all sources per year"
+              error={formState.errors.familyIncome?.message}
+              helperText="Total income from all sources"
               required
             />
           )}

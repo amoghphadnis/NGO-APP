@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { Alert } from 'react-native';
 
 import { getProfessionalDropdowns } from '@/api/professionalApi';
 import FormCard from '@/components/common/FormCard';
@@ -104,7 +105,11 @@ export default function PersonalSection({ navigation }: any) {
     navigation.navigate('family');
   };
 
-  const isNextDisabled = !formState.isValid || loadingDropdowns;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -112,7 +117,7 @@ export default function PersonalSection({ navigation }: any) {
       step={2}
       totalSteps={7}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader

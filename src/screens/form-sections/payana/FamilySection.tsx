@@ -49,7 +49,7 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
     motherName: '',
     fatherOccupationID: undefined,
     motherOccupationID: undefined,
-    familyMembers: 1,
+    familyMembers: undefined,
     familyIncome: '',
     parentBank: '',
   };
@@ -151,8 +151,11 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Family Members"
-              value={value?.toString()}
-              onChangeText={(text) => onChange(parseInt(text) || 0)}
+              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
+              onChangeText={(text) => {
+                const clean = text.replace(/[^0-9]/g, '');
+                onChange(clean === '' ? undefined : parseInt(clean, 10));
+              }}
               placeholder="Enter number of family members"
               keyboardType="number-pad"
               error={formState.errors.familyMembers?.message}

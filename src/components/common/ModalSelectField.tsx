@@ -74,9 +74,12 @@ export default function ModalSelectField<T extends string | number>({
             error={error}
             required={required}
             rightIcon={
-              <Text style={styles.dropdownIcon}>
-                ⌄
-              </Text>
+              <Ionicons
+                name="chevron-down"
+                size={20}
+                color={colors.textSecondary}
+                style={styles.dropdownIcon}
+              />
             }
           />
         </View>
@@ -138,9 +141,8 @@ export default function ModalSelectField<T extends string | number>({
 
 const styles = StyleSheet.create({
   dropdownIcon: {
-      fontSize: platform.normalize.fontSize.body,
-      color: colors.textSecondary,
-    },
+    marginLeft: 4,
+  },
     modalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.35)",

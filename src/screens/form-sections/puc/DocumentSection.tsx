@@ -1,10 +1,11 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FileUploadField from '@/components/form/FileUploadField';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import { validateUpload } from '@/forms/puc/uploads';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
@@ -48,10 +49,16 @@ export default function DocumentSection({ navigation }: any) {
   const handleFileUpload = async (documentKey: string) => {
     updateUploadState(documentKey, { isUploading: true, error: undefined, progress: 0 });
 
-    const file = await pickDocument();
+    const file = await pickDocument(['image/jpeg', 'image/png', 'application/pdf']);
 
     if (!file) {
       updateUploadState(documentKey, { isUploading: false });
+      return;
+    }
+
+    const validation = validateUpload(file, documentKey);
+    if (!validation.valid) {
+      updateUploadState(documentKey, { isUploading: false, error: validation.error });
       return;
     }
 
@@ -63,7 +70,7 @@ export default function DocumentSection({ navigation }: any) {
       },
     };
     updateSectionData('documents', updatedDocuments);
-    updateUploadState(documentKey, { isUploading: false, uploaded: true, progress: 100 });
+    updateUploadState(documentKey, { isUploading: false, uploaded: true, error: undefined, progress: 100 });
   };
 
   const handleDeleteFile = (documentKey: string) => {
@@ -78,12 +85,16 @@ export default function DocumentSection({ navigation }: any) {
   const allDocumentsUploaded = PUC_FORMAT11_DOC_KEYS.every(key => uploadState[key]?.uploaded);
 
   const onSubmit = () => {
+    if (!allDocumentsUploaded) {
+      Alert.alert('Required Documents', 'Please upload all 5 required documents before proceeding.');
+      return;
+    }
     updateValidationState('documents', { isValid: allDocumentsUploaded, data: documentData });
     markStepComplete(7);
     navigation.navigate('review');
   };
 
-  const isNextDisabled = !allDocumentsUploaded;
+  const isNextDisabled = false;
 
   return (
     <FormScreenLayout
@@ -93,13 +104,12 @@ export default function DocumentSection({ navigation }: any) {
       onNext={onSubmit}
       nextDisabled={isNextDisabled}
     >
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <FormSectionHeader
-          icon="document-text"
-          title="Required Documents"
-          subtitle="Upload all 5 required documents"
-          showRequired
-        />
+      <FormSectionHeader
+        icon="document-text"
+        title="Required Documents"
+        subtitle="Upload all 5 required documents"
+        showRequired
+      />
 
         <FormCard>
           <View style={styles.guidelineContainer}>
@@ -136,7 +146,6 @@ export default function DocumentSection({ navigation }: any) {
             </React.Fragment>
           );
         })}
-      </ScrollView>
     </FormScreenLayout>
   );
 }

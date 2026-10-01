@@ -28,11 +28,11 @@ export const PUC_FORM_DEFAULTS = {
   family: {
     FatherOccupation: 0,
     MotherOccupation: 0,
-    TotalFamilyMembers: 1,
+    TotalFamilyMembers: undefined as any,
     FamilyAnnualIncome: 0,
   },
   academic: {
-    SSLCPercentage: 0,
+    SSLCPercentage: undefined as any,
     CourseJoined: 0,
     CollegeName: '',
     CollegeType: 0,

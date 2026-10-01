@@ -51,9 +51,8 @@ export default function PucGuidelinesSection({ navigation }: any) {
       nextDisabled={isNextDisabled}
       nextLabel="Accept & Continue"
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Guidelines */}
-        <FormSectionHeader
+      {/* Guidelines */}
+      <FormSectionHeader
           icon="information-circle"
           title="Guidelines"
           subtitle="Please read carefully before filling the form"
@@ -195,7 +194,6 @@ export default function PucGuidelinesSection({ navigation }: any) {
             )}
           />
         </FormCard>
-      </ScrollView>
     </FormScreenLayout>
   );
 }
