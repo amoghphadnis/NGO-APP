@@ -87,6 +87,8 @@ export async function submitPayanaRenewal(
   appendFileToFormData(formData, 'PassbookFile', values.passbookFile);
   appendFileToFormData(formData, 'SelfieFile', values.selfieFile);
   appendFileToFormData(formData, 'AadhaarFile', values.aadhaarFile);
+  appendFileToFormData(formData, 'ThankingLetter', values.thankingLetterFile);
+  appendFileToFormData(formData, 'CET_NEET_RankSheetPath', values.cetNeetRankSheetFile);
 
   try {
     const response = await api.post('/payana-renewal/create', formData);

@@ -266,30 +266,96 @@ describe('PUC Approval API — Contract Tests', () => {
 
 // ── Role utils tests ─────────────────────────────────────────────────────────
 
-import { canApprove } from '@/utils/roleUtils';
+import {
+  canApproveReject,
+  canAssignRoles,
+  canAssignVolunteers,
+  canCreatePayana,
+  canManageSettings,
+  canManageUsers,
+  canViewApprovals,
+  canViewDonors,
+  isAdminRole,
+} from '@/utils/roleUtils';
 
-describe('canApprove role check', () => {
-  test('allows Program Manager', () => {
-    expect(canApprove('Program Manager')).toBe(true);
+describe('canViewApprovals / canApproveReject role checks', () => {
+  test.each([canViewApprovals, canApproveReject])(
+    'matches the web Approval/Reject menus',
+    (fn) => {
+      expect(fn('Program Manager')).toBe(true);
+      expect(fn('Branch Executives')).toBe(true);
+      expect(fn('Admin')).toBe(false);
+      expect(fn('Admin(CEO)')).toBe(false);
+      expect(fn('Volunteer')).toBe(false);
+      expect(fn(undefined)).toBe(false);
+    }
+  );
+});
+
+describe('canManageUsers role check', () => {
+  test('allows PM, Admin, Admin(CEO)', () => {
+    expect(canManageUsers('Program Manager')).toBe(true);
+    expect(canManageUsers('Admin')).toBe(true);
+    expect(canManageUsers('Admin(CEO)')).toBe(true);
   });
 
-  test('allows Admin', () => {
-    expect(canApprove('Admin')).toBe(true);
+  test('rejects field roles', () => {
+    expect(canManageUsers('Volunteer')).toBe(false);
+    expect(canManageUsers('Branch Executives')).toBe(false);
+    expect(canManageUsers(undefined)).toBe(false);
+  });
+});
+
+describe('canAssignRoles role check', () => {
+  test('Admin only per web menu', () => {
+    expect(canAssignRoles('Admin')).toBe(true);
+    expect(canAssignRoles('Admin(CEO)')).toBe(true);
+    expect(canAssignRoles('Program Manager')).toBe(false);
+    expect(canAssignRoles('Branch Executives')).toBe(false);
+  });
+});
+
+describe('canManageSettings role check', () => {
+  test('PM + Admin roles', () => {
+    expect(canManageSettings('Program Manager')).toBe(true);
+    expect(canManageSettings('Admin')).toBe(true);
+    expect(canManageSettings('Admin(CEO)')).toBe(true);
+    expect(canManageSettings('Branch Executives')).toBe(false);
+    expect(canManageSettings('Volunteer')).toBe(false);
+  });
+});
+
+describe('canViewDonors role check', () => {
+  test('Program Manager only', () => {
+    expect(canViewDonors('Program Manager')).toBe(true);
+    expect(canViewDonors('Admin')).toBe(false);
+    expect(canViewDonors('Admin(CEO)')).toBe(false);
+    expect(canViewDonors('Branch Executives')).toBe(false);
+  });
+});
+
+describe('isAdminRole role check', () => {
+  test('Admin and Admin(CEO)', () => {
+    expect(isAdminRole('Admin')).toBe(true);
+    expect(isAdminRole('Admin(CEO)')).toBe(true);
+    expect(isAdminRole('Program Manager')).toBe(false);
+    expect(isAdminRole('Branch Executives')).toBe(false);
+    expect(isAdminRole('Volunteer')).toBe(false);
+  });
+});
+
+describe('field-work role checks', () => {
+  test('canAssignVolunteers: PM + Branch Executives', () => {
+    expect(canAssignVolunteers('Program Manager')).toBe(true);
+    expect(canAssignVolunteers('Branch Executives')).toBe(true);
+    expect(canAssignVolunteers('Admin')).toBe(false);
+    expect(canAssignVolunteers('Volunteer')).toBe(false);
   });
 
-  test('allows Admin(CEO)', () => {
-    expect(canApprove('Admin(CEO)')).toBe(true);
-  });
-
-  test('rejects Volunteer', () => {
-    expect(canApprove('Volunteer')).toBe(false);
-  });
-
-  test('rejects Branch Executives', () => {
-    expect(canApprove('Branch Executives')).toBe(false);
-  });
-
-  test('rejects undefined', () => {
-    expect(canApprove(undefined)).toBe(false);
+  test('canCreatePayana: PM + Branch Executives', () => {
+    expect(canCreatePayana('Program Manager')).toBe(true);
+    expect(canCreatePayana('Branch Executives')).toBe(true);
+    expect(canCreatePayana('Admin')).toBe(false);
+    expect(canCreatePayana('Volunteer')).toBe(false);
   });
 });

@@ -25,6 +25,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { houseVisitApi } from '@/api/houseVisitApi';
 import { HouseVisitEditApi, houseVisitEditApis } from '@/api/houseVisitEditApi';
 import AppFooter from '@/components/common/AppFooter';
+import BrandLogo from '@/components/common/BrandLogo';
+import AppTopBar from '@/components/layout/AppTopBar';
 import { generateSubmissionId, error as logError, info as logInfo, truncateStack } from '@/diagnostics';
 import { MAX_MESSAGE_LENGTH } from '@/diagnostics/diagnosticTypes';
 import { FormType } from '@/forms/shared/types';
@@ -667,12 +669,10 @@ export default function HouseVisitFormScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{editMode ? 'Edit House Visit' : 'House Visit Form'}</Text>
-        <View style={{ width: 40 }} />
+      <AppTopBar />
+
+      <View style={styles.watermarkWrap} pointerEvents="none">
+        <BrandLogo variant="watermark" size={280} />
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
@@ -991,6 +991,7 @@ export default function HouseVisitFormScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, position: 'relative' },
+  watermarkWrap: { position: 'absolute', top: '30%', left: 0, right: 0, alignItems: 'center', zIndex: 0 },
   header: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   backButton: { padding: spacing.xs, marginRight: spacing.sm },
   headerTitle: { flex: 1, fontSize: 18, fontWeight: '600', color: '#FFFFFF' },

@@ -13,6 +13,8 @@ const ENV_API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 export const environment = {
   API_BASE_URL: (ENV_API_BASE_URL && ENV_API_BASE_URL.trim()) || TEST_API_BASE_URL,
   API_TIMEOUT: 30000,
+  // Multipart submissions can carry ~60MB of files — needs far more than API_TIMEOUT on mobile uplinks
+  UPLOAD_TIMEOUT: 300000,
   API_RETRY_ATTEMPTS: 3,
   LOG_LEVEL: 'INFO',
   ENABLE_DEBUG_LOGGING: __DEV__,

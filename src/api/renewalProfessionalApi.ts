@@ -82,6 +82,9 @@ export async function submitRenewalProfessional(
   appendFileToFormData(formData, 'CollegeFrontPhotoFile', values.collegeFrontPhotoFile);
   appendFileToFormData(formData, 'ThankingVideoFile', values.thankingVideoFile);
   appendFileToFormData(formData, 'ParentsPassbookFile', values.parentsPassbookFile);
+  appendFileToFormData(formData, 'FeesReceiptPath', values.feesReceiptFile);
+  appendFileToFormData(formData, 'ThankingVolunteerLetterPath', values.thankingVolunteerLetterFile);
+  appendFileToFormData(formData, 'ThankingDonarLetterPath', values.thankingDonorLetterFile);
 
   try {
     const response = await api.post('/professionalrenewal/create', formData);

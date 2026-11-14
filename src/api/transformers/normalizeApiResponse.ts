@@ -76,7 +76,13 @@ export function normalizeApiError(error: any): NormalizedApiError {
   // Handle ApiError with response (HTTP error status)
   if (error.response) {
     const status = error.response.status;
-    const message = error.response.data?.Message || error.response.data?.message || error.message || 'Request failed';
+    const message =
+      error.response.data?.ExceptionMessage ||
+      error.response.data?.exceptionMessage ||
+      error.response.data?.Message ||
+      error.response.data?.message ||
+      error.message ||
+      'Request failed';
 
     let errorMessage = message;
     if (status === 400) errorMessage = 'Invalid request data';

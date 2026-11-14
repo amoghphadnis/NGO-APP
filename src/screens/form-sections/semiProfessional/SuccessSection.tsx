@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import BrandLogo from '@/components/common/BrandLogo';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
@@ -42,10 +43,15 @@ export default function SuccessSection({ navigation }: any) {
     >
       {/* Success Illustration */}
       <View style={styles.successContainer}>
+        <View style={styles.watermark} pointerEvents="none">
+          <BrandLogo variant="watermark" size={180} />
+        </View>
+        <BrandLogo size={44} />
         <View style={styles.successIconContainer}>
           <Ionicons name="checkmark-circle" size={80} color={colors.success} />
         </View>
         <Text style={styles.successTitle}>Application Submitted Successfully!</Text>
+        <View style={styles.goldDivider} />
         <Text style={styles.successSubtitle}>
           Your Semi Professional Student application has been received and is being processed.
         </Text>
@@ -192,9 +198,28 @@ const styles = StyleSheet.create({
   successContainer: {
     alignItems: 'center',
     paddingVertical: spacing.xl,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  watermark: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   successIconContainer: {
     marginBottom: spacing.lg,
+    marginTop: spacing.sm,
+  },
+  goldDivider: {
+    width: 40,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.gold,
+    marginTop: spacing.sm,
   },
   successTitle: {
     fontSize: platform.normalize.fontSize.h1,

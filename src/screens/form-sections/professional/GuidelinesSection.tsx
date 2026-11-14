@@ -4,6 +4,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { z } from 'zod';
 
+import ApplicationTitleBanner from '@/components/common/ApplicationTitleBanner';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
@@ -51,6 +52,8 @@ export default function GuidelinesSection({ navigation }: any) {
       nextDisabled={isNextDisabled}
       nextLabel="Accept & Continue"
     >
+      <ApplicationTitleBanner />
+
       {/* Eligibility Section */}
       <FormSectionHeader
           icon="checkmark-circle"

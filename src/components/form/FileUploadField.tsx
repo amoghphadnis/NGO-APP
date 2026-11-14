@@ -1,9 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { DocumentFile, DocumentsMetaItem } from '@/store/useFormEngineStore';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
-import { DocumentFile, DocumentsMetaItem } from '@/store/useFormEngineStore';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface FileUploadFieldProps {
   title: string;
@@ -39,6 +37,12 @@ export default function FileUploadField({
     return 'empty';
   };
 
+  const fileExceedsLimit = !!(file?.size && file.size > maxSize);
+  const renderFileSize = (size: number) =>
+    fileExceedsLimit
+      ? `${formatFileSize(size)} — over ${Math.round(maxSize / 1024 / 1024)}MB limit`
+      : formatFileSize(size);
+
   const renderEmptyState = () => (
     <View style={styles.uploadArea}>
       <View style={styles.uploadIcon}>
@@ -63,7 +67,7 @@ export default function FileUploadField({
         <View style={styles.fileRow}>
           <View style={styles.fileInfo}>
             <Text style={styles.fileName} numberOfLines={1}>{file.name}</Text>
-            <Text style={styles.fileSize}>{formatFileSize(file.size || 0)}</Text>
+            <Text style={[styles.fileSize, fileExceedsLimit && styles.fileSizeError]}>{renderFileSize(file.size || 0)}</Text>
           </View>
           <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
             <Text style={styles.cancelButtonText}>✕</Text>
@@ -80,7 +84,7 @@ export default function FileUploadField({
         <View style={styles.fileRow}>
           <View style={styles.fileInfo}>
             <Text style={styles.fileName} numberOfLines={1}>{file.name}</Text>
-            <Text style={styles.fileSize}>{formatFileSize(file.size || 0)}</Text>
+            <Text style={[styles.fileSize, fileExceedsLimit && styles.fileSizeError]}>{renderFileSize(file.size || 0)}</Text>
             <Text style={styles.verifiedText}>Attached</Text>
           </View>
           <View style={styles.fileActions}>
@@ -258,6 +262,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
     marginBottom: 2,
+  },
+  fileSizeError: {
+    color: '#EF4444',
+    fontWeight: '600',
   },
   verifiedText: {
     fontSize: 12,

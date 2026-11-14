@@ -7,9 +7,10 @@ export const semiProfPersonalSchema = z.object({
   studentName: z.string().min(1, { message: 'Student name is required' }),
   dateOfBirth: z.string().min(1, { message: 'Date of birth is required' }),
   contactNumber: z.string().min(10, { message: 'Valid 10-digit contact number required' }).max(10),
-  alternateNumber: z.string().max(10, { message: 'Alternate number must be 10 digits' }).optional(),
+  alternateNumber: z.string().min(10, { message: 'Valid 10-digit alternate number required' }).max(10),
   genderID: z.number().min(1, { message: 'Gender is required' }),
-  casteCategoryID: z.number().min(1, { message: 'Caste category is required' }),
+  // Web parity: caste category select is not marked required on the web form
+  casteCategoryID: z.number().optional(),
   areaTypeID: z.number().min(1, { message: 'Area type is required' }),
   districtID: z.number().min(1, { message: 'District is required' }),
   otherDistrict: z.string().optional(),
@@ -36,28 +37,19 @@ export const semiProfFamilySchema = z.object({
   motherOccupationID: z.number().min(1, { message: 'Mother occupation is required' }),
   familyMembers: z.number({ message: 'Total family members is required' }).min(1, { message: 'At least 1 family member required' }),
   houseTypeID: z.number().min(1, { message: 'House type is required' }),
+  // Web parity: monthly rent is shown for rented houses but not required
   monthlyRent: z.number().min(0).optional(),
-  familyIncome: z.number({ message: 'Total monthly family income is required' }).positive({ message: 'Family income must be positive' }),
-}).refine(
-  (data) => {
-    if (data.houseTypeID === 2) {
-      return data.monthlyRent !== undefined && data.monthlyRent > 0;
-    }
-    return true;
-  },
-  {
-    message: 'Monthly rent is required for rented houses',
-    path: ['monthlyRent'],
-  }
-);
+  familyIncome: z.number({ message: 'Total monthly family income is required' }).min(0, { message: 'Family income cannot be negative' }),
+});
 
 // Semi Professional Academic schema — aligned with web form Section-2
 export const semiProfAcademicSchema = z.object({
   puPercentage: z.number({ message: 'Percentage is required' })
-    .min(1, { message: 'Percentage must be greater than 0' })
+    .min(0, { message: 'Percentage cannot be negative' })
     .max(100, { message: 'Percentage cannot exceed 100' }),
   cetRank: z.number({ message: 'CET rank is required' }).positive({ message: 'CET rank is required' }),
   ptRank: z.number({ message: 'Agriculture/Veterinary/Horticulture (PT) rank is required' }).positive({ message: 'Agriculture/Veterinary/Horticulture (PT) rank is required' }),
+  semiProfessionalCourseID: z.number({ message: 'Course is required' }).min(1, { message: 'Course applying for is required' }),
   courseApplying: z.string().min(1, { message: 'Course applying for is required' }),
   courseStream: z.string().min(1, { message: 'Course stream is required' }),
 });

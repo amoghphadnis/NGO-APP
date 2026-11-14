@@ -202,44 +202,11 @@ export default function PersonalSection({ navigation }: any) {
               label="Alternate Number"
               value={value ?? ''}
               onChangeText={onChange}
-              placeholder="Enter alternate number (optional)"
+              placeholder="Enter 10-digit alternate number"
               keyboardType="phone-pad"
               maxLength={10}
               error={formState.errors.AlternateNumber?.message}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="GenderID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Gender"
-              value={value}
-              options={genderOptions}
-              onChange={onChange}
-              placeholder="Select gender"
-              error={formState.errors.GenderID?.message}
               required
-              disabled={loadingDropdowns}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="CasteCategoryID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Caste"
-              value={value}
-              options={casteOptions}
-              onChange={onChange}
-              placeholder="Select caste category"
-              error={formState.errors.CasteCategoryID?.message}
-              required
-              disabled={loadingDropdowns}
             />
           )}
         />
@@ -255,10 +222,46 @@ export default function PersonalSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
+          name="ResidentialAddress"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Residential Address"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter complete residential address"
+              multiline
+              numberOfLines={3}
+              error={formState.errors.ResidentialAddress?.message}
+              helperText="Include house number, street name, and landmarks"
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="GoogleMapLink"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Mention your home address Google Map link here"
+              value={value ?? ''}
+              onChangeText={onChange}
+              placeholder="Paste Google Maps link"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              error={formState.errors.GoogleMapLink?.message}
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
           name="AreaTypeID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Area Type"
+              label="Place"
               value={value}
               options={areaTypeOptions}
               onChange={onChange}
@@ -306,36 +309,33 @@ export default function PersonalSection({ navigation }: any) {
 
         <Controller
           control={control}
-          name="ResidentialAddress"
+          name="GenderID"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Residential Address"
+            <ModalSelectField
+              label="Gender"
               value={value}
-              onChangeText={onChange}
-              placeholder="Enter complete residential address"
-              multiline
-              numberOfLines={3}
-              error={formState.errors.ResidentialAddress?.message}
-              helperText="Include house number, street name, and landmarks"
+              options={genderOptions}
+              onChange={onChange}
+              placeholder="Select gender"
+              error={formState.errors.GenderID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
 
         <Controller
           control={control}
-          name="GoogleMapLink"
+          name="CasteCategoryID"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Google Map Link"
-              value={value ?? ''}
-              onChangeText={onChange}
-              placeholder="Paste Google Maps link (optional)"
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="url"
-              error={formState.errors.GoogleMapLink?.message}
-              helperText="Optional: Link to your residence location"
+            <ModalSelectField
+              label="Caste & Category"
+              value={value}
+              options={casteOptions}
+              onChange={onChange}
+              placeholder="Select caste category"
+              error={formState.errors.CasteCategoryID?.message}
+              disabled={loadingDropdowns}
             />
           )}
         />

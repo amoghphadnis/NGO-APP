@@ -1,17 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { getProfessionalDropdowns } from '@/api/professionalApi';
 import { NormalizedDropdownOption } from '@/api/transformers/normalizeDropdowns';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
+import UploadSizeNotice from '@/components/form/UploadSizeNotice';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import { getFormConfig } from '@/forms/shared/registry';
 import { preparePayload, submitApplication } from '@/submission';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
-import { isPayanaForm, isProfessionalForm, isPUCForm } from '@/types/forms';
+import { isNewStudentForm, isPayanaForm, isProfessionalForm, isPUCForm } from '@/types/forms';
+import { confirmNoDuplicate, getContactNumber } from '@/utils/duplicateCheck';
+import { getTotalUploadSizeBytes, isTotalUploadSizeExceeded } from '@/utils/uploadSize';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 const labelFor = (options: NormalizedDropdownOption[] | undefined, value: number | undefined | null): string => {
@@ -73,7 +77,7 @@ export default function ReviewSection({ navigation }: any) {
   const isFormComplete = () => {
     if (isProfessionalForm(formData)) {
       const p = formData.personal;
-      const hasPersonal = p.StudentName && p.DateOfBirth && p.Email && p.ContactNumber && p.GenderID && p.CasteCategoryID && p.DistrictID && p.AreaTypeID && p.ResidentialAddress;
+      const hasPersonal = p.StudentName && p.DateOfBirth && p.Email && p.ContactNumber && p.AlternateNumber && p.GenderID && p.DistrictID && p.AreaTypeID && p.ResidentialAddress && p.GoogleMapLink;
       const hasFamily = formData.family.FatherName && formData.family.MotherName && formData.family.FatherOccupationID && formData.family.MotherOccupationID && formData.family.FamilyMembers > 0 && formData.family.HouseTypeID && formData.family.FamilyIncome > 0;
       const hasAcademic = formData.academic.PUPercentage !== undefined && formData.academic.CourseApplying && formData.academic.CourseStream;
 
@@ -107,27 +111,47 @@ export default function ReviewSection({ navigation }: any) {
       const hasFamily = !!(f?.FatherOccupation && f?.MotherOccupation && (f?.TotalFamilyMembers ?? 0) > 0 && (f?.FamilyAnnualIncome ?? 0) > 0);
       const hasAcademic = !!(ac?.SSLCPercentage !== undefined && ac?.CourseJoined && ac?.CollegeName && ac?.CollegeType && ac?.CollegeContactNumber);
       const hasBank = !!(b?.AccountHolderName && b?.AccountNumber && b?.IFSCCode && b?.BankName && b?.BranchName);
-      const hasDocs = !!(docs?.StudentSelfie?.file && docs?.SSLCMarksCard?.file && docs?.FeeReceipts?.file && docs?.BankPassbook?.file && docs?.AadhaarCard?.file);
+      const hasDocs = !!(
+        docs?.StudentSelfie?.file && docs?.SSLCMarksCard?.file && docs?.FeeReceipts?.file &&
+        docs?.BankPassbook?.file && docs?.AadhaarCard?.file && docs?.ElectricityBill?.file &&
+        docs?.RationCard?.file && docs?.DwellingUnitPhoto?.file && docs?.HouseVideo?.file &&
+        docs?.IncomeCertificate?.file
+      );
 
       return hasPersonal && hasContact && hasAddress && hasFamily && hasAcademic && hasBank && hasDocs;
     }
 
     if (isPayanaForm(formData)) {
       const hasPersonal = formData.personal.studentName && formData.personal.dateOfBirth;
-      const hasContact = formData.contact.email && formData.contact.contactNumber;
+      const hasContact = formData.contact.email && formData.contact.contactNumber && formData.contact.alternateNumber;
       const hasAddress = formData.address.districtID && formData.address.taluka;
       const hasFamily = formData.family.fatherName && formData.family.motherName;
-      const hasAcademic = formData.academic.courseID && formData.academic.collegeName;
+      const hasAcademic = formData.academic.courseSA && formData.academic.annualFees;
       const hasBank = formData.bank.accountHolderName && formData.bank.bankAccountNo && formData.bank.ifscCode;
       const hasAgreement = formData.agreement.isAgreed;
 
       return hasPersonal && hasContact && hasAddress && hasFamily && hasAcademic && hasBank && hasAgreement;
     }
 
+    if (isNewStudentForm(formData)) {
+      const d = formData.documents;
+      const hasPersonal = formData.personal.studentName && formData.personal.dateOfBirth && formData.personal.genderID;
+      const hasContact = formData.contact.contactNumber && formData.contact.alternateNumber;
+      const hasAddress = formData.address.address && formData.address.taluka && formData.address.districtID;
+      const hasFamily = formData.family.fatherName && formData.family.motherName;
+      const hasCategory = formData.category.casteCategoryID && formData.category.areaTypeID && formData.category.houseTypeID && formData.category.referenceSourceID;
+      const hasAcademic = formData.academic.courseID && formData.academic.collegeName && formData.academic.collegeTypeID;
+      const hasDocs = d?.sslcMarksCard?.file && d?.studentPhoto?.file && d?.electricityBill?.file && d?.rationCards?.file && d?.incomeCertificate?.file && d?.familyPhoto?.file && d?.houseVideo?.file && d?.houseVisitLink;
+
+      return hasPersonal && hasContact && hasAddress && hasFamily && hasCategory && hasAcademic && hasDocs;
+    }
+
     return true;
   };
 
-  const canSubmit = isFormComplete() && declarationAccepted;
+  const totalUploadBytes = getTotalUploadSizeBytes((formData as any).documents);
+  const uploadSizeExceeded = isTotalUploadSizeExceeded((formData as any).documents);
+  const canSubmit = isFormComplete() && declarationAccepted && !uploadSizeExceeded;
 
   const onSubmit = async () => {
     // Synchronous re-entry guard — prevents double-tap before React re-renders.
@@ -145,6 +169,16 @@ export default function ReviewSection({ navigation }: any) {
     }
 
     try {
+      const proceed = await confirmNoDuplicate(
+        currentFormType,
+        getContactNumber(currentFormType, formData),
+      );
+      if (!proceed) {
+        setSubmissionLoading(false);
+        submitLock.current = false;
+        return;
+      }
+
       const payload = preparePayload(currentFormType, formData);
       const response = await submitApplication(currentFormType, payload);
 
@@ -153,7 +187,11 @@ export default function ReviewSection({ navigation }: any) {
       }
 
       setSubmissionSuccess(true, response.data?.applicationId || undefined);
-      markStepComplete(5);
+      // Mark the review step's own config index complete (varies by form type).
+      try {
+        const reviewIndex = getFormConfig(currentFormType).steps.indexOf('review');
+        if (reviewIndex >= 0) markStepComplete(reviewIndex);
+      } catch { /* non-fatal */ }
       navigation.navigate('success');
     } catch (error: any) {
       const submissionId = error?.submissionId;
@@ -218,15 +256,9 @@ export default function ReviewSection({ navigation }: any) {
     </View>
   );
 
-  const isPuc = currentFormType === 'puc' || isPUCForm(formData);
-  const reviewStep = isPuc ? 9 : 6;
-  const reviewTotalSteps = isPuc ? 10 : 7;
-
   return (
     <FormScreenLayout
       title="Review Application"
-      step={reviewStep}
-      totalSteps={reviewTotalSteps}
       onBack={navigation.goBack}
       onNext={onSubmit}
       nextDisabled={!canSubmit || submissionState.isSubmitting}
@@ -448,7 +480,7 @@ export default function ReviewSection({ navigation }: any) {
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleContainer}>
                 <Ionicons name="attach" size={20} color={colors.primary} style={styles.sectionIcon} />
-                <Text style={styles.sectionTitle}>Documents (5 Mandatory)</Text>
+                <Text style={styles.sectionTitle}>Documents (10 Mandatory)</Text>
               </View>
               <TouchableOpacity onPress={() => navigation.navigate('documents')} style={styles.editButton}>
                 <Ionicons name="create" size={16} color={colors.primary} />
@@ -462,6 +494,11 @@ export default function ReviewSection({ navigation }: any) {
               {renderDocumentStatus('3. Fee Receipts', !!(formData.documents as any)?.FeeReceipts?.file)}
               {renderDocumentStatus('4. Bank Passbook', !!(formData.documents as any)?.BankPassbook?.file)}
               {renderDocumentStatus('5. Aadhaar Card', !!(formData.documents as any)?.AadhaarCard?.file)}
+              {renderDocumentStatus('6. Electricity Bill', !!(formData.documents as any)?.ElectricityBill?.file)}
+              {renderDocumentStatus('7. Ration Card', !!(formData.documents as any)?.RationCard?.file)}
+              {renderDocumentStatus('8. Dwelling Unit Photo', !!(formData.documents as any)?.DwellingUnitPhoto?.file)}
+              {renderDocumentStatus('9. House Video', !!(formData.documents as any)?.HouseVideo?.file)}
+              {renderDocumentStatus('10. Income Certificate', !!(formData.documents as any)?.IncomeCertificate?.file)}
             </View>
           </FormCard>
         )}
@@ -494,6 +531,8 @@ export default function ReviewSection({ navigation }: any) {
             </TouchableOpacity>
           </View>
         </FormCard>
+
+        <UploadSizeNotice totalBytes={totalUploadBytes} />
 
         {submissionState.error ? (
           <FormCard>

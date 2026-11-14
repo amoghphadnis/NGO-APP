@@ -117,17 +117,7 @@ export function semiProfessionalMapper(formData: SemiProfessionalFormValues): Fo
     fd.append('NEETRank', toString(formData.academic.ptRank));
   }
 
-  // Resolve SemiProfessionalCourseID from CourseApplying
-  const courseStr = String(formData.academic.courseApplying || '').toLowerCase();
-  let courseId = '3';
-  if (courseStr.includes('agri')) courseId = '4';
-  else if (courseStr.includes('gnm')) courseId = '5';
-  else if (courseStr.includes('hort')) courseId = '6';
-  else if (courseStr.includes('vet')) courseId = '7';
-  else if (courseStr.includes('physio')) courseId = '11';
-  else if (Number(formData.academic.courseApplying) > 0) courseId = String(formData.academic.courseApplying);
-
-  fd.append('SemiProfessionalCourseID', courseId);
+  fd.append('SemiProfessionalCourseID', toString(formData.academic.semiProfessionalCourseID));
   if (formData.academic.courseApplying) {
     fd.append('CourseApplying', formData.academic.courseApplying);
   }

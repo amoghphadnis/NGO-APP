@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vidya Poshak",
     "slug": "VidyaPoshak",
-    "version": "1.0.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/Logo.png",
     "scheme": "VPApp",
@@ -21,7 +21,8 @@
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.VIBRATE",
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "predictiveBackGestureEnabled": false,
       "blockedPermissions": [
@@ -35,7 +36,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/Logo.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -62,7 +64,10 @@
           "cameraPermission": "This app needs camera access to take house visit photos."
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-notifications",
+      "expo-video",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,

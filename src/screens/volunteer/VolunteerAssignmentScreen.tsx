@@ -32,6 +32,7 @@ import { houseVisitApi } from '@/api/houseVisitApi';
 import { houseVisitApprovalApis } from '@/api/houseVisitApprovalApi';
 import { VolunteerAssignmentApi } from '@/api/volunteerAssignmentApi';
 import AppFooter from '@/components/common/AppFooter';
+import AppTopBar from '@/components/layout/AppTopBar';
 import VolunteerPickerModal from '@/components/volunteer/VolunteerPickerModal';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
@@ -490,19 +491,7 @@ export default function VolunteerAssignmentScreen({
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top Bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Ionicons name={meta.icon} size={20} color="#FFFFFF" style={styles.topBarIcon} />
-        <Text style={styles.topBarTitle} numberOfLines={1}>
-          {meta.title}
-        </Text>
-      </View>
+      <AppTopBar />
 
       <View style={styles.body}>
         {/* District selector */}
@@ -543,12 +532,12 @@ export default function VolunteerAssignmentScreen({
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={styles.loadingText}>Loading students...</Text>
               </View>
-            ) : null
+            ) : undefined
           }
           refreshControl={
             <RefreshControl
               refreshing={studentsQuery.isFetching}
-              onRefresh={() => studentsQuery.refetch()}
+              onRefresh={() => { void studentsQuery.refetch(); }}
               colors={[colors.primary]}
               tintColor={colors.primary}
             />

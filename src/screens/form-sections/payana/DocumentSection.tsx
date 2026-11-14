@@ -1,17 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
+import VPInputField from '@/components/common/VPInputField';
 import FileUploadField from '@/components/form/FileUploadField';
+import UploadSizeNotice from '@/components/form/UploadSizeNotice';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { useFormEngineStore } from '@/store/useFormEngineStore';
-import { pickDocument } from '@/utils/filePicker';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-import VPInputField from '@/components/common/VPInputField';
+import { pickDocument } from '@/utils/filePicker';
+import { isVideoFile } from '@/utils/fileValidation';
+import { getTotalUploadSizeBytes } from '@/utils/uploadSize';
 import { z } from 'zod';
 
 interface DocumentSectionProps {
@@ -25,6 +26,9 @@ const houseVisitSchema = z.object({
       message: 'Please enter a valid URL starting with http:// or https://',
     }),
 });
+
+// Matches the on-screen "File size should not exceed 5MB" guideline.
+const PAYANA_MAX_FILE_BYTES = 5 * 1024 * 1024;
 
 const PAYANA_FILE_KEYS = [
   'latestMarksCard',
@@ -78,6 +82,22 @@ export default function DocumentSection({ navigation }: DocumentSectionProps) {
     
     if (!file) {
       updateUploadState(documentKey, { isUploading: false });
+      return;
+    }
+
+    // Reject oversized or video files immediately so the user can pick again.
+    if (isVideoFile(file)) {
+      updateUploadState(documentKey, {
+        isUploading: false,
+        error: 'Videos are not allowed. Please upload an image (JPG, PNG) or PDF up to 5MB.',
+      });
+      return;
+    }
+    if ((file.size ?? 0) > PAYANA_MAX_FILE_BYTES) {
+      updateUploadState(documentKey, {
+        isUploading: false,
+        error: `File is ${((file.size ?? 0) / (1024 * 1024)).toFixed(1)}MB — exceeds the 5MB limit. Please choose a smaller file.`,
+      });
       return;
     }
 
@@ -191,6 +211,8 @@ export default function DocumentSection({ navigation }: DocumentSectionProps) {
             Paste the Google Maps link to your house location
           </Text>
         </FormCard>
+
+        <UploadSizeNotice totalBytes={getTotalUploadSizeBytes(documentData)} />
       </ScrollView>
     </FormScreenLayout>
   );

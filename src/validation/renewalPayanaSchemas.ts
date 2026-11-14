@@ -56,6 +56,8 @@ export const renewalPayanaSchema = z.object({
   passbookFile: z.custom<UploadedDocument>().optional(),
   selfieFile: z.custom<UploadedDocument>().optional(),
   aadhaarFile: z.custom<UploadedDocument>().optional(),
+  thankingLetterFile: z.custom<UploadedDocument>().optional(),
+  cetNeetRankSheetFile: z.custom<UploadedDocument>().optional(),
 });
 
 export type RenewalPayanaFormValues = z.infer<typeof renewalPayanaSchema>;

@@ -4,6 +4,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Alert } from 'react-native';
 
 import { getProfessionalDropdowns } from '@/api/professionalApi';
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
@@ -106,7 +107,7 @@ export default function FamilySection({ navigation }: any) {
           name="FatherName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Father's Name"
+              label="Father/Guardian name"
               value={value}
               onChangeText={onChange}
               placeholder="Enter father's full name"
@@ -121,7 +122,7 @@ export default function FamilySection({ navigation }: any) {
           name="MotherName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Mother's Name"
+              label="Mother/Guardian name"
               value={value}
               onChangeText={onChange}
               placeholder="Enter mother's full name"
@@ -136,7 +137,7 @@ export default function FamilySection({ navigation }: any) {
           name="FatherOccupationID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Father's Occupation"
+              label="Father/Guardian Occupation"
               placeholder="Select father's occupation"
               value={value}
               onChange={onChange}
@@ -153,7 +154,7 @@ export default function FamilySection({ navigation }: any) {
           name="MotherOccupationID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Mother's Occupation"
+              label="Mother/Guardian Occupation"
               placeholder="Select mother's occupation"
               value={value}
               onChange={onChange}
@@ -179,7 +180,7 @@ export default function FamilySection({ navigation }: any) {
           name="FamilyMembers"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Total Family Members"
+              label="Total Number of Family Members"
               value={value === undefined || value === null ? '' : String(value)}
               onChangeText={(text) => {
                 const cleanText = text.replace(/[^0-9]/g, '');
@@ -218,16 +219,11 @@ export default function FamilySection({ navigation }: any) {
             control={control}
             name="MonthlyRent"
             render={({ field: { onChange, value } }) => (
-              <VPInputField
-                label="Monthly Rent"
-                value={value === undefined || value === null ? '' : String(value)}
-                onChangeText={(text) => {
-                  const cleanText = text.replace(/[^0-9]/g, '');
-                  const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
-                  onChange(num);
-                }}
+              <DecimalInputField
+                label="Monthly Rent (If rented house)"
+                value={value}
+                onChangeValue={onChange}
                 placeholder="Enter monthly rent"
-                keyboardType="numeric"
                 prefix="₹"
                 error={formState.errors.MonthlyRent?.message}
               />
@@ -239,16 +235,11 @@ export default function FamilySection({ navigation }: any) {
           control={control}
           name="FamilyIncome"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Family Income"
-              value={value === undefined || value === null ? '' : String(value)}
-              onChangeText={(text) => {
-                const cleanText = text.replace(/[^0-9]/g, '');
-                const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
-                onChange(num);
-              }}
+            <DecimalInputField
+              label="Family Income (Monthly)"
+              value={value}
+              onChangeValue={onChange}
               placeholder="Enter family income"
-              keyboardType="numeric"
               prefix="₹"
               error={formState.errors.FamilyIncome?.message}
               helperText="Total income from all sources"

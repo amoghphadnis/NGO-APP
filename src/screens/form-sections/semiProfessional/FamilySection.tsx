@@ -4,6 +4,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Alert } from 'react-native';
 
 import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
@@ -19,6 +20,17 @@ const FALLBACK_HOUSE_TYPES: Option<number>[] = [
   { value: 3, label: 'Leased' },
 ];
 
+// Web master-table IDs for the "Other" occupation entries — appended when
+// the dropdown API doesn't return them (web forms always offer "Other").
+const FATHER_OCCUPATION_OTHER_ID = 13;
+const MOTHER_OCCUPATION_OTHER_ID = 7;
+
+function withOtherOption(options: Option<number>[], otherId: number): Option<number>[] {
+  return options.some((o) => o.label.trim().toLowerCase() === 'other')
+    ? options
+    : [...options, { value: otherId, label: 'Other' }];
+}
+
 export default function FamilySection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
@@ -31,14 +43,14 @@ export default function FamilySection({ navigation }: any) {
     async function loadDropdowns() {
       const response = await getSemiProfessionalDropdowns();
       if (response.success && response.data) {
-        setFatherOccupationOptions(response.data.fatherOccupations?.map((o: any) => ({
+        setFatherOccupationOptions(withOtherOption(response.data.fatherOccupations?.map((o: any) => ({
           value: Number(o.value),
           label: o.label
-        })) || []);
-        setMotherOccupationOptions(response.data.motherOccupations?.map((o: any) => ({
+        })) || [], FATHER_OCCUPATION_OTHER_ID));
+        setMotherOccupationOptions(withOtherOption(response.data.motherOccupations?.map((o: any) => ({
           value: Number(o.value),
           label: o.label
-        })) || []);
+        })) || [], MOTHER_OCCUPATION_OTHER_ID));
         const houseTypes = response.data.houseTypes?.map((h: any) => ({
           value: Number(h.value),
           label: h.label
@@ -146,7 +158,7 @@ export default function FamilySection({ navigation }: any) {
           name="fatherOccupationID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Father's Occupation"
+              label="Father/Guardian Occupation"
               placeholder="Select father's occupation"
               value={value}
               onChange={onChange}
@@ -163,7 +175,7 @@ export default function FamilySection({ navigation }: any) {
           name="motherOccupationID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Mother's Occupation"
+              label="Mother/Guardian Occupation"
               placeholder="Select mother's occupation"
               value={value}
               onChange={onChange}
@@ -228,19 +240,14 @@ export default function FamilySection({ navigation }: any) {
             control={control}
             name="monthlyRent"
             render={({ field: { onChange, value } }) => (
-              <VPInputField
+              <DecimalInputField
                 label="Monthly Rent Amount"
-                value={value?.toString() ?? ''}
-                onChangeText={(text) => {
-                  const num = parseFloat(text.replace(/[^0-9.]/g, ''));
-                  onChange(isNaN(num) ? '' : num);
-                }}
+                value={typeof value === 'number' ? value : undefined}
+                onChangeValue={(v) => onChange(v ?? '')}
                 placeholder="Enter monthly rent"
-                keyboardType="numeric"
                 prefix="₹"
                 error={formState.errors.monthlyRent?.message}
                 helperText="If you are staying in a rented house, kindly mention the monthly rent amount"
-                required
               />
             )}
           />
@@ -250,15 +257,11 @@ export default function FamilySection({ navigation }: any) {
           control={control}
           name="familyIncome"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Total Monthly Family Income"
-              value={value?.toString() ?? ''}
-              onChangeText={(text) => {
-                const num = parseFloat(text.replace(/[^0-9.]/g, ''));
-                onChange(isNaN(num) ? undefined : num);
-              }}
+            <DecimalInputField
+              label="Total Monthly Family Income (in ₹)"
+              value={typeof value === 'number' ? value : undefined}
+              onChangeValue={onChange}
               placeholder="Enter total family income"
-              keyboardType="numeric"
               prefix="₹"
               error={formState.errors.familyIncome?.message}
               helperText="Total income from all sources"

@@ -40,6 +40,7 @@ export interface NormalizedDropdowns {
   areaTypes?: NormalizedDropdownOption[];
   houseTypes?: NormalizedDropdownOption[];
   referenceSources?: NormalizedDropdownOption[];
+  lastDate?: string;
 }
 
 /**
@@ -59,8 +60,10 @@ export function normalizeProfessionalDropdowns(apiResponse: any): NormalizedDrop
   const referenceSources = masters.ReferenceList || masters.ReferenceSources || masters.referenceSources || masters.References || masters.references || [];
   const courses = masters.CourseList || masters.Courses || masters.courses || [];
   const collegeTypes = masters.CollegeTypeList || masters.CollegeTypes || masters.collegeTypes || [];
+  const lastDate = apiResponse.LastDate || masters.LastDate || apiResponse.lastDate || masters.lastDate;
 
   return {
+    lastDate: lastDate || undefined,
     districts: normalizeDistricts(districts),
     genders: normalizeGenders(genders),
     castes: normalizeCastes(castes),
@@ -100,8 +103,10 @@ export function normalizePUCDropdowns(apiResponse: any): NormalizedDropdowns {
   const motherOcc = apiResponse.MotherOccupationList || apiResponse.MotherOccupations || apiResponse.motherOccupations || apiResponse.MotherOcc || apiResponse.motherOcc || [];
   const houseTypes = apiResponse.HouseList || apiResponse.HouseTypes || apiResponse.houseTypes || apiResponse.Houses || apiResponse.houses || [];
   const referenceSources = apiResponse.ReferenceList || apiResponse.ReferenceSources || apiResponse.referenceSources || apiResponse.References || apiResponse.references || [];
+  const lastDate = apiResponse.LastDate || apiResponse.lastDate;
 
   return {
+    lastDate: lastDate || undefined,
     districts: normalizeDistricts(districts),
     genders: normalizeGenders(genders),
     castes: normalizeCastes(castes),

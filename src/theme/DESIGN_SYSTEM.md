@@ -145,6 +145,14 @@ This design system ensures consistency across all 8 form steps of the VP scholar
 - Warning: #F59E0B
 - Disabled: #D1D5DB
 
+### Brand Support Tokens
+- Brand Navy: #17366C — brand surfaces, selected headers, hero treatments
+- Brand Tint: #DCE4F5 — icon wells, selected nav backgrounds, info surfaces
+- Gold: #B9934B — sparing accent; hero underline and success divider only
+- Gold Tint: #F4EBD8 — light wash for small brand-accent backgrounds
+
+Primary (#4F5DFF) remains the dominant interactive color.
+
 ## Implementation Rules
 
 ### ✅ ALWAYS DO

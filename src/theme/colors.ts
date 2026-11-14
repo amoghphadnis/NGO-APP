@@ -18,4 +18,10 @@ export const colors = {
 
   disabled: '#D1D5DB',
   splash: '#208AEF',
+
+  // Brand support tokens — primary stays #4F5DFF; these complement it.
+  brandNavy: '#17366C', // Brand surfaces, selected headers, hero treatments
+  brandTint: '#DCE4F5', // Icon wells, selected nav backgrounds, info surfaces
+  gold: '#B9934B', // Sparing accent — hero underline and success divider only
+  goldTint: '#F4EBD8', // Light wash for small brand-accent backgrounds
 };

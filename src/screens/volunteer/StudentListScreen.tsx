@@ -21,6 +21,7 @@ import { pucStudentApi } from '@/api/pucStudentApi';
 import { semiProfessionalStudentApi } from '@/api/semiProfessionalStudentApi';
 import StudentRowSkeleton, { TABLE_WIDTH } from '@/components/approval/StudentRowSkeleton';
 import AppFooter from '@/components/common/AppFooter';
+import AppTopBar from '@/components/layout/AppTopBar';
 import StudentDetailModal from '@/components/student/StudentDetailModal';
 import VolunteerStudentRow from '@/components/volunteer/VolunteerStudentRow';
 import { colors } from '@/theme/colors';
@@ -266,16 +267,7 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top Bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.topBarTitle} numberOfLines={1}>{title}</Text>
-      </View>
+      <AppTopBar />
 
       <View style={styles.body}>
         {/* Student Detail Modal */}
@@ -396,7 +388,7 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
                   refreshControl={
                     <RefreshControl
                       refreshing={isFetching}
-                      onRefresh={refetch}
+                      onRefresh={() => { void refetch(); }}
                       colors={[colors.primary]}
                       tintColor={colors.primary}
                     />

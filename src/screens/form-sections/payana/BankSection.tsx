@@ -34,14 +34,14 @@ export default function BankSection({ navigation }: BankSectionProps) {
   const onSubmit = (data: PayanaBankFormValues) => {
     updateSectionData('bank', data);
     updateValidationState('bank', { isValid: true, data });
-    markStepComplete(7);
-    navigation.navigate('documents');
+    markStepComplete(4);
+    navigation.navigate('family');
   };
 
   return (
     <FormScreenLayout
       title="Bank Details"
-      step={8}
+      step={5}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={!formState.isValid}

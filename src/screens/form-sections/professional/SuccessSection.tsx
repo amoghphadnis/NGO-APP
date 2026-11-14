@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import BrandLogo from '@/components/common/BrandLogo';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
@@ -16,6 +17,7 @@ const FORM_TYPE_LABELS: Record<string, string> = {
   puc: 'PUC Scholarship',
   payana: 'Payana Scholarship',
   semiProfessional: 'Semi Professional Scholarship',
+  newStudent: 'Student Registration',
 };
 
 export default function SuccessSection({ navigation }: any) {
@@ -55,10 +57,15 @@ export default function SuccessSection({ navigation }: any) {
     >
       {/* Success Animation/Illustration */}
       <View style={styles.successContainer}>
+        <View style={styles.watermark} pointerEvents="none">
+          <BrandLogo variant="watermark" size={180} />
+        </View>
+        <BrandLogo size={44} />
         <View style={styles.successIconContainer}>
           <Ionicons name="checkmark-circle" size={80} color={colors.success} />
         </View>
         <Text style={styles.successTitle}>Application Submitted Successfully!</Text>
+        <View style={styles.goldDivider} />
         <Text style={styles.successSubtitle}>
           Your scholarship application has been received and is being processed.
         </Text>
@@ -173,7 +180,7 @@ export default function SuccessSection({ navigation }: any) {
           <View style={styles.stepItem}>
             <Ionicons name="help-circle" size={20} color={colors.primary} style={styles.stepIcon} />
             <Text style={styles.stepText}>
-              Contact support if you don't receive updates within 15 days
+              Contact support if you don&apos;t receive updates within 15 days
             </Text>
           </View>
         </View>
@@ -207,9 +214,28 @@ const styles = StyleSheet.create({
   successContainer: {
     alignItems: 'center',
     paddingVertical: spacing.xl,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  watermark: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   successIconContainer: {
     marginBottom: spacing.lg,
+    marginTop: spacing.sm,
+  },
+  goldDivider: {
+    width: 40,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.gold,
+    marginTop: spacing.sm,
   },
   successTitle: {
     fontSize: platform.normalize.fontSize.h1,

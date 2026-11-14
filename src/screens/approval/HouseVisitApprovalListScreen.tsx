@@ -21,28 +21,29 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Modal,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 
 import { HouseVisitApprovalApi } from '@/api/houseVisitApprovalApi';
 import AppFooter from '@/components/common/AppFooter';
+import EmptyState from '@/components/common/EmptyState';
+import AppTopBar from '@/components/layout/AppTopBar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { HouseVisitApprovalItem } from '@/types/houseVisitApproval';
-import { canApprove } from '@/utils/roleUtils';
+import { canApproveReject } from '@/utils/roleUtils';
 
 const MANAGER_STATUS_COLORS: Record<string, string> = {
   Pending: colors.warning,
@@ -63,7 +64,6 @@ export interface HouseVisitApprovalScreenProps {
 
 export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitApprovalScreenProps) {
   const queryClient = useQueryClient();
-  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [refreshing, setRefreshing] = useState(false);
   const [actionModal, setActionModal] = useState<{
@@ -72,8 +72,7 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
   } | null>(null);
   const [remark, setRemark] = useState('');
 
-  const isBranchExecutive = user?.Role === 'Branch Executives';
-  const userCanApprove = canApprove(user?.Role);
+  const userCanApprove = canApproveReject(user?.Role);
 
   const { data: items, isLoading, isError, error, refetch } = useQuery({
     queryKey: api.queryKeys.list,
@@ -209,7 +208,7 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
     );
   };
 
-  if (!userCanApprove && !isBranchExecutive) {
+  if (!userCanApprove) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.errorContainer}>
@@ -254,17 +253,10 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <AppTopBar />
+
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-          </TouchableOpacity>
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle}>{title}</Text>
             <Text style={styles.headerSubtitle}>
@@ -283,10 +275,10 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="document-text-outline" size={48} color={colors.textSecondary} />
-            <Text style={styles.emptyText}>No house visits pending approval</Text>
-          </View>
+          <EmptyState
+            icon="document-text-outline"
+            title="No house visits pending approval"
+          />
         }
       />
 

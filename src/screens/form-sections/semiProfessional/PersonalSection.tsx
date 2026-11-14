@@ -155,7 +155,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
           name="studentName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Student Name"
+              label="Name of the Student"
               value={value}
               onChangeText={onChange}
               placeholder="Enter your full name"
@@ -185,7 +185,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
           name="contactNumber"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Contact Number"
+              label="Contact Number (WhatsApp Number)"
               value={value}
               onChangeText={onChange}
               placeholder="Enter 10-digit mobile number"
@@ -205,44 +205,11 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
               label="Alternate Number"
               value={value ?? ''}
               onChangeText={onChange}
-              placeholder="Enter alternate number (optional)"
+              placeholder="Enter 10-digit alternate number"
               keyboardType="phone-pad"
               maxLength={10}
               error={formState.errors.alternateNumber?.message}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="genderID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Gender"
-              value={value}
-              options={genderOptions}
-              onChange={onChange}
-              placeholder="Select gender"
-              error={formState.errors.genderID?.message}
               required
-              disabled={loadingDropdowns}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="casteCategoryID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Caste"
-              value={value}
-              options={casteOptions}
-              onChange={onChange}
-              placeholder="Select caste category"
-              error={formState.errors.casteCategoryID?.message}
-              required
-              disabled={loadingDropdowns}
             />
           )}
         />
@@ -258,14 +225,49 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
       <FormCard>
         <Controller
           control={control}
+          name="residentialAddress"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Residential Address"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter complete address"
+              multiline
+              numberOfLines={4}
+              error={formState.errors.residentialAddress?.message}
+              helperText="Include father's name, house number, street name, village/city, landmark, post, taluka, district and pin code"
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="googleMapLink"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Mention your home address Google Map link here"
+              value={value ?? ''}
+              onChangeText={onChange}
+              placeholder="https://maps.google.com/..."
+              autoCapitalize="none"
+              error={formState.errors.googleMapLink?.message}
+              helperText="Open Google Maps, find your home, and paste the share link"
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
           name="areaTypeID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Area Type"
+              label="Place"
               value={value}
               options={areaTypeOptions}
               onChange={onChange}
-              placeholder="Select area type"
+              placeholder="Select"
               error={formState.errors.areaTypeID?.message}
               required
               disabled={loadingDropdowns}
@@ -306,38 +308,44 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
             )}
           />
         )}
+      </FormCard>
 
+      <FormSectionHeader
+        icon="person-circle"
+        title="Other Details"
+        subtitle="Gender and category"
+      />
+
+      <FormCard>
         <Controller
           control={control}
-          name="residentialAddress"
+          name="genderID"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Residential Address"
+            <ModalSelectField
+              label="Gender"
               value={value}
-              onChangeText={onChange}
-              placeholder="Enter complete address"
-              multiline
-              numberOfLines={3}
-              error={formState.errors.residentialAddress?.message}
-              helperText="Include house number, street name, and landmarks"
+              options={genderOptions}
+              onChange={onChange}
+              placeholder="Select gender"
+              error={formState.errors.genderID?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
 
         <Controller
           control={control}
-          name="googleMapLink"
+          name="casteCategoryID"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Google Map Link"
-              value={value ?? ''}
-              onChangeText={onChange}
-              placeholder="Paste Google Maps location link"
-              autoCapitalize="none"
-              error={formState.errors.googleMapLink?.message}
-              helperText="Open Google Maps, find your home, and paste the share link"
-              required
+            <ModalSelectField
+              label="Caste & Category"
+              value={value}
+              options={casteOptions}
+              onChange={onChange}
+              placeholder="Select caste category"
+              error={formState.errors.casteCategoryID?.message}
+              disabled={loadingDropdowns}
             />
           )}
         />

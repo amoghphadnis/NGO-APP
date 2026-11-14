@@ -106,6 +106,41 @@ export const PUC_FORMAT11_UPLOAD_RULES: UploadRule[] = [
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
   },
+  {
+    key: PUC_FORMAT11_FILE_KEYS.ELECTRICITY_BILL,
+    label: 'Electricity Bill',
+    required: true,
+    maxSize: 2 * 1024 * 1024,
+    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
+  },
+  {
+    key: PUC_FORMAT11_FILE_KEYS.RATION_CARD,
+    label: 'Ration Card',
+    required: true,
+    maxSize: 2 * 1024 * 1024,
+    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
+  },
+  {
+    key: PUC_FORMAT11_FILE_KEYS.DWELLING_UNIT_PHOTO,
+    label: 'Dwelling Unit Photo',
+    required: true,
+    maxSize: 2 * 1024 * 1024,
+    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png'],
+  },
+  {
+    key: PUC_FORMAT11_FILE_KEYS.HOUSE_VIDEO,
+    label: 'House Video',
+    required: true,
+    maxSize: 50 * 1024 * 1024, // 50MB for video
+    acceptedTypes: ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/avi', 'video/webm', 'video/3gpp', 'video/mkv'],
+  },
+  {
+    key: PUC_FORMAT11_FILE_KEYS.INCOME_CERTIFICATE,
+    label: 'Income Certificate',
+    required: true,
+    maxSize: 2 * 1024 * 1024,
+    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
+  },
 ];
 
 const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.3gp', '.wmv', '.m4v'];

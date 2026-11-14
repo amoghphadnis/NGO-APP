@@ -1,16 +1,17 @@
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FileUploadField from '@/components/form/FileUploadField';
+import UploadSizeNotice from '@/components/form/UploadSizeNotice';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { SEMI_PROFESSIONAL_FILE_KEYS } from '@/forms/semiProfessional/fileKeys';
 import { getSemiProfUploadRule, validateSemiProfUpload } from '@/forms/semiProfessional/uploads';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
-import { UploadedDocument } from '@/types/documents';
 import { pickDocument } from '@/utils/filePicker';
+import { getTotalUploadSizeBytes } from '@/utils/uploadSize';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 const VIDEO_TYPES = ['video/mp4', 'video/avi', 'video/x-msvideo', 'video/mov', 'video/quicktime', 'video/x-m4v', 'video/3gpp', 'video/webm'];
@@ -92,7 +93,7 @@ export default function DocumentSection({ navigation }: any) {
       <FormSectionHeader
           icon="attach"
           title="Upload Documents"
-          subtitle="Take photos using your mobile phone and upload them. Only image files are allowed. Fields marked with * are required."
+          subtitle="Take photos using your mobile phone and upload them (only image files allowed). For House Video, upload video files only (MP4, AVI, MOV, MKV, WMV, 3GP, WEBM)."
         />
 
         {DOC_KEYS.map((doc) => {
@@ -148,6 +149,8 @@ export default function DocumentSection({ navigation }: any) {
           title="Upload Status"
           subtitle="Current upload progress"
         />
+
+        <UploadSizeNotice totalBytes={getTotalUploadSizeBytes(documentData)} />
 
         <FormCard>
           <View style={styles.statusContainer}>

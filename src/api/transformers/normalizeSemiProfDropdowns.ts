@@ -78,7 +78,7 @@ export function normalizeSemiProfessionalDropdowns(apiResponse: any): Normalized
   };
 
   const normalized: NormalizedSemiProfDropdowns = {
-    lastDate: apiResponse.LastDate,
+    lastDate: apiResponse.LastDate || apiResponse.lastDate,
     districts: normalizeGenericDropdown(raw.districts),
     genders: normalizeGenericDropdown(raw.genders),
     casteCategories: normalizeGenericDropdown(raw.casteCategories),

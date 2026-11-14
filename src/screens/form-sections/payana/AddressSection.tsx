@@ -100,6 +100,23 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
       <FormCard>
         <Controller
           control={control}
+          name="placeID"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="Place"
+              value={value}
+              options={placeOptions}
+              onChange={onChange}
+              placeholder="Select place"
+              error={formState.errors.placeID?.message}
+              required
+              disabled={loadingDropdowns}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
           name="residentialAddress"
           render={({ field: { onChange, value } }) => (
             <VPInputField
@@ -114,6 +131,7 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
             />
           )}
         />
+
 
         <Controller
           control={control}
@@ -132,20 +150,6 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
           )}
         />
 
-        <Controller
-          control={control}
-          name="taluka"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Taluka"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter taluka"
-              error={formState.errors.taluka?.message}
-              required
-            />
-          )}
-        />
 
         <Controller
           control={control}
@@ -162,6 +166,7 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
             />
           )}
         />
+
 
         {showOtherDistrict && (
           <Controller
@@ -182,37 +187,36 @@ export default function AddressSection({ navigation }: AddressSectionProps) {
 
         <Controller
           control={control}
-          name="pincode"
+          name="taluka"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Pin Code"
+              label="Taluka"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter pin code"
-              keyboardType="number-pad"
-              maxLength={6}
-              error={formState.errors.pincode?.message}
+              placeholder="Enter taluka"
+              error={formState.errors.taluka?.message}
               required
             />
           )}
         />
 
+
         <Controller
           control={control}
-          name="placeID"
+          name="pincode"
           render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Place"
-              value={value}
-              options={placeOptions}
-              onChange={onChange}
-              placeholder="Select place"
-              error={formState.errors.placeID?.message}
-              required
-              disabled={loadingDropdowns}
+            <VPInputField
+              label="Pin Code"
+              value={value ?? ''}
+              onChangeText={onChange}
+              placeholder="Enter pin code"
+              keyboardType="number-pad"
+              maxLength={6}
+              error={formState.errors.pincode?.message}
             />
           )}
         />
+
       </FormCard>
     </FormScreenLayout>
   );

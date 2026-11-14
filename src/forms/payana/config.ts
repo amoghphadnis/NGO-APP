@@ -10,10 +10,10 @@ export const payanaFormConfig: FormConfig = {
     'personal',
     'contact',
     'address',
+    'bank',
     'family',
     'category',
     'academic',
-    'bank',
     'documents',
     'review',
     'success'
@@ -72,6 +72,15 @@ export const payanaStepConfigs = [
     icon: 'location'
   },
   {
+    id: 'bank' as FormStep,
+    title: 'Bank Details',
+    subtitle: 'Student bank account information',
+    component: 'BankSection',
+    validation: 'payanaBankSchema',
+    required: true,
+    icon: 'card'
+  },
+  {
     id: 'family' as FormStep,
     title: 'Family Information',
     subtitle: 'Parents and family details',
@@ -83,7 +92,7 @@ export const payanaStepConfigs = [
   {
     id: 'category' as FormStep,
     title: 'Category Details',
-    subtitle: 'Caste and house type',
+    subtitle: 'Caste category',
     component: 'CategorySection',
     validation: 'payanaCategorySchema',
     required: true,
@@ -97,15 +106,6 @@ export const payanaStepConfigs = [
     validation: 'payanaAcademicSchema',
     required: true,
     icon: 'school'
-  },
-  {
-    id: 'bank' as FormStep,
-    title: 'Bank Details',
-    subtitle: 'Student bank account information',
-    component: 'BankSection',
-    validation: 'payanaBankSchema',
-    required: true,
-    icon: 'card'
   },
   {
     id: 'documents' as FormStep,

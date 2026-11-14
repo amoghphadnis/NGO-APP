@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 
-export type HomeFormType = 'professional' | 'puc' | 'semiProfessional';
+export type HomeFormType = 'professional' | 'puc' | 'semiProfessional' | 'newStudent';
 
 export interface ScholarshipCardItem {
   id: string;
@@ -39,7 +39,7 @@ export const homeSections: HomeSection[] = [
         title: 'Professional',
         formType: 'professional',
         icon: 'briefcase-outline',
-        description: 'For professional courses like Engineering, Medicine, Architecture',
+        description: 'For Engineering and Medical students',
         benefits: ['Higher amounts', 'Merit-based', 'Course verification'],
       },
       {
@@ -47,7 +47,7 @@ export const homeSections: HomeSection[] = [
         title: 'PUC-I',
         formType: 'puc',
         icon: 'school-outline',
-        description: 'For students in Pre-University College (11th & 12th grade)',
+        description: 'For PUC-I Commerce and Diploma-I students',
         benefits: ['Foundation scholarship', 'Academic based', 'Stream benefits'],
       },
       {
@@ -55,7 +55,7 @@ export const homeSections: HomeSection[] = [
         title: 'Semi Professional',
         formType: 'semiProfessional',
         icon: 'medkit-outline',
-        description: 'For B.Sc Nursing, GNM, Physiotherapy, Agriculture, Veterinary, Horticulture and similar courses',
+        description: 'For B.Sc Nursing, GNM-Nursing, Physiotherapy, B.Sc Agriculture, Veterinary Science & Horticulture',
         benefits: ['Nursing & Agriculture', 'Need-based', 'Document verification'],
       },
 

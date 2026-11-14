@@ -22,6 +22,9 @@ import {
     guidelinesSchema,
     personalDetailsSchema,
 } from '@/validation/sharedSchemas';
+import {
+    newStudentFormSchema,
+} from '@/validation/newStudentSchemas';
 import { z } from 'zod';
 
 // Type exports from Zod schemas (single source of truth)
@@ -41,12 +44,14 @@ export type PayanaFormValues = z.infer<typeof payanaFormSchema>;
 
 export type SemiProfessionalFormValues = z.infer<typeof semiProfessionalFormSchema>;
 
+export type NewStudentFormValues = z.infer<typeof newStudentFormSchema>;
+
 // Union type for all form types
-export type FormDataUnion = ProfessionalFormValues | PucFormValues | PayanaFormValues | SemiProfessionalFormValues;
+export type FormDataUnion = ProfessionalFormValues | PucFormValues | PayanaFormValues | SemiProfessionalFormValues | NewStudentFormValues;
 
 // Form engine state interface (using Zod-inferred types)
 export interface FormEngineState {
-  currentFormType: 'professional' | 'puc' | 'payana' | 'semiProfessional' | null;
+  currentFormType: 'professional' | 'puc' | 'payana' | 'semiProfessional' | 'newStudent' | null;
   currentStep: number;
   completedSteps: Record<number, boolean>;
   formData: FormDataUnion;
@@ -95,4 +100,8 @@ export const isPayanaForm = (data: FormDataUnion): data is PayanaFormValues => {
 
 export const isSemiProfessionalForm = (data: FormDataUnion): data is SemiProfessionalFormValues => {
   return data && 'personal' in data && 'family' in data && 'studentName' in (data as any).personal && !('category' in data) && !('bank' in data);
+};
+
+export const isNewStudentForm = (data: FormDataUnion): data is NewStudentFormValues => {
+  return data && 'category' in data && !('bank' in data) && !('agreement' in data);
 };

@@ -26,6 +26,13 @@ export const PUC_FORMAT11_FILE_KEYS = {
   FEE_RECEIPTS: 'FeeReceipts',
   BANK_PASSBOOK: 'BankPassbook',
   AADHAAR_CARD: 'AadhaarCard',
+  // Additional documents required for web/mobile parity (house-visit
+  // verification). Backend field names match the professional contract.
+  ELECTRICITY_BILL: 'ElectricityBill',
+  RATION_CARD: 'RationCard',
+  DWELLING_UNIT_PHOTO: 'DwellingUnitPhoto',
+  HOUSE_VIDEO: 'HouseVideo',
+  INCOME_CERTIFICATE: 'IncomeCertificate',
 } as const;
 
 export type PucFormat11FileKey =

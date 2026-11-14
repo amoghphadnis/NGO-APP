@@ -1,9 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Alert } from 'react-native';
 
+import { listSemiProfessionalCourses } from '@/api/semiProfessionalCoursesApi';
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import VPInputField from '@/components/common/VPInputField';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { SemiProfAcademicFormValues, semiProfAcademicSchema } from '@/validation/semiProfessionalSchemas';
@@ -12,25 +16,49 @@ import { useFormEngineStore } from '../../../store/useFormEngineStore';
 export default function AcademicSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
+  const [courseOptions, setCourseOptions] = useState<Option<number>[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+
+  useEffect(() => {
+    async function loadCourses() {
+      try {
+        const res = await listSemiProfessionalCourses();
+        if (res.success && res.data) {
+          setCourseOptions(res.data.map((c) => ({
+            value: c.CourseId,
+            label: c.CourseName,
+          })));
+        }
+      } finally {
+        setLoadingCourses(false);
+      }
+    }
+    loadCourses();
+  }, []);
+
   const academicData = (formData as any).academic ?? {
     puPercentage: undefined as number | undefined,
     cetRank: undefined as number | undefined,
     ptRank: undefined as number | undefined,
+    semiProfessionalCourseID: 0,
     courseApplying: '',
     courseStream: '',
   };
 
-  const { control, handleSubmit, formState } = useForm<SemiProfAcademicFormValues>({
+  const { control, handleSubmit, setValue, formState } = useForm<SemiProfAcademicFormValues>({
     defaultValues: {
       puPercentage: academicData.puPercentage || undefined,
       cetRank: academicData.cetRank,
       ptRank: academicData.ptRank,
+      semiProfessionalCourseID: academicData.semiProfessionalCourseID ?? 0,
       courseApplying: academicData.courseApplying ?? '',
       courseStream: academicData.courseStream ?? '',
     },
     resolver: zodResolver(semiProfAcademicSchema),
     mode: 'onChange',
   });
+
+
 
   const onSubmit = (data: SemiProfAcademicFormValues) => {
     updateSectionData('academic', data);
@@ -66,15 +94,11 @@ export default function AcademicSection({ navigation }: any) {
           control={control}
           name="puPercentage"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <DecimalInputField
               label="Secured Percentage in PUC II / 12th Grade"
-              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
-              onChangeText={(text) => {
-                const clean = text.replace(/[^0-9.]/g, '');
-                onChange(clean === '' ? undefined : parseFloat(clean));
-              }}
+              value={value}
+              onChangeValue={onChange}
               placeholder="Enter your percentage"
-              keyboardType="numeric"
               suffix="%"
               error={formState.errors.puPercentage?.message}
               required
@@ -132,15 +156,21 @@ export default function AcademicSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="courseApplying"
+          name="semiProfessionalCourseID"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <ModalSelectField
               label="Course Applying For"
               value={value}
-              onChangeText={onChange}
-              placeholder="e.g. B.Sc Nursing, GNM, B.Sc Agriculture"
-              error={formState.errors.courseApplying?.message}
+              options={courseOptions}
+              onChange={(id) => {
+                onChange(id);
+                const picked = courseOptions.find((o) => o.value === id);
+                setValue('courseApplying', picked?.label ?? '', { shouldValidate: true });
+              }}
+              placeholder="Select course"
+              error={formState.errors.semiProfessionalCourseID?.message}
               required
+              disabled={loadingCourses}
             />
           )}
         />

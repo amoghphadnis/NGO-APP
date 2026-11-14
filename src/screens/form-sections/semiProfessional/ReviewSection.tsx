@@ -1,17 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import FormCard from '@/components/common/FormCard';
-import FormSectionHeader from '@/components/common/FormSectionHeader';
-import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
 import { NormalizedDropdownOption } from '@/api/transformers/normalizeDropdowns';
-import { SEMI_PROFESSIONAL_FILE_KEYS } from '@/forms/semiProfessional/fileKeys';
+import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
+import UploadSizeNotice from '@/components/form/UploadSizeNotice';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import { getFormConfig } from '@/forms/shared/registry';
 import { preparePayload, submitApplication } from '@/submission';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
+import { confirmNoDuplicate, getContactNumber } from '@/utils/duplicateCheck';
+import { getTotalUploadSizeBytes, isTotalUploadSizeExceeded } from '@/utils/uploadSize';
 import { SemiProfessionalFormValues } from '@/validation/semiProfessionalSchemas';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
@@ -94,7 +97,9 @@ export default function ReviewSection({ navigation }: any) {
     return hasPersonal && hasFamily && hasAcademic && hasAllDocuments;
   };
 
-  const canSubmit = isFormComplete() && declarationAccepted;
+  const totalUploadBytes = getTotalUploadSizeBytes(spFormData.documents);
+  const uploadSizeExceeded = isTotalUploadSizeExceeded(spFormData.documents);
+  const canSubmit = isFormComplete() && declarationAccepted && !uploadSizeExceeded;
 
   const onSubmit = async () => {
     // Synchronous re-entry guard — prevents double-tap before React re-renders.
@@ -112,6 +117,16 @@ export default function ReviewSection({ navigation }: any) {
     }
 
     try {
+      const proceed = await confirmNoDuplicate(
+        currentFormType,
+        getContactNumber(currentFormType, formData),
+      );
+      if (!proceed) {
+        setSubmissionLoading(false);
+        submitLock.current = false;
+        return;
+      }
+
       const payload = preparePayload(currentFormType, formData);
       const response = await submitApplication(currentFormType, payload);
 
@@ -120,7 +135,8 @@ export default function ReviewSection({ navigation }: any) {
       }
 
       setSubmissionSuccess(true, response.data?.applicationId || undefined);
-      markStepComplete(5);
+      const reviewIndex = getFormConfig(currentFormType).steps.indexOf('review');
+      if (reviewIndex >= 0) markStepComplete(reviewIndex);
       navigation.navigate('success');
     } catch (error: any) {
       const submissionId = error?.submissionId;
@@ -315,6 +331,8 @@ export default function ReviewSection({ navigation }: any) {
             </TouchableOpacity>
           </View>
         </FormCard>
+
+        <UploadSizeNotice totalBytes={totalUploadBytes} />
 
         {submissionState.error ? (
           <FormCard>

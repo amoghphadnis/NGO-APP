@@ -5,8 +5,11 @@ interface NotificationCounts {
   pendingSemiProfessional?: number;
   pendingHousePUC: number;
   pendingHousePayana: number;
+  pendingHouseProfessional?: number;
+  pendingHouseSemiProfessional?: number;
   pendingPUCRenewal: number;
   pendingPayanaRenewal: number;
+  pendingProfessionalRenewal?: number;
   pendingVisitPUC?: number;
   pendingVisitPayana?: number;
 }

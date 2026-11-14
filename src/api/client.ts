@@ -4,9 +4,9 @@
  * so consumer files (pucApi, professionalApi, etc.) need no changes.
  */
 
-import '@/utils/polyfillFormData';
 import { environment } from '@/config/environment';
 import { generateRequestId, error as logError, info as logInfo, warn as logWarn, truncateStack } from '@/diagnostics';
+import '@/utils/polyfillFormData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ApiResponse {
@@ -122,7 +122,14 @@ const BEARER_REQUIRED_PATHS = [
   '/payana-renewal/reject/',
   '/payana-renewal/delete/',
   '/payana-renewal/import',
+  '/professional-renewal1',
   '/edit-professional-renewal',
+  // User management (admin) — login/register/forgot stay public
+  '/registration/users',
+  '/registration/toggle/',
+  '/registration/update/',
+  '/registration/delete/',
+  '/device-tokens',
   // House Visit Grid (manager approval) — 3D-G
   '/puc-housevisits-grid',
   '/professional-house-visits',
@@ -218,7 +225,8 @@ function sendFormDataViaXHR(
         resolve({ data, status: xhr.status, ok: true });
       } else {
         const message =
-          (typeof data === 'object' && (data?.Message || data?.message)) ||
+          (typeof data === 'object' &&
+            (data?.ExceptionMessage || data?.exceptionMessage || data?.Message || data?.message)) ||
           getStatusMessage(xhr.status) ||
           'Request failed';
         reject(new ApiError(message, xhr.status, data));
@@ -274,7 +282,7 @@ async function request(
     if (body instanceof FormData) {
       delete headers['Content-Type'];
       try {
-        const xhrResponse = await sendFormDataViaXHR(url, method, body, headers, environment.API_TIMEOUT);
+        const xhrResponse = await sendFormDataViaXHR(url, method, body, headers, environment.UPLOAD_TIMEOUT);
         const durationMs = Date.now() - start;
         logInfo('api', 'request_success', {
           requestId, method, endpoint: path,
@@ -285,6 +293,15 @@ async function request(
         if (xhrError?.message === 'XMLHttpRequest is not available') {
           // Fall through to fetchWithTimeout below (e.g. Node.js unit test runner)
         } else {
+          // HTTP errors from the XHR path aren't logged by the outer catch — record them here.
+          if (xhrError instanceof ApiError && xhrError.response?.status !== undefined) {
+            logError('api', 'request_failed', {
+              requestId, method, endpoint: path,
+              statusCode: xhrError.response.status,
+              errorCode: `HTTP_${xhrError.response.status}`,
+              durationMs: Date.now() - start,
+            });
+          }
           throw xhrError;
         }
       }
@@ -335,7 +352,8 @@ async function request(
 
     if (!response.ok) {
       const message =
-        (typeof data === 'object' && (data?.Message || data?.message)) ||
+        (typeof data === 'object' &&
+          (data?.ExceptionMessage || data?.exceptionMessage || data?.Message || data?.message)) ||
         getStatusMessage(response.status) ||
         'Request failed';
       const durationMs = Date.now() - start;

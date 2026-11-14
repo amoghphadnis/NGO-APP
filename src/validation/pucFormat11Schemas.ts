@@ -124,6 +124,11 @@ export const pucFormat11DocumentsSchema = z.object({
   FeeReceipts: z.custom<UploadedDocument>().optional(),
   BankPassbook: z.custom<UploadedDocument>().optional(),
   AadhaarCard: z.custom<UploadedDocument>().optional(),
+  ElectricityBill: z.custom<UploadedDocument>().optional(),
+  RationCard: z.custom<UploadedDocument>().optional(),
+  DwellingUnitPhoto: z.custom<UploadedDocument>().optional(),
+  HouseVideo: z.custom<UploadedDocument>().optional(),
+  IncomeCertificate: z.custom<UploadedDocument>().optional(),
 });
 
 // ============================================================================

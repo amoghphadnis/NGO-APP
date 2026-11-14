@@ -40,7 +40,7 @@ function buildValidPayana(overrides: Partial<PayanaFormValues> = {}): PayanaForm
     contact: {
       email: 'test@test.com',
       contactNumber: '9876543210',
-      alternateNumber: '',
+      alternateNumber: '9876543211',
     },
     address: {
       residentialAddress: 'Test Address',
@@ -73,6 +73,7 @@ function buildValidPayana(overrides: Partial<PayanaFormValues> = {}): PayanaForm
       courseStream: '',
       annualFees: '100000',
       totalExpenses: '150000',
+      reference: 'Test Referrer',
       studentAchievements: 'District topper',
       securedPercentage: '85',
     },
@@ -100,6 +101,7 @@ function buildValidSemiProfessional(): SemiProfessionalFormValues {
       studentName: 'Test Student',
       dateOfBirth: '2000-01-01',
       contactNumber: '9876543210',
+      alternateNumber: '9876543211',
       genderID: 1,
       casteCategoryID: 1,
       areaTypeID: 1,
@@ -121,6 +123,7 @@ function buildValidSemiProfessional(): SemiProfessionalFormValues {
       puPercentage: 85,
       cetRank: 1234,
       ptRank: 5678,
+      semiProfessionalCourseID: 3,
       courseApplying: 'B.Sc Nursing',
       courseStream: 'Nursing',
     },
@@ -236,7 +239,7 @@ describe('Form Submission', () => {
     it('should log missing files for Payana', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
 
-      preparePayload('payana', buildValidPayana({ documents: {} }));
+      preparePayload('payana', buildValidPayana({ documents: { houseVisitLink: 'https://maps.google.com/test' } }));
 
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Missing file: latestMarksCard')

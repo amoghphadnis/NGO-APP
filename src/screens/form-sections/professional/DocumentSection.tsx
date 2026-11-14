@@ -1,13 +1,15 @@
-import { Alert } from 'react-native';
 import { useForm } from 'react-hook-form';
+import { Alert } from 'react-native';
 
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FileUploadField from '@/components/form/FileUploadField';
+import UploadSizeNotice from '@/components/form/UploadSizeNotice';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { PROFESSIONAL_FILE_KEYS } from '@/forms/professional/fileKeys';
 import { PROFESSIONAL_UPLOAD_RULES, validateUpload } from '@/forms/professional/uploads';
 import { pickDocument } from '@/utils/filePicker';
+import { getTotalUploadSizeBytes } from '@/utils/uploadSize';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function DocumentSection({ navigation }: any) {
@@ -132,6 +134,8 @@ export default function DocumentSection({ navigation }: any) {
       {renderUploadField(PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL, 'Electricity Bill', 'Upload recent electricity bill')}
       {renderUploadField(PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE, 'Income Certificate', 'Upload family income certificate')}
       {renderUploadField(PROFESSIONAL_FILE_KEYS.RATION_CARD, 'Ration Card', 'Upload ration card (both sides)')}
+
+      <UploadSizeNotice totalBytes={getTotalUploadSizeBytes(documentData)} />
     </FormScreenLayout>
   );
 }

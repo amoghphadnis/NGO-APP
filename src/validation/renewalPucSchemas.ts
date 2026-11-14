@@ -1,4 +1,12 @@
+import { UploadedDocument } from '@/types/documents';
 import { z } from 'zod';
+
+const requiredDocument = z.custom<UploadedDocument>(
+  (val) =>
+    val != null &&
+    typeof (val as UploadedDocument).file?.uri === 'string',
+  { message: 'This document is required' }
+);
 
 export const renewalPucSchema = z.object({
   // Section 2: Applicant Information
@@ -10,6 +18,8 @@ export const renewalPucSchema = z.object({
   district: z.number().min(1, { message: 'District is required' }),
   taluk: z.string().min(1, { message: 'Taluk is required' }),
   address: z.string().min(1, { message: 'Address is required' }),
+  currentAddress: z.string().optional().or(z.literal('')),
+  otherDistrict: z.string().optional().or(z.literal('')),
   gender: z.string().min(1, { message: 'Gender is required' }),
   dob: z.string().min(1, { message: 'Date of birth is required' }),
 
@@ -45,7 +55,17 @@ export const renewalPucSchema = z.object({
   branchName: z.string().min(1, { message: 'Branch name is required' }),
   parentBankBalance: z.number().min(0).optional(),
 
+  // Section 6: Documents
+  marksheet: requiredDocument,
+  thankingLetters: z.array(z.custom<UploadedDocument>()).optional(),
+  passbook: z.custom<UploadedDocument>().optional(),
+  photo: z.custom<UploadedDocument>().optional(),
+  thankingVideo: z.custom<UploadedDocument>().optional(),
+  feesReceipt: z.custom<UploadedDocument>().optional(),
+  thankingVolunteerLetter: z.custom<UploadedDocument>().optional(),
+
   // Section 7: Additional Info
+  houseVisitLink: z.string().optional().or(z.literal('')),
   renewalPreviousVPID: z.string().optional().or(z.literal('')),
 });
 

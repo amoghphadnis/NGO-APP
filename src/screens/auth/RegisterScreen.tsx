@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -7,7 +8,6 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
-    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -21,14 +21,11 @@ import VPInputField from '@/components/common/VPInputField';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 
+// Public self-registration is limited to field roles. Staff roles
+// (Admin, Employee, Program Manager, Account Manager, Admin(CEO),
+// Resource Modulization) are assigned via Admin → Manage Users.
 const ROLES = [
-  'Admin',
-  'Employee',
   'Branch Executives',
-  'Program Manager',
-  'Account Manager',
-  'Admin(CEO)',
-  'Resource Mobilization',
   'Volunteer',
 ];
 
@@ -154,10 +151,6 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    registrationApi.openGoogleLogin();
-  };
-
   const clearFieldError = (field: string) => {
     if (errors[field]) {
       setErrors((prev) => {
@@ -172,7 +165,7 @@ export default function RegisterScreen() {
   if (registered) {
     return (
       <View style={styles.successScreen}>
-        <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+        <StatusBar style="light" />
         <View style={styles.successIconWrap}>
           <Ionicons name="checkmark-circle" size={88} color="#FFFFFF" />
         </View>
@@ -203,7 +196,7 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+      <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -397,23 +390,6 @@ export default function RegisterScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Divider */}
-          {/* <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
-          </View> */}
-
-          {/* Google Button */}
-          {/* <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin} activeOpacity={0.8}>
-            <Image
-              source={{ uri: 'https://developers.google.com/identity/images/g-logo.png' }}
-              style={styles.googleLogo}
-            />
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
-          </TouchableOpacity> */}
-
-
           {/* Footer */}
           <Text style={styles.footer}>© Vidya Poshak 2026</Text>
         </View>
@@ -604,53 +580,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.primary,
     fontWeight: '700',
-  },
-
-  // Divider
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    marginHorizontal: spacing.sm,
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-
-  // Google
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: 14,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: '#FFFFFF',
-    minHeight: 52,
-    gap: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  googleLogo: {
-    width: 20,
-    height: 20,
-  },
-  googleButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.textPrimary,
   },
 
   footer: {

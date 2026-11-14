@@ -5,6 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { getPUCDropdowns } from '@/api/pucApi';
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import VPInputField from '@/components/common/VPInputField';
@@ -143,15 +144,11 @@ export default function FamilySection({ navigation }: any) {
           control={control}
           name="FamilyAnnualIncome"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <DecimalInputField
               label="Family Annual Income"
-              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
-              onChangeText={(text) => {
-                const clean = text.replace(/[^0-9.]/g, '');
-                onChange(clean === '' ? undefined : Number(clean));
-              }}
+              value={value}
+              onChangeValue={onChange}
               placeholder="Enter annual family income"
-              keyboardType="numeric"
               prefix="₹"
               error={formState.errors.FamilyAnnualIncome?.message}
               helperText="Total annual income from all sources"

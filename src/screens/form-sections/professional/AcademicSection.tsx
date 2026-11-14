@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Alert } from 'react-native';
 
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import VPInputField from '@/components/common/VPInputField';
@@ -66,15 +67,11 @@ export default function AcademicSection({ navigation }: any) {
           control={control}
           name="PUPercentage"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="PU/12th Percentage"
-              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
-              onChangeText={(text) => {
-                const clean = text.replace(/[^0-9.]/g, '');
-                onChange(clean === '' ? undefined : parseFloat(clean));
-              }}
+            <DecimalInputField
+              label="Secured Percentage in 12th Grade"
+              value={value}
+              onChangeValue={onChange}
               placeholder="Enter percentage"
-              keyboardType="numeric"
               suffix="%"
               error={formState.errors.PUPercentage?.message}
               helperText="Enter your PU/12th grade percentage"
@@ -88,7 +85,7 @@ export default function AcademicSection({ navigation }: any) {
           name="CETRank"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="CET Rank"
+              label="CET Rank (Mandatory for Engineering course)"
               value={value === undefined || value === null ? '' : String(value)}
               onChangeText={(text) => {
                 const cleanText = text.replace(/[^0-9]/g, '');
@@ -135,7 +132,7 @@ export default function AcademicSection({ navigation }: any) {
           name="CourseApplying"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Course Applying For"
+              label="Course Applying"
               value={value}
               onChangeText={onChange}
               placeholder="Enter course name"

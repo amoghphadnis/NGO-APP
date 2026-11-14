@@ -5,6 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { Alert, StyleSheet } from 'react-native';
 
 import { getPUCDropdowns } from '@/api/pucApi';
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import VPInputField from '@/components/common/VPInputField';
@@ -59,6 +60,8 @@ export default function AcademicSection({ navigation }: any) {
     mode: 'onChange',
   });
 
+
+
   const onSubmit = (data: PucFormat11AcademicFormValues) => {
     updateSectionData('academic', data);
     updateValidationState('academic', { isValid: true, data });
@@ -92,15 +95,11 @@ export default function AcademicSection({ navigation }: any) {
           control={control}
           name="SSLCPercentage"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <DecimalInputField
               label="SSLC Percentage"
-              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
-              onChangeText={(text) => {
-                const clean = text.replace(/[^0-9.]/g, '');
-                onChange(clean === '' ? undefined : Number(clean));
-              }}
+              value={value}
+              onChangeValue={onChange}
               placeholder="Enter SSLC percentage"
-              keyboardType="numeric"
               error={formState.errors.SSLCPercentage?.message}
               helperText="Percentage obtained in SSLC (0-100)"
               required

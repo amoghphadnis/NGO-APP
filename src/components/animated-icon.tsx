@@ -1,53 +1,50 @@
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useState } from 'react';
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
-import Animated, { Easing, Keyframe } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
+import Animated, { Easing, FadeOut, Keyframe } from 'react-native-reanimated';
+
+import { colors } from '@/theme/colors';
 
 const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
 const DURATION = 600;
+const SPLASH_FADE_OUT_MS = 400;
+const SPLASH_FAILSAFE_MS = 15000;
+
+const splashVideo = require('@/assets/VP_Logo_Animation.mp4');
 
 export function AnimatedSplashOverlay() {
   const [visible, setVisible] = useState(true);
 
+   const player = useVideoPlayer(splashVideo, (p) => {
+    p.muted = true;
+    p.loop = false;
+    p.play();
+  });
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisible(false);
-    }, DURATION + 100);
-    return () => clearTimeout(timer);
-  }, []);
+    const endSub = player.addListener('playToEnd', () => setVisible(false));
+    const statusSub = player.addListener('statusChange', ({ status }) => {
+      if (status === 'error') setVisible(false);
+    });
+    const failsafe = setTimeout(() => setVisible(false), SPLASH_FAILSAFE_MS);
+    return () => {
+      endSub.remove();
+      statusSub.remove();
+      clearTimeout(failsafe);
+    };
+  }, [player]);
 
   if (!visible) return null;
 
-  const splashKeyframe = new Keyframe({
-    0: {
-      transform: [{ scale: INITIAL_SCALE_FACTOR }],
-      opacity: 1,
-    },
-    20: {
-      opacity: 1,
-    },
-    70: {
-      opacity: 0,
-      easing: Easing.elastic(0.7),
-    },
-    100: {
-      opacity: 0,
-      transform: [{ scale: 1 }],
-      easing: Easing.elastic(0.7),
-    },
-  });
-
   return (
-    <Animated.View
-      pointerEvents="none"
-      entering={splashKeyframe.duration(DURATION).withCallback((finished) => {
-        'worklet';
-        if (finished) {
-          scheduleOnRN(setVisible, false);
-        }
-      })}
-      style={styles.backgroundSolidColor}
-    />
+    <Animated.View exiting={FadeOut.duration(SPLASH_FADE_OUT_MS)} style={styles.splash}>
+      <VideoView
+        player={player}
+        style={StyleSheet.absoluteFill}
+        contentFit="cover"
+        nativeControls={false}
+      />
+    </Animated.View>
   );
 }
 
@@ -131,9 +128,9 @@ const styles = StyleSheet.create({
     height: 128,
     position: 'absolute',
   },
-  backgroundSolidColor: {
+  splash: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#208AEF',
+    backgroundColor: colors.splash,
     zIndex: 1000,
   },
 });

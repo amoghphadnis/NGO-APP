@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
@@ -33,7 +34,14 @@ import { DocumentFile, UploadedDocument } from '@/types/documents';
 import { pickDocument } from '@/utils/filePicker';
 import { RenewalPayanaFormValues, renewalPayanaSchema } from '@/validation/renewalPayanaSchemas';
 
-type FileKey = 'marksheetFile' | 'feesReceiptFile' | 'passbookFile' | 'selfieFile' | 'aadhaarFile';
+type FileKey =
+  | 'marksheetFile'
+  | 'feesReceiptFile'
+  | 'passbookFile'
+  | 'selfieFile'
+  | 'aadhaarFile'
+  | 'thankingLetterFile'
+  | 'cetNeetRankSheetFile';
 
 interface UploadMeta {
   isUploading: boolean;
@@ -72,6 +80,8 @@ export default function RenewalPayanaForm({ navigation }: Props) {
     passbookFile: { isUploading: false, uploaded: false, progress: 0 },
     selfieFile: { isUploading: false, uploaded: false, progress: 0 },
     aadhaarFile: { isUploading: false, uploaded: false, progress: 0 },
+    thankingLetterFile: { isUploading: false, uploaded: false, progress: 0 },
+    cetNeetRankSheetFile: { isUploading: false, uploaded: false, progress: 0 },
   });
 
   const { control, handleSubmit, setValue, watch, formState } =
@@ -117,6 +127,8 @@ export default function RenewalPayanaForm({ navigation }: Props) {
         passbookFile: undefined,
         selfieFile: undefined,
         aadhaarFile: undefined,
+        thankingLetterFile: undefined,
+        cetNeetRankSheetFile: undefined,
       },
     });
 
@@ -126,6 +138,8 @@ export default function RenewalPayanaForm({ navigation }: Props) {
     'passbookFile',
     'selfieFile',
     'aadhaarFile',
+    'thankingLetterFile',
+    'cetNeetRankSheetFile',
   ]);
 
   useEffect(() => {
@@ -233,7 +247,8 @@ export default function RenewalPayanaForm({ navigation }: Props) {
     );
   }
 
-  const [marksheet, feesReceipt, passbook, selfie, aadhaar] = fileValues;
+  const [marksheet, feesReceipt, passbook, selfie, aadhaar, thankingLetter, cetNeetRankSheet] =
+    fileValues;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -506,11 +521,10 @@ export default function RenewalPayanaForm({ navigation }: Props) {
               control={control}
               name="familyIncome"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Family Annual Income"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(t ? parseFloat(t) : undefined)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={onChange}
                   prefix="₹"
                   placeholder="Annual income"
                   error={formState.errors.familyIncome?.message}
@@ -522,11 +536,10 @@ export default function RenewalPayanaForm({ navigation }: Props) {
               control={control}
               name="bankBalance"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Parents Bank Balance"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(t ? parseFloat(t) : undefined)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={onChange}
                   prefix="₹"
                   placeholder="Optional"
                   error={formState.errors.bankBalance?.message}
@@ -613,11 +626,10 @@ export default function RenewalPayanaForm({ navigation }: Props) {
               control={control}
               name="annualFees"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Annual College / School Fees"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(t ? parseFloat(t) : undefined)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={onChange}
                   prefix="₹"
                   placeholder="Annual fees"
                   error={formState.errors.annualFees?.message}
@@ -629,11 +641,10 @@ export default function RenewalPayanaForm({ navigation }: Props) {
               control={control}
               name="totalExpenses"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Total Educational Expenses"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(t ? parseFloat(t) : undefined)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={onChange}
                   prefix="₹"
                   placeholder="Including tuition + living"
                   error={formState.errors.totalExpenses?.message}
@@ -652,11 +663,10 @@ export default function RenewalPayanaForm({ navigation }: Props) {
               control={control}
               name="scholarshipAmount"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Total Scholarship Amount"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(t ? parseFloat(t) : undefined)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={onChange}
                   prefix="₹"
                   placeholder="Amount received last year"
                   error={formState.errors.scholarshipAmount?.message}
@@ -868,6 +878,28 @@ export default function RenewalPayanaForm({ navigation }: Props) {
               onDelete={() => handleDeleteFile('aadhaarFile')}
               acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
             />
+
+            <FileUploadField
+              title="Thanking Letter"
+              subtitle="Max file size: 5 MB"
+              badge="Optional"
+              file={thankingLetter?.file}
+              meta={uploadMeta.thankingLetterFile}
+              onUpload={() => handlePickFile('thankingLetterFile')}
+              onDelete={() => handleDeleteFile('thankingLetterFile')}
+              acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
+            />
+
+            <FileUploadField
+              title="CET / NEET Rank Sheet"
+              subtitle="Max file size: 5 MB"
+              badge="Optional"
+              file={cetNeetRankSheet?.file}
+              meta={uploadMeta.cetNeetRankSheetFile}
+              onUpload={() => handlePickFile('cetNeetRankSheetFile')}
+              onDelete={() => handleDeleteFile('cetNeetRankSheetFile')}
+              acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
+            />
           </FormCard>
 
           {/* Submission Error */}
@@ -884,7 +916,7 @@ export default function RenewalPayanaForm({ navigation }: Props) {
           <View style={styles.submitContainer}>
             <TouchableOpacity
               style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-              onPress={handleSubmit(onSubmit)}
+              onPress={() => handleSubmit(onSubmit)()}
               disabled={submitting}
               activeOpacity={0.8}
             >
