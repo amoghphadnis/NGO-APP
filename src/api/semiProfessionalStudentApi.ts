@@ -1,8 +1,12 @@
 /**
  * Semi Professional Student List API
  *
- * Endpoint:
- * - GET /api/semiprofessional/studentlist
+ * Endpoints (JWT required, both in the client's bearer allow-list):
+ * - GET /semi-professional-students/list?districtId&search  — student list
+ * - GET /semi-professional-students/districts               — district filter options
+ *
+ * Note: the legacy /semiprofessional/studentlist route no longer exists on
+ * the server (404) — do not revert to it.
  *
  * Business Logic:
  * - Only students with ApproveStatus='Approved' are returned
@@ -20,7 +24,7 @@ import {
   District,
 } from '@/types/studentList';
 
-const BASE_URL = '/semiprofessional';
+const BASE_URL = '/semi-professional-students';
 
 interface StudentListError {
   Message?: string;
@@ -42,10 +46,17 @@ export async function getSemiProfessionalStudentList(
     queryParams.append('search', params.search);
   }
 
-  const queryString = queryParams.toString();
-  const url = `${BASE_URL}/studentlist${queryString ? `?${queryString}` : ''}`;
+  if (params?.districtId !== undefined) {
+    queryParams.append('districtId', params.districtId.toString());
+  }
 
-  const response = await api.get(url);
+  const queryString = queryParams.toString();
+  const url = `${BASE_URL}/list${queryString ? `?${queryString}` : ''}`;
+
+  const [response, districtsResponse] = await Promise.all([
+    api.get(url),
+    api.get(`${BASE_URL}/districts`).catch(() => null),
+  ]);
 
   if (!response.ok) {
     const errorData = response.data as StudentListError;
@@ -71,12 +82,19 @@ export async function getSemiProfessionalStudentList(
   });
 
   const transformDistrict = (d: any): District => ({
-    districtID: d.Id ?? d.DistrictID,
-    districtName: d.Name ?? d.DistrictName,
+    districtID: d.DistrictID ?? d.Id ?? d.Value,
+    districtName: d.DistrictName ?? d.Name ?? d.Text,
   });
 
-  const studentsArray = data.Data || data.Students || [];
-  const districtsArray = data.Districts || [];
+  // List endpoint returns { success, count, data: [...] }; legacy shapes kept for safety
+  const studentsArray = data.data || data.Data || data.Students || [];
+  // Districts come from the separate /districts endpoint ({ success, data: [...] })
+  const districtsArray =
+    districtsResponse?.data?.data ||
+    districtsResponse?.data?.Data ||
+    (Array.isArray(districtsResponse?.data) ? districtsResponse.data : null) ||
+    data.Districts ||
+    [];
 
   console.log('[SemiProfessionalStudentApi] Parsed students count:', studentsArray.length);
 

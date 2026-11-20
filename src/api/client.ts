@@ -88,6 +88,9 @@ const BEARER_REQUIRED_PATHS = [
   // Contract paths (API_BASE_URL already ends with /api)
   '/payana-students/list',
   '/payana-students/districts',
+  '/puc-students',
+  '/professional-students',
+  '/semi-professional-students',
   '/assign-volunteer-house-visit',
   '/payana-volunteer-assignment',
   '/professional-volunteer-assignment',

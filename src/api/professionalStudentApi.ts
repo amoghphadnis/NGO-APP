@@ -1,8 +1,13 @@
 /**
  * Professional Student List API
- * 
- * Endpoint: GET /professionalstudents/studentlist
- * 
+ *
+ * Endpoints (JWT required, both in the client's bearer allow-list):
+ * - GET /professional-students/list?districtId&search  — student list
+ * - GET /professional-students/districts               — district filter options
+ *
+ * Note: the legacy /professionalstudents/studentlist route no longer exists
+ * on the server (404) — do not revert to it.
+ *
  * Features:
  * - Student name search
  * - District filtering
@@ -17,7 +22,7 @@ import {
 } from '@/types/studentList';
 import api from './client';
 
-const BASE_URL = '/professionalstudents';
+const BASE_URL = '/professional-students';
 
 /**
  * Fetch professional student list for volunteers
@@ -49,9 +54,12 @@ export async function getProfessionalStudentList(
   }
   
   const queryString = queryParams.toString();
-  const url = `${BASE_URL}/studentlist${queryString ? `?${queryString}` : ''}`;
-  
-  const response = await api.get(url);
+  const url = `${BASE_URL}/list${queryString ? `?${queryString}` : ''}`;
+
+  const [response, districtsResponse] = await Promise.all([
+    api.get(url),
+    api.get(`${BASE_URL}/districts`).catch(() => null),
+  ]);
 
   if (!response.ok) {
     const errorData = response.data as StudentListError;
@@ -79,13 +87,19 @@ export async function getProfessionalStudentList(
   });
 
   const transformDistrict = (d: any) => ({
-    districtID: d.DistrictID,
-    districtName: d.DistrictName,
+    districtID: d.DistrictID ?? d.Id ?? d.Value,
+    districtName: d.DistrictName ?? d.Name ?? d.Text,
   });
 
-  // API returns data in "Data" field, not "Students"
-  const studentsArray = data.Data || data.Students || [];
-  const districtsArray = data.Districts || [];
+  // List endpoint returns { success, count, data: [...] }; legacy shapes kept for safety
+  const studentsArray = data.data || data.Data || data.Students || [];
+  // Districts come from the separate /districts endpoint ({ success, data: [...] })
+  const districtsArray =
+    districtsResponse?.data?.data ||
+    districtsResponse?.data?.Data ||
+    (Array.isArray(districtsResponse?.data) ? districtsResponse.data : null) ||
+    data.Districts ||
+    [];
 
   console.log('[ProfessionalStudentApi] Parsed students count:', studentsArray.length);
 
