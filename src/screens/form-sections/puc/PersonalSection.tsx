@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
+    Alert,
     StyleSheet,
     Text,
     View,
@@ -47,10 +48,21 @@ export default function PersonalSection({ navigation }: any) {
           value: Number(c.value),
           label: c.label
         })) || []);
-        setPlaceOptions(response.data.places?.map((p: any) => ({
+        const places = response.data.places?.map((p: any) => ({
           value: Number(p.value),
           label: p.label
-        })) || []);
+        })) || [];
+        setPlaceOptions(places.length > 0 ? places : [
+          { value: 1, label: 'Urban' },
+          { value: 2, label: 'Rural' },
+          { value: 3, label: 'Semi-Urban' },
+        ]);
+      } else {
+        setPlaceOptions([
+          { value: 1, label: 'Urban' },
+          { value: 2, label: 'Rural' },
+          { value: 3, label: 'Semi-Urban' },
+        ]);
       }
       setLoadingDropdowns(false);
     }
@@ -87,14 +99,18 @@ export default function PersonalSection({ navigation }: any) {
     navigation.navigate("contact");
   };
 
-  const isNextDisabled = !formState.isValid || loadingDropdowns;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = loadingDropdowns;
 
   return (
     <FormScreenLayout
       title="Personal Details"
       step={2}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader

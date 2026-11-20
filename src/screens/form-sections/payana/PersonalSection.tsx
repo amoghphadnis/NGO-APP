@@ -21,7 +21,6 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const [genderOptions, setGenderOptions] = useState<Option<number>[]>([]);
-  const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
@@ -33,12 +32,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
           value: Number(g.value),
           label: g.label
         })) || []);
-        setCasteOptions(response.data.castes?.map((c: any) => ({
-          value: Number(c.value),
-          label: c.label
-        })) || []);
         console.log('[Payana PersonalSection] Gender options:', response.data.genders);
-        console.log('[Payana PersonalSection] Caste options:', response.data.castes);
       }
       setLoadingDropdowns(false);
     }
@@ -57,7 +51,6 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
       studentName: personalData.studentName,
       dateOfBirth: personalData.dateOfBirth,
       genderID: personalData.genderID || 0,
-      casteCategoryID: personalData.casteCategoryID || 0,
     },
     resolver: zodResolver(payanaPersonalSchema),
     mode: 'onChange',
@@ -113,6 +106,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
               onChange={onChange}
               placeholder="Select date of birth"
               error={formState.errors.dateOfBirth?.message}
+              required
             />
           )}
         />
@@ -128,23 +122,6 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
               onChange={onChange}
               placeholder="Select gender"
               error={formState.errors.genderID?.message}
-              required
-              disabled={loadingDropdowns}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="casteCategoryID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Caste"
-              value={value}
-              options={casteOptions}
-              onChange={onChange}
-              placeholder="Select caste"
-              error={formState.errors.casteCategoryID?.message}
               required
               disabled={loadingDropdowns}
             />

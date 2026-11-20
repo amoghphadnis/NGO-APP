@@ -6,6 +6,7 @@
 
 import { environment } from '@/config/environment';
 import { generateRequestId, error as logError, info as logInfo, warn as logWarn, truncateStack } from '@/diagnostics';
+import '@/utils/polyfillFormData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ApiResponse {
@@ -87,6 +88,9 @@ const BEARER_REQUIRED_PATHS = [
   // Contract paths (API_BASE_URL already ends with /api)
   '/payana-students/list',
   '/payana-students/districts',
+  '/puc-students',
+  '/professional-students',
+  '/semi-professional-students',
   '/assign-volunteer-house-visit',
   '/payana-volunteer-assignment',
   '/professional-volunteer-assignment',
@@ -121,7 +125,14 @@ const BEARER_REQUIRED_PATHS = [
   '/payana-renewal/reject/',
   '/payana-renewal/delete/',
   '/payana-renewal/import',
+  '/professional-renewal1',
   '/edit-professional-renewal',
+  // User management (admin) — login/register/forgot stay public
+  '/registration/users',
+  '/registration/toggle/',
+  '/registration/update/',
+  '/registration/delete/',
+  '/device-tokens',
   // House Visit Grid (manager approval) — 3D-G
   '/puc-housevisits-grid',
   '/professional-house-visits',
@@ -177,6 +188,67 @@ async function logout(): Promise<void> {
 }
 
 /**
+ * Sends multipart FormData using React Native's native XMLHttpRequest.
+ * This streams files directly from Android/iOS disk/content URIs via native OkHttp,
+ * bypassing Expo's WinterCG convertFormDataAsync which has issues with React Native FormData.
+ */
+function sendFormDataViaXHR(
+  url: string,
+  method: string,
+  formData: FormData,
+  headers: Record<string, string>,
+  timeout: number
+): Promise<ApiResponse> {
+  return new Promise((resolve, reject) => {
+    if (typeof XMLHttpRequest === 'undefined') {
+      return reject(new Error('XMLHttpRequest is not available'));
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+    xhr.timeout = timeout;
+
+    for (const [key, value] of Object.entries(headers)) {
+      if (key.toLowerCase() !== 'content-type') {
+        xhr.setRequestHeader(key, value);
+      }
+    }
+
+    xhr.onload = () => {
+      let data: any;
+      const responseText = xhr.responseText;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        data = responseText;
+      }
+
+      const ok = xhr.status >= 200 && xhr.status < 300;
+      if (ok) {
+        resolve({ data, status: xhr.status, ok: true });
+      } else {
+        const message =
+          (typeof data === 'object' &&
+            (data?.ExceptionMessage || data?.exceptionMessage || data?.Message || data?.message)) ||
+          getStatusMessage(xhr.status) ||
+          'Request failed';
+        reject(new ApiError(message, xhr.status, data));
+      }
+    };
+
+    xhr.onerror = () => {
+      reject(new ApiError('Network error. Please check your internet connection.'));
+    };
+
+    xhr.ontimeout = () => {
+      reject(new ApiError('Request timeout. Please try again.', undefined, undefined, 'ECONNABORTED'));
+    };
+
+    xhr.send(formData);
+  });
+}
+
+/**
  * Core request function
  */
 async function request(
@@ -186,7 +258,9 @@ async function request(
   customHeaders?: Record<string, string>
 ): Promise<ApiResponse> {
   const url = `${environment.API_BASE_URL}${path}`;
-  console.log(`API ${method} ${url}`);
+  if (environment.ENABLE_DEBUG_LOGGING) {
+    console.log(`API ${method} ${url}`);
+  }
 
   // Diagnostic instrumentation: every API call gets a requestId.
   const requestId = generateRequestId();
@@ -196,16 +270,45 @@ async function request(
   try {
     const headers: Record<string, string> = { ...customHeaders };
 
-    // Add Bearer token for protected paths
+    // Add Bearer token for protected paths; remember whether we actually sent
+    // one so a 401 can be attributed to an expired session vs bad credentials.
+    let tokenAttached = false;
     if (requiresBearerToken(path)) {
       const token = await getAuthToken();
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        tokenAttached = true;
       }
     }
 
-    // Only set Content-Type for non-FormData bodies
-    if (!(body instanceof FormData)) {
+    // For FormData bodies, stream files directly via native XMLHttpRequest
+    if (body instanceof FormData) {
+      delete headers['Content-Type'];
+      try {
+        const xhrResponse = await sendFormDataViaXHR(url, method, body, headers, environment.UPLOAD_TIMEOUT);
+        const durationMs = Date.now() - start;
+        logInfo('api', 'request_success', {
+          requestId, method, endpoint: path,
+          statusCode: xhrResponse.status, durationMs,
+        });
+        return xhrResponse;
+      } catch (xhrError: any) {
+        if (xhrError?.message === 'XMLHttpRequest is not available') {
+          // Fall through to fetchWithTimeout below (e.g. Node.js unit test runner)
+        } else {
+          // HTTP errors from the XHR path aren't logged by the outer catch — record them here.
+          if (xhrError instanceof ApiError && xhrError.response?.status !== undefined) {
+            logError('api', 'request_failed', {
+              requestId, method, endpoint: path,
+              statusCode: xhrError.response.status,
+              errorCode: `HTTP_${xhrError.response.status}`,
+              durationMs: Date.now() - start,
+            });
+          }
+          throw xhrError;
+        }
+      }
+    } else {
       headers['Content-Type'] = headers['Content-Type'] || 'application/json';
     }
 
@@ -221,16 +324,25 @@ async function request(
 
     const response = await fetchWithTimeout(url, options, environment.API_TIMEOUT);
 
-    // Handle 401 - clear auth and throw error
+    // Handle 401 — only treat it as an expired session (and clear auth) when the
+    // request actually carried a token. A 401 on an unauthenticated call
+    // (e.g. wrong password on login) must NOT wipe the stored session.
     if (response.status === 401) {
-      logWarn('auth', 'session_expired', { requestId, endpoint: path });
-      await logout();
       const durationMs = Date.now() - start;
+      if (tokenAttached) {
+        logWarn('auth', 'session_expired', { requestId, endpoint: path });
+        await logout();
+        logError('api', 'request_failed', {
+          requestId, method, endpoint: path,
+          statusCode: 401, errorCode: 'SESSION_EXPIRED', durationMs,
+        });
+        throw new ApiError('Session expired. Please login again.', 401, null, 'SESSION_EXPIRED');
+      }
       logError('api', 'request_failed', {
         requestId, method, endpoint: path,
-        statusCode: 401, errorCode: 'SESSION_EXPIRED', durationMs,
+        statusCode: 401, errorCode: 'HTTP_401', durationMs,
       });
-      throw new ApiError('Session expired. Please login again.', 401, null, 'SESSION_EXPIRED');
+      throw new ApiError('Authentication failed. Please login again.', 401, null, 'HTTP_401');
     }
 
     let data: any;
@@ -243,7 +355,8 @@ async function request(
 
     if (!response.ok) {
       const message =
-        (typeof data === 'object' && (data?.Message || data?.message)) ||
+        (typeof data === 'object' &&
+          (data?.ExceptionMessage || data?.exceptionMessage || data?.Message || data?.message)) ||
         getStatusMessage(response.status) ||
         'Request failed';
       const durationMs = Date.now() - start;

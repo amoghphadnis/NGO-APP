@@ -9,9 +9,12 @@ const IMAGE_OPTIONS: ImagePicker.ImagePickerOptions = {
   quality: 1,
 };
 
-function mapAssetToDocumentFile(asset: ImagePicker.ImagePickerAsset): DocumentFile {
+function mapAssetToDocumentFile(
+  asset: ImagePicker.ImagePickerAsset
+): DocumentFile {
   const name = asset.fileName || 'image.jpg';
   const type = asset.mimeType || 'image/jpeg';
+
   return {
     uri: asset.uri,
     name,
@@ -22,14 +25,18 @@ function mapAssetToDocumentFile(asset: ImagePicker.ImagePickerAsset): DocumentFi
 
 export async function takePhoto(): Promise<DocumentFile | null> {
   try {
-    const { granted } = await ImagePicker.requestCameraPermissionsAsync();
+    const { granted } =
+      await ImagePicker.requestCameraPermissionsAsync();
+
     if (!granted) {
       console.warn('[imagePicker] Camera permission not granted');
       return null;
     }
 
     const result = await ImagePicker.launchCameraAsync(IMAGE_OPTIONS);
+
     if (result.canceled || !result.assets?.[0]) return null;
+
     return mapAssetToDocumentFile(result.assets[0]);
   } catch (error) {
     console.error('[imagePicker] takePhoto error:', error);
@@ -39,14 +46,13 @@ export async function takePhoto(): Promise<DocumentFile | null> {
 
 export async function pickFromGallery(): Promise<DocumentFile | null> {
   try {
-    const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!granted) {
-      console.warn('[imagePicker] Media library permission not granted');
-      return null;
-    }
+    // No broad media library permission required.
+    // Use the Android system photo picker where supported.
+    const result =
+      await ImagePicker.launchImageLibraryAsync(IMAGE_OPTIONS);
 
-    const result = await ImagePicker.launchImageLibraryAsync(IMAGE_OPTIONS);
     if (result.canceled || !result.assets?.[0]) return null;
+
     return mapAssetToDocumentFile(result.assets[0]);
   } catch (error) {
     console.error('[imagePicker] pickFromGallery error:', error);

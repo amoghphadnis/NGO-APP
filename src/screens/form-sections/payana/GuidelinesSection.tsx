@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import ApplicationTitleBanner from '@/components/common/ApplicationTitleBanner';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormCard from '@/components/common/FormCard';
 import { useFormEngineStore } from '@/store/useFormEngineStore';
@@ -35,9 +36,10 @@ export default function GuidelinesSection({ navigation }: any) {
       nextDisabled={!accepted}
     >
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ApplicationTitleBanner />
         <FormSectionHeader
           icon="document-text"
-          title="Payana New Student Scholarship 2025-26"
+          title="Payana New Student Application Form - 2026-2027"
           subtitle="Please read all instructions carefully"
           showRequired
         />
@@ -45,16 +47,17 @@ export default function GuidelinesSection({ navigation }: any) {
         <FormCard>
           <View style={styles.guidelineContainer}>
             <Text style={styles.guidelineTitle}>Instructions:</Text>
+            <Text style={styles.guidelineText}>• Read all instructions carefully before filling the application</Text>
             <Text style={styles.guidelineText}>• Fill the online application with all relevant information</Text>
             <Text style={styles.guidelineText}>• Please keep the contact number mentioned in the application form for the Payana financial assistance</Text>
             <Text style={styles.guidelineText}>• Take clear photo of all the documents before filling the application</Text>
-            <Text style={styles.guidelineText}>• Keep the following documents ready before filling the form:</Text>
+            <Text style={styles.guidelineText}>• Keep the following documents & information ready before filling the form:</Text>
             
             <View style={styles.documentList}>
               <Text style={styles.documentItem}>• Latest Marks sheet copy (If Available)</Text>
               <Text style={styles.documentItem}>• Student Bank Pass Book 1st page</Text>
-              <Text style={styles.documentItem}>• Applicant's recent Selfie/photo</Text>
-              <Text style={styles.documentItem}>• Student's Aadhar card photo</Text>
+              <Text style={styles.documentItem}>• Applicant&apos;s recent Selfie/photo</Text>
+              <Text style={styles.documentItem}>• Student&apos;s Aadhar card photo</Text>
             </View>
           </View>
         </FormCard>
@@ -69,7 +72,7 @@ export default function GuidelinesSection({ navigation }: any) {
               {accepted && <Ionicons name="checkmark" size={16} color={colors.card} />}
             </View>
             <Text style={styles.checkboxLabel}>
-              I have read all instructions and accept the terms and conditions
+              I have read and agree to the Terms & Conditions
               <Text style={styles.required}> *</Text>
             </Text>
           </TouchableOpacity>

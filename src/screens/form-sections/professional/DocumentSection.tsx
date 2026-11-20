@@ -1,12 +1,15 @@
 import { useForm } from 'react-hook-form';
+import { Alert } from 'react-native';
 
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FileUploadField from '@/components/form/FileUploadField';
+import UploadSizeNotice from '@/components/form/UploadSizeNotice';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { PROFESSIONAL_FILE_KEYS } from '@/forms/professional/fileKeys';
 import { PROFESSIONAL_UPLOAD_RULES, validateUpload } from '@/forms/professional/uploads';
 import { pickDocument } from '@/utils/filePicker';
+import { getTotalUploadSizeBytes } from '@/utils/uploadSize';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function DocumentSection({ navigation }: any) {
@@ -27,9 +30,11 @@ export default function DocumentSection({ navigation }: any) {
   const { handleSubmit } = useForm();
 
   const handleFileUpload = async (documentKey: string) => {
+    const rule = PROFESSIONAL_UPLOAD_RULES.find((r) => r.key === documentKey);
     updateUploadState(documentKey, { isUploading: true, error: undefined, progress: 0 });
 
-    const file = await pickDocument();
+    const acceptedTypes = documentKey === PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO ? ['video/*'] : rule?.acceptedTypes;
+    const file = await pickDocument(acceptedTypes);
 
     if (!file) {
       updateUploadState(documentKey, { isUploading: false });
@@ -74,12 +79,16 @@ export default function DocumentSection({ navigation }: any) {
     uploadState[PROFESSIONAL_FILE_KEYS.RATION_CARD]?.uploaded;
 
   const onSubmit = () => {
+    if (!allDocumentsUploaded) {
+      Alert.alert('Required Documents', 'Please upload all 9 required documents before proceeding.');
+      return;
+    }
     updateValidationState('documents', { isValid: allDocumentsUploaded, data: documentData });
     markStepComplete(4);
     navigation.navigate('review');
   };
 
-  const isNextDisabled = !allDocumentsUploaded;
+  const isNextDisabled = false;
 
   const renderUploadField = (fileKey: string, title: string, subtitle: string) => {
     const rule = PROFESSIONAL_UPLOAD_RULES.find((r) => r.key === fileKey);
@@ -121,10 +130,12 @@ export default function DocumentSection({ navigation }: any) {
       {renderUploadField(PROFESSIONAL_FILE_KEYS.DWELLING_UNIT_PHOTO, 'Dwelling Unit Photo', 'Upload photo of your dwelling unit')}
       {renderUploadField(PROFESSIONAL_FILE_KEYS.MARKS_SHEET_12, '12th Marks Sheet', 'Upload your 12th/PU marks sheet')}
       {renderUploadField(PROFESSIONAL_FILE_KEYS.REQUEST_LETTER, 'Request Letter', 'Upload handwritten request letter')}
-      {renderUploadField(PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO, 'House Video', 'Upload house video link or file')}
+      {renderUploadField(PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO, 'House Video', 'Upload video of your house (MP4, MOV, max 50MB)')}
       {renderUploadField(PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL, 'Electricity Bill', 'Upload recent electricity bill')}
       {renderUploadField(PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE, 'Income Certificate', 'Upload family income certificate')}
       {renderUploadField(PROFESSIONAL_FILE_KEYS.RATION_CARD, 'Ration Card', 'Upload ration card (both sides)')}
+
+      <UploadSizeNotice totalBytes={getTotalUploadSizeBytes(documentData)} />
     </FormScreenLayout>
   );
 }

@@ -137,6 +137,12 @@ export const ALLOWED_DOCUMENT_MIME_TYPES = [
 
 export const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
 
+// Combined size of ALL attachments in one submission. Must stay below the
+// backend's IIS maxAllowedContentLength (150MB = 157286400 bytes) — exceeding it
+// makes the server reject the whole request ("Maximum request length exceeded").
+// Kept at 140MB to leave headroom for multipart boundaries and form fields.
+export const MAX_TOTAL_UPLOAD_BYTES = 140 * 1024 * 1024; // 140MB
+
 export type AllowedMimeType = typeof ALLOWED_DOCUMENT_MIME_TYPES[number];
 
 // ============================================================================

@@ -1,8 +1,10 @@
+import '@/utils/polyfillFormData';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import AppUpdateGate from '@/components/AppUpdateGate';
 import { useAuthStore } from '@/store/useAuthStore';
 
 // Create a client
@@ -26,6 +28,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <>
         <AnimatedSplashOverlay />
+        <AppUpdateGate />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="form-selection" />

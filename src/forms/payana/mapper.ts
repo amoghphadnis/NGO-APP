@@ -92,6 +92,7 @@ export function payanaMapper(formData: PayanaFormValues): FormData {
   appendIfPresent(fd, 'CourseStream', formData.academic.courseStream);
   appendIfPresent(fd, 'AnnualFees', formData.academic.annualFees);
   appendIfPresent(fd, 'TotalExpenses', formData.academic.totalExpenses);
+  appendIfPresent(fd, 'ReferenceSourceOther', formData.academic.reference);
   appendIfPresent(fd, 'StudentAchivements', formData.academic.studentAchievements);
   appendIfPresent(fd, 'securedPercentage', formData.academic.securedPercentage);
 

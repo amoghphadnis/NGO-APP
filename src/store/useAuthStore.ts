@@ -1,8 +1,10 @@
 import { authApi, LoginRequest } from '@/api/authApi';
+import { syncPushToken, unregisterPushToken } from '@/services/pushNotifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 
 const AUTH_STORAGE_KEY = '@vp_auth_user';
+const PUSH_TOKEN_SENT_KEY = '@vp_push_token_sent';
 
 export interface UserData {
   UserID: number;
@@ -42,6 +44,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
       if (raw) {
         const user: UserData = JSON.parse(raw);
         set({ user, isLoggedIn: true, hydrated: true });
+        void syncPushToken(user.UserID);
       } else {
         set({ hydrated: true });
       }
@@ -68,6 +71,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
         };
         await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
         set({ isLoggedIn: true, user, isLoading: false, error: null });
+        void syncPushToken(user.UserID);
         return true;
       }
       set({ isLoading: false, error: 'Login failed' });
@@ -79,6 +83,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   logout: async () => {
+    const userId = useAuthStore.getState().user?.UserID;
+    if (userId) {
+      void unregisterPushToken(userId);
+    }
     await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
     set({ isLoggedIn: false, user: null, error: null });
   },

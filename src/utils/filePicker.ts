@@ -1,11 +1,11 @@
 import * as DocumentPicker from 'expo-document-picker';
 
-export const pickDocument = async () => {
+export const pickDocument = async (types?: string | string[]) => {
   try {
     const result = await DocumentPicker.getDocumentAsync({
       multiple: false,
       copyToCacheDirectory: true,
-      type: '*/*',
+      type: types || '*/*',
     });
 
     console.log('[filePicker] DocumentPicker result:', result);

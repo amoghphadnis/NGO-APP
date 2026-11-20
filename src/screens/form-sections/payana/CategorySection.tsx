@@ -19,7 +19,6 @@ export default function CategorySection({ navigation }: CategorySectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
-  const [houseTypeOptions, setHouseTypeOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
@@ -31,12 +30,7 @@ export default function CategorySection({ navigation }: CategorySectionProps) {
           value: Number(c.value),
           label: c.label
         })) || []);
-        setHouseTypeOptions(response.data.houseTypes?.map((h: any) => ({
-          value: Number(h.value),
-          label: h.label
-        })) || []);
         console.log('[Payana CategorySection] Caste options:', response.data.castes);
-        console.log('[Payana CategorySection] House type options:', response.data.houseTypes);
       }
       setLoadingDropdowns(false);
     }
@@ -45,7 +39,6 @@ export default function CategorySection({ navigation }: CategorySectionProps) {
 
   const categoryData = (formData as any).category ?? {
     casteCategoryID: 0,
-    houseTypeID: 0,
   };
 
   const { control, handleSubmit, formState } = useForm<PayanaCategoryFormValues>({
@@ -57,14 +50,14 @@ export default function CategorySection({ navigation }: CategorySectionProps) {
   const onSubmit = (data: PayanaCategoryFormValues) => {
     updateSectionData('category', data);
     updateValidationState('category', { isValid: true, data });
-    markStepComplete(5);
+    markStepComplete(6);
     navigation.navigate('academic');
   };
 
   return (
     <FormScreenLayout
       title="Category Details"
-      step={6}
+      step={7}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={!formState.isValid || loadingDropdowns}
@@ -72,7 +65,7 @@ export default function CategorySection({ navigation }: CategorySectionProps) {
       <FormSectionHeader
         icon="pricetag"
         title="Category Information"
-        subtitle="Caste and housing details"
+        subtitle="Caste category details"
         showRequired
       />
 
@@ -88,23 +81,6 @@ export default function CategorySection({ navigation }: CategorySectionProps) {
               onChange={onChange}
               placeholder="Select caste category"
               error={formState.errors.casteCategoryID?.message}
-              required
-              disabled={loadingDropdowns}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="houseTypeID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="House Type"
-              value={value}
-              options={houseTypeOptions}
-              onChange={onChange}
-              placeholder="Select house type"
-              error={formState.errors.houseTypeID?.message}
               required
               disabled={loadingDropdowns}
             />

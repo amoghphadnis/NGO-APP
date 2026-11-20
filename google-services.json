@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "868714625446",
+    "project_id": "vidya-poshak",
+    "storage_bucket": "vidya-poshak.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:868714625446:android:56bae2eb960adfd96bb767",
+        "android_client_info": {
+          "package_name": "com.vidyaposhak.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTrGPt_qeaqq9yq4-nBF-68qAmZHHy6IQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

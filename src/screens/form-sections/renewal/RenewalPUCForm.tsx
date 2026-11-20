@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
     ActivityIndicator,
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
@@ -21,9 +22,12 @@ import VPDatePickerField from '@/components/common/VPDatePickerField';
 import VPInputField from '@/components/common/VPInputField';
 
 import { getRenewalPucDropdowns, submitRenewalPuc } from '@/api/renewalPucApi';
+import FileUploadField from '@/components/form/FileUploadField';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
+import { DocumentFile, UploadedDocument } from '@/types/documents';
+import { pickDocument } from '@/utils/filePicker';
 import { RenewalPucFormValues, renewalPucSchema } from '@/validation/renewalPucSchemas';
 
 const GENDER_OPTIONS: Option<string>[] = [
@@ -50,6 +54,21 @@ const COURSE_YEAR_OPTIONS: Option<string>[] = [
   { value: '4th Year', label: '4th Year' },
 ];
 
+type FileKey =
+  | 'marksheet'
+  | 'passbook'
+  | 'photo'
+  | 'thankingVideo'
+  | 'feesReceipt'
+  | 'thankingVolunteerLetter';
+
+interface UploadMeta {
+  isUploading: boolean;
+  uploaded: boolean;
+  error?: string;
+  progress: number;
+}
+
 interface Props {
   navigation?: any;
 }
@@ -62,7 +81,16 @@ export default function RenewalPUCForm({ navigation }: Props) {
   const [renewalId, setRenewalId] = useState<number | undefined>();
   const [submitError, setSubmitError] = useState<string | undefined>();
 
-  const { control, handleSubmit, watch, formState } = useForm<RenewalPucFormValues>({
+  const [uploadMeta, setUploadMeta] = useState<Record<FileKey, UploadMeta>>({
+    marksheet: { isUploading: false, uploaded: false, progress: 0 },
+    passbook: { isUploading: false, uploaded: false, progress: 0 },
+    photo: { isUploading: false, uploaded: false, progress: 0 },
+    thankingVideo: { isUploading: false, uploaded: false, progress: 0 },
+    feesReceipt: { isUploading: false, uploaded: false, progress: 0 },
+    thankingVolunteerLetter: { isUploading: false, uploaded: false, progress: 0 },
+  });
+
+  const { control, handleSubmit, setValue, watch, formState } = useForm<RenewalPucFormValues>({
     resolver: zodResolver(renewalPucSchema),
     mode: 'onChange',
     defaultValues: {
@@ -74,6 +102,8 @@ export default function RenewalPUCForm({ navigation }: Props) {
       district: 0,
       taluk: '',
       address: '',
+      currentAddress: '',
+      otherDistrict: '',
       gender: '',
       dob: '',
       latestResult: '',
@@ -102,12 +132,33 @@ export default function RenewalPUCForm({ navigation }: Props) {
       bankName: '',
       branchName: '',
       parentBankBalance: 0,
+      marksheet: undefined,
+      thankingLetters: [],
+      passbook: undefined,
+      photo: undefined,
+      thankingVideo: undefined,
+      feesReceipt: undefined,
+      thankingVolunteerLetter: undefined,
+      houseVisitLink: '',
       renewalPreviousVPID: '',
     },
   });
 
   const attendedCamp = watch('attendedCamp');
   const vdssAttended = watch('vdssAttended');
+  const selectedDistrict = watch('district');
+  const marksheetFile = watch('marksheet');
+  const thankingLetters = watch('thankingLetters') || [];
+  const passbookFile = watch('passbook');
+  const photoFile = watch('photo');
+  const thankingVideoFile = watch('thankingVideo');
+  const feesReceiptFile = watch('feesReceipt');
+  const thankingVolunteerLetterFile = watch('thankingVolunteerLetter');
+
+  const isOtherDistrict = districtOptions
+    .find((d) => d.value === selectedDistrict)
+    ?.label.toLowerCase()
+    .includes('other');
 
   useEffect(() => {
     (async () => {
@@ -128,6 +179,60 @@ export default function RenewalPUCForm({ navigation }: Props) {
       }
     })();
   }, []);
+
+  const handlePickFile = async (key: FileKey) => {
+    setUploadMeta((prev) => ({
+      ...prev,
+      [key]: { isUploading: true, uploaded: false, error: undefined, progress: 0 },
+    }));
+
+    const file = await pickDocument();
+
+    if (!file) {
+      setUploadMeta((prev) => ({
+        ...prev,
+        [key]: { isUploading: false, uploaded: false, progress: 0 },
+      }));
+      return;
+    }
+
+    const uploadedDoc: UploadedDocument = {
+      file: file as DocumentFile,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    setValue(key, uploadedDoc, { shouldValidate: true });
+    setUploadMeta((prev) => ({
+      ...prev,
+      [key]: { isUploading: false, uploaded: true, progress: 100 },
+    }));
+  };
+
+  const handleDeleteFile = (key: FileKey) => {
+    setValue(key, undefined, { shouldValidate: true });
+    setUploadMeta((prev) => ({
+      ...prev,
+      [key]: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
+    }));
+  };
+
+  const handleAddThankingLetter = async () => {
+    const file = await pickDocument();
+    if (!file) return;
+    const doc: UploadedDocument = {
+      file: file as DocumentFile,
+      uploadedAt: new Date().toISOString(),
+    };
+    setValue('thankingLetters', [...thankingLetters, doc], { shouldValidate: true });
+  };
+
+  const handleRemoveThankingLetter = (index: number) => {
+    setValue(
+      'thankingLetters',
+      thankingLetters.filter((_, i) => i !== index),
+      { shouldValidate: true }
+    );
+  };
 
   const onSubmit = async (data: RenewalPucFormValues) => {
     setSubmitting(true);
@@ -352,6 +457,37 @@ export default function RenewalPUCForm({ navigation }: Props) {
             />
             <Controller
               control={control}
+              name="currentAddress"
+              render={({ field: { onChange, value } }) => (
+                <VPInputField
+                  label="Current Address (if different)"
+                  value={value ?? ''}
+                  onChangeText={onChange}
+                  placeholder="Optional"
+                  multiline
+                  numberOfLines={3}
+                  error={formState.errors.currentAddress?.message}
+                />
+              )}
+            />
+            {isOtherDistrict && (
+              <Controller
+                control={control}
+                name="otherDistrict"
+                render={({ field: { onChange, value } }) => (
+                  <VPInputField
+                    label="Specify District"
+                    value={value ?? ''}
+                    onChangeText={onChange}
+                    placeholder="Enter your district"
+                    error={formState.errors.otherDistrict?.message}
+                    required
+                  />
+                )}
+              />
+            )}
+            <Controller
+              control={control}
               name="gender"
               render={({ field: { onChange, value } }) => (
                 <ModalSelectField
@@ -402,12 +538,11 @@ export default function RenewalPUCForm({ navigation }: Props) {
               control={control}
               name="scholarshipAmount"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Scholarship Amount Received Last Year"
-                  value={value ? String(value) : ''}
-                  onChangeText={(t) => onChange(parseFloat(t) || 0)}
+                  value={value}
+                  onChangeValue={(v) => onChange(v ?? 0)}
                   placeholder="Enter amount"
-                  keyboardType="numeric"
                   prefix="₹"
                   error={formState.errors.scholarshipAmount?.message}
                   required
@@ -530,11 +665,10 @@ export default function RenewalPUCForm({ navigation }: Props) {
               control={control}
               name="collegeFees"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="College Fees (Annual)"
-                  value={value ? String(value) : ''}
-                  onChangeText={(t) => onChange(parseFloat(t) || 0)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={(v) => onChange(v ?? 0)}
                   prefix="₹"
                   error={formState.errors.collegeFees?.message}
                   required
@@ -545,11 +679,10 @@ export default function RenewalPUCForm({ navigation }: Props) {
               control={control}
               name="totalExpenses"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Total Annual Expenses"
-                  value={value ? String(value) : ''}
-                  onChangeText={(t) => onChange(parseFloat(t) || 0)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={(v) => onChange(v ?? 0)}
                   prefix="₹"
                   error={formState.errors.totalExpenses?.message}
                   helperText="Include tuition + living expenses"
@@ -767,11 +900,10 @@ export default function RenewalPUCForm({ navigation }: Props) {
               control={control}
               name="parentBankBalance"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Parent Bank Balance"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(parseFloat(t) || 0)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={(v) => onChange(v ?? 0)}
                   prefix="₹"
                   placeholder="Current balance"
                   error={formState.errors.parentBankBalance?.message}
@@ -780,10 +912,125 @@ export default function RenewalPUCForm({ navigation }: Props) {
             />
           </FormCard>
 
+          {/* ── Section 6: Documents Upload ── */}
+          <FormSectionHeader icon="document-attach" title="Section 6: Documents Upload" showRequired />
+
+          <FormCard>
+            <Text style={styles.docNote}>
+              Upload documents (photo or PDF). Latest marksheet is required.
+            </Text>
+
+            <FileUploadField
+              title="Latest Marksheet / Result"
+              subtitle="Upload 1 file. Max 5 MB."
+              badge="Required"
+              file={marksheetFile?.file}
+              meta={uploadMeta.marksheet}
+              onUpload={() => handlePickFile('marksheet')}
+              onDelete={() => handleDeleteFile('marksheet')}
+              acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
+            />
+            {formState.errors.marksheet?.message ? (
+              <Text style={styles.fileErrorText}>{formState.errors.marksheet.message}</Text>
+            ) : null}
+
+            <View style={styles.thankingHeader}>
+              <Text style={styles.thankingTitle}>Thanking Letters to Donor</Text>
+              <TouchableOpacity
+                style={styles.addLetterBtn}
+                onPress={handleAddThankingLetter}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="add" size={18} color={colors.card} />
+                <Text style={styles.addLetterBtnText}>Add Letter</Text>
+              </TouchableOpacity>
+            </View>
+            {thankingLetters.map((doc, index) => (
+              <View key={index} style={styles.letterRow}>
+                <Ionicons name="document-text-outline" size={18} color={colors.primary} />
+                <Text style={styles.letterName} numberOfLines={1}>
+                  {doc.file.name}
+                </Text>
+                <TouchableOpacity onPress={() => handleRemoveThankingLetter(index)}>
+                  <Ionicons name="close-circle" size={20} color={colors.error} />
+                </TouchableOpacity>
+              </View>
+            ))}
+            {thankingLetters.length === 0 && (
+              <Text style={styles.letterEmpty}>
+                No letters added — tap "Add Letter" to attach thank-you letters.
+              </Text>
+            )}
+
+            <FileUploadField
+              title="Bank Passbook First Page"
+              subtitle="Optional. Max 5 MB."
+              file={passbookFile?.file}
+              meta={uploadMeta.passbook}
+              onUpload={() => handlePickFile('passbook')}
+              onDelete={() => handleDeleteFile('passbook')}
+              acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
+            />
+
+            <FileUploadField
+              title="Student Photo / Selfie"
+              subtitle="Optional. Max 5 MB."
+              file={photoFile?.file}
+              meta={uploadMeta.photo}
+              onUpload={() => handlePickFile('photo')}
+              onDelete={() => handleDeleteFile('photo')}
+              acceptedTypes={['image/jpeg', 'image/png']}
+            />
+
+            <FileUploadField
+              title="Thanking Video for Donor"
+              subtitle="Optional. Max 100 MB."
+              file={thankingVideoFile?.file}
+              meta={uploadMeta.thankingVideo}
+              onUpload={() => handlePickFile('thankingVideo')}
+              onDelete={() => handleDeleteFile('thankingVideo')}
+              maxSize={100 * 1024 * 1024}
+              acceptedTypes={['video/mp4', 'video/quicktime', 'video/x-msvideo']}
+            />
+
+            <FileUploadField
+              title="College Fees Receipt"
+              subtitle="Optional. Max 5 MB."
+              file={feesReceiptFile?.file}
+              meta={uploadMeta.feesReceipt}
+              onUpload={() => handlePickFile('feesReceipt')}
+              onDelete={() => handleDeleteFile('feesReceipt')}
+              acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
+            />
+
+            <FileUploadField
+              title="Thanking Letter to Volunteer"
+              subtitle="Optional. Max 5 MB."
+              file={thankingVolunteerLetterFile?.file}
+              meta={uploadMeta.thankingVolunteerLetter}
+              onUpload={() => handlePickFile('thankingVolunteerLetter')}
+              onDelete={() => handleDeleteFile('thankingVolunteerLetter')}
+              acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
+            />
+          </FormCard>
+
           {/* ── Section 7: Additional Info ── */}
           <FormSectionHeader icon="link" title="Additional Information" />
 
           <FormCard>
+            <Controller
+              control={control}
+              name="houseVisitLink"
+              render={({ field: { onChange, value } }) => (
+                <VPInputField
+                  label="House Visit Location Link (Google Maps)"
+                  value={value ?? ''}
+                  onChangeText={onChange}
+                  placeholder="Optional — paste Google Maps link"
+                  error={formState.errors.houseVisitLink?.message}
+                />
+              )}
+            />
             <Controller
               control={control}
               name="renewalPreviousVPID"
@@ -813,7 +1060,7 @@ export default function RenewalPUCForm({ navigation }: Props) {
           <View style={styles.submitContainer}>
             <TouchableOpacity
               style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-              onPress={handleSubmit(onSubmit)}
+              onPress={() => handleSubmit(onSubmit)()}
               disabled={submitting}
               activeOpacity={0.8}
             >
@@ -943,6 +1190,65 @@ const styles = StyleSheet.create({
     fontSize: platform.normalize.fontSize.caption,
     lineHeight: platform.normalize.lineHeight.caption,
     color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  docNote: {
+    fontSize: platform.normalize.fontSize.caption,
+    lineHeight: platform.normalize.lineHeight.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  fileErrorText: {
+    fontSize: platform.normalize.fontSize.caption,
+    lineHeight: platform.normalize.lineHeight.caption,
+    color: colors.error,
+    marginTop: -spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  thankingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  thankingTitle: {
+    fontSize: platform.normalize.fontSize.body,
+    lineHeight: platform.normalize.lineHeight.body,
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  addLetterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 8,
+    gap: 4,
+  },
+  addLetterBtnText: {
+    color: colors.card,
+    fontSize: platform.normalize.fontSize.caption,
+    fontWeight: '600',
+  },
+  letterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  letterName: {
+    flex: 1,
+    fontSize: platform.normalize.fontSize.caption,
+    color: colors.textPrimary,
+  },
+  letterEmpty: {
+    fontSize: platform.normalize.fontSize.caption,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
     marginBottom: spacing.sm,
   },
   errorBox: {

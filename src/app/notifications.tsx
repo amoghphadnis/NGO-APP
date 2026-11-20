@@ -14,7 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { dashboardApi } from '@/api/dashboardApi';
 import AppFooter from '@/components/common/AppFooter';
-import { APP_TITLES } from '@/config/appContent';
+import EmptyState from '@/components/common/EmptyState';
+import AppTopBar from '@/components/layout/AppTopBar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
@@ -24,6 +25,7 @@ import {
     DashboardErrorCode,
     DashboardResponseDto
 } from '@/types/dashboard';
+import { canViewApprovals } from '@/utils/roleUtils';
 
 interface NotificationItem {
   id: string;
@@ -47,6 +49,8 @@ export default function NotificationsScreen() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const isPManager = user ? P_MANAGER_ROLES.includes(user.Role) : false;
+  const isVolunteer = user?.Role === 'Volunteer';
+  const userCanViewApprovals = canViewApprovals(user?.Role);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -55,45 +59,56 @@ export default function NotificationsScreen() {
         ? await dashboardApi.getPDashboard()
         : await dashboardApi.getDashboard();
 
-      const items: NotificationItem[] = [
-        {
-          id: 'pendingPUC',
-          icon: 'school-outline',
-          title: 'Pending PUC Approvals',
-          count: data.notifications?.pendingPUC ?? 0,
-          route: '/approval/puc',
-          color: colors.primary,
-        },
-        {
-          id: 'pendingPayana',
-          icon: 'bicycle-outline',
-          title: 'Pending Payana Approvals',
-          count: data.notifications?.pendingPayana ?? 0,
-          route: '/approval/payana',
-          color: colors.primary,
-        },
-        {
-          id: 'pendingProfessional',
-          icon: 'briefcase-outline',
-          title: 'Pending Professional Approvals',
-          count: data.notifications?.pendingProfessional ?? 0,
-          route: '/approval/professional',
-          color: colors.primary,
-        },
-        {
-          id: 'pendingSemiProfessional',
-          icon: 'book-outline',
-          title: 'Pending Semi Professional Approvals',
-          count: data.notifications?.pendingSemiProfessional ?? 0,
-          route: '/approval/semi-professional',
-          color: colors.primary,
-        },
+      const items: NotificationItem[] = [];
+
+      // Approval notifications — only roles with approval menus (web parity)
+      if (userCanViewApprovals) {
+        items.push(
+          {
+            id: 'pendingPUC',
+            icon: 'school-outline',
+            title: 'Pending PUC Approvals',
+            count: data.notifications?.pendingPUC ?? 0,
+            route: '/approval/puc',
+            color: colors.primary,
+          },
+          {
+            id: 'pendingPayana',
+            icon: 'bicycle-outline',
+            title: 'Pending Payana Approvals',
+            count: data.notifications?.pendingPayana ?? 0,
+            route: '/approval/payana',
+            color: colors.primary,
+          },
+          {
+            id: 'pendingProfessional',
+            icon: 'briefcase-outline',
+            title: 'Pending Professional Approvals',
+            count: data.notifications?.pendingProfessional ?? 0,
+            route: '/approval/professional',
+            color: colors.primary,
+          },
+          {
+            id: 'pendingSemiProfessional',
+            icon: 'book-outline',
+            title: 'Pending Semi Professional Approvals',
+            count: data.notifications?.pendingSemiProfessional ?? 0,
+            route: '/approval/semi-professional',
+            color: colors.primary,
+          },
+        );
+      }
+
+      // House-visit notifications — approvers go to approval grids,
+      // volunteers go to their student lists; other roles have no house-visit menu
+      if (userCanViewApprovals || isVolunteer) {
+        items.push(
         {
           id: 'pendingHousePUC',
           icon: 'home-outline',
           title: 'Pending PUC House Visits',
           count: data.notifications?.pendingHousePUC ?? 0,
-          route: '/volunteer/puc',
+          route: userCanViewApprovals ? '/approval/house-visit/puc' : '/volunteer/puc',
           color: colors.warning,
         },
         {
@@ -101,29 +116,60 @@ export default function NotificationsScreen() {
           icon: 'home-outline',
           title: 'Pending Payana House Visits',
           count: data.notifications?.pendingHousePayana ?? 0,
-          route: '/volunteer/payana',
+          route: userCanViewApprovals ? '/approval/house-visit/payana' : '/volunteer/payana',
           color: colors.warning,
         },
         {
-          id: 'pendingPUCRenewal',
-          icon: 'refresh-outline',
-          title: 'Pending PUC Renewals',
-          count: data.notifications?.pendingPUCRenewal ?? 0,
-          route: '/approval/renewal-puc',
+          id: 'pendingHouseProfessional',
+          icon: 'home-outline',
+          title: 'Pending Professional House Visits',
+          count: data.notifications?.pendingHouseProfessional ?? 0,
+          route: userCanViewApprovals ? '/approval/house-visit/professional' : '/volunteer/professional',
           color: colors.warning,
         },
         {
-          id: 'pendingPayanaRenewal',
-          icon: 'refresh-outline',
-          title: 'Pending Payana Renewals',
-          count: data.notifications?.pendingPayanaRenewal ?? 0,
-          route: '/approval/renewal-payana',
+          id: 'pendingHouseSemiProfessional',
+          icon: 'home-outline',
+          title: 'Pending Semi Professional House Visits',
+          count: data.notifications?.pendingHouseSemiProfessional ?? 0,
+          route: userCanViewApprovals ? '/approval/house-visit/semi-professional' : '/volunteer/semi-professional',
           color: colors.warning,
         },
-      ];
+        );
+      }
 
-      // Only show Visit Assignment notifications for dashboard (non-pmanager) users
-      if (!isPManager) {
+      // Renewal-approval notifications — only roles with renewal-approval menus
+      if (userCanViewApprovals) {
+        items.push(
+          {
+            id: 'pendingPUCRenewal',
+            icon: 'refresh-outline',
+            title: 'Pending PUC Renewals',
+            count: data.notifications?.pendingPUCRenewal ?? 0,
+            route: '/approval/renewal-puc',
+            color: colors.warning,
+          },
+          {
+            id: 'pendingPayanaRenewal',
+            icon: 'refresh-outline',
+            title: 'Pending Payana Renewals',
+            count: data.notifications?.pendingPayanaRenewal ?? 0,
+            route: '/approval/renewal-payana',
+            color: colors.warning,
+          },
+          {
+            id: 'pendingProfessionalRenewal',
+            icon: 'refresh-outline',
+            title: 'Pending Professional Renewals',
+            count: data.notifications?.pendingProfessionalRenewal ?? 0,
+            route: '/approval/renewal-professional',
+            color: colors.warning,
+          },
+        );
+      }
+
+      // Visit-assignment notifications are Volunteer-specific
+      if (isVolunteer) {
         const dashData = data as DashboardResponseDto;
         items.push(
           {
@@ -165,10 +211,10 @@ export default function NotificationsScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [isPManager, logout, router]);
+  }, [isPManager, isVolunteer, userCanViewApprovals, logout, router]);
 
   useEffect(() => {
-    fetchNotifications();
+    void Promise.resolve().then(fetchNotifications);
   }, [fetchNotifications]);
 
   const onRefresh = useCallback(() => {
@@ -203,36 +249,28 @@ export default function NotificationsScreen() {
   );
 
   const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="notifications-off-outline" size={56} color={colors.primary} />
-      <Text style={styles.emptyHeading}>No Notifications</Text>
-      <Text style={styles.emptySub}>
-        You're all caught up! New notifications will appear here.
-      </Text>
-    </View>
+    <EmptyState
+      icon="notifications-off-outline"
+      title="No Notifications"
+      subtitle="You're all caught up! New notifications will appear here."
+    />
   );
 
   const renderError = () => (
-    <View style={styles.errorContainer}>
-      <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
-      <Text style={styles.errorText}>
-        {error || 'Failed to load notifications'}
-      </Text>
+    <EmptyState
+      icon="alert-circle-outline"
+      title="Failed to load notifications"
+      subtitle={error || 'Unable to load notifications. Please try again.'}
+    >
       <TouchableOpacity style={styles.retryButton} onPress={fetchNotifications}>
         <Text style={styles.retryButtonText}>Retry</Text>
       </TouchableOpacity>
-    </View>
+    </EmptyState>
   );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} activeOpacity={0.7}>
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.topBarTitle}>{APP_TITLES.notifications}</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <AppTopBar />
 
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>

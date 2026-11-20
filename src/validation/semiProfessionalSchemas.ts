@@ -1,19 +1,21 @@
 import { UploadedDocument } from '@/types/documents';
 import { z } from 'zod';
 
-// Semi Professional Personal schema
+// Semi Professional Personal schema — aligned with web form Section-1
 export const semiProfPersonalSchema = z.object({
   email: z.string().email({ message: 'Valid email is required' }),
   studentName: z.string().min(1, { message: 'Student name is required' }),
   dateOfBirth: z.string().min(1, { message: 'Date of birth is required' }),
   contactNumber: z.string().min(10, { message: 'Valid 10-digit contact number required' }).max(10),
+  alternateNumber: z.string().min(10, { message: 'Valid 10-digit alternate number required' }).max(10),
   genderID: z.number().min(1, { message: 'Gender is required' }),
-  casteCategoryID: z.number().min(1, { message: 'Caste category is required' }),
+  // Web parity: caste category select is not marked required on the web form
+  casteCategoryID: z.number().optional(),
+  areaTypeID: z.number().min(1, { message: 'Area type is required' }),
   districtID: z.number().min(1, { message: 'District is required' }),
   otherDistrict: z.string().optional(),
-  taluk: z.string().min(1, { message: 'Taluk is required' }),
-  address: z.string().min(1, { message: 'Address is required' }),
-  placeID: z.number().min(1, { message: 'Place is required' }),
+  residentialAddress: z.string().min(1, { message: 'Residential address is required' }),
+  googleMapLink: z.string().min(1, { message: 'Google Map link is required' }),
 }).refine(
   (data) => {
     if (data.districtID === 11) {
@@ -27,30 +29,42 @@ export const semiProfPersonalSchema = z.object({
   }
 );
 
-// Semi Professional Family schema
+// Semi Professional Family schema — aligned with web form (parents names, house type, income)
 export const semiProfFamilySchema = z.object({
+  fatherName: z.string().min(1, { message: "Father's name is required" }),
+  motherName: z.string().min(1, { message: "Mother's name is required" }),
   fatherOccupationID: z.number().min(1, { message: 'Father occupation is required' }),
   motherOccupationID: z.number().min(1, { message: 'Mother occupation is required' }),
-  familyMembers: z.number().min(1, { message: 'At least 1 family member required' }),
-  annualIncome: z.number().positive({ message: 'Annual income must be positive' }),
+  familyMembers: z.number({ message: 'Total family members is required' }).min(1, { message: 'At least 1 family member required' }),
+  houseTypeID: z.number().min(1, { message: 'House type is required' }),
+  // Web parity: monthly rent is shown for rented houses but not required
+  monthlyRent: z.number().min(0).optional(),
+  familyIncome: z.number({ message: 'Total monthly family income is required' }).min(0, { message: 'Family income cannot be negative' }),
 });
 
-// Semi Professional Academic schema
+// Semi Professional Academic schema — aligned with web form Section-2
 export const semiProfAcademicSchema = z.object({
-  puPercentage: z.number()
-    .min(0, { message: 'Percentage must be at least 0' })
+  puPercentage: z.number({ message: 'Percentage is required' })
+    .min(0, { message: 'Percentage cannot be negative' })
     .max(100, { message: 'Percentage cannot exceed 100' }),
-  semiProfessionalCourseID: z.number().min(1, { message: 'Course is required' }),
-  collegeName: z.string().min(1, { message: 'College name is required' }),
-  collegeTypeID: z.number().min(1, { message: 'College type is required' }),
-  collegeFees: z.number().min(0, { message: 'College fees must be at least 0' }),
+  cetRank: z.number({ message: 'CET rank is required' }).positive({ message: 'CET rank is required' }),
+  ptRank: z.number({ message: 'Agriculture/Veterinary/Horticulture (PT) rank is required' }).positive({ message: 'Agriculture/Veterinary/Horticulture (PT) rank is required' }),
+  semiProfessionalCourseID: z.number({ message: 'Course is required' }).min(1, { message: 'Course applying for is required' }),
+  courseApplying: z.string().min(1, { message: 'Course applying for is required' }),
+  courseStream: z.string().min(1, { message: 'Course stream is required' }),
 });
 
-// Semi Professional Document schema (3 documents)
+// Semi Professional Document schema (9 documents, matching web form)
 export const semiProfDocumentSchema = z.object({
-  pucMarksCard: z.custom<UploadedDocument>().optional(),
+  studentSelfie: z.custom<UploadedDocument>().optional(),
+  cetRankSheet: z.custom<UploadedDocument>().optional(),
+  ptRankSheet: z.custom<UploadedDocument>().optional(),
+  dwellingUnitPhoto: z.custom<UploadedDocument>().optional(),
+  marksSheet12: z.custom<UploadedDocument>().optional(),
+  houseVideo: z.custom<UploadedDocument>().optional(),
+  electricityBill: z.custom<UploadedDocument>().optional(),
   incomeCertificate: z.custom<UploadedDocument>().optional(),
-  aadharCard: z.custom<UploadedDocument>().optional(),
+  rationCard: z.custom<UploadedDocument>().optional(),
 });
 
 // Complete Semi Professional form schema

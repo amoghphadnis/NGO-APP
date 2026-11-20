@@ -49,8 +49,11 @@ export function normalizeApiResponse<T>(
 
   const lowered = message.toLowerCase();
   const isSuccessMessage = lowered.includes('success') || lowered.includes('saved');
+  // An explicit success:false from the server is authoritative — only fall back
+  // to the message heuristic when the flag itself is missing.
+  const hasExplicitFlag = raw.success !== undefined || raw.Status !== undefined;
 
-  if (flag || isSuccessMessage) {
+  if (flag || (!hasExplicitFlag && isSuccessMessage)) {
     return {
       success: true,
       data,
@@ -73,7 +76,13 @@ export function normalizeApiError(error: any): NormalizedApiError {
   // Handle ApiError with response (HTTP error status)
   if (error.response) {
     const status = error.response.status;
-    const message = error.response.data?.Message || error.response.data?.message || error.message || 'Request failed';
+    const message =
+      error.response.data?.ExceptionMessage ||
+      error.response.data?.exceptionMessage ||
+      error.response.data?.Message ||
+      error.response.data?.message ||
+      error.message ||
+      'Request failed';
 
     let errorMessage = message;
     if (status === 400) errorMessage = 'Invalid request data';

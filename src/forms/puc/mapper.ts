@@ -80,13 +80,18 @@ export function pucMapper(formData: PucFormat11FormValues): FormData {
   fd.append('BankName', formData.bank.BankName);
   fd.append('BranchName', formData.bank.BranchName);
 
-  // ── Documents (all 5 required by contract) ────────────────────────────
+  // ── Documents (all required by contract) ──────────────────────────────
   const fileMappings: Record<string, keyof typeof PUC_FORMAT11_FILE_KEYS> = {
     StudentSelfie: 'STUDENT_SELFIE',
     SSLCMarksCard: 'SSLC_MARKS_CARD',
     FeeReceipts: 'FEE_RECEIPTS',
     BankPassbook: 'BANK_PASSBOOK',
     AadhaarCard: 'AADHAAR_CARD',
+    ElectricityBill: 'ELECTRICITY_BILL',
+    RationCard: 'RATION_CARD',
+    DwellingUnitPhoto: 'DWELLING_UNIT_PHOTO',
+    HouseVideo: 'HOUSE_VIDEO',
+    IncomeCertificate: 'INCOME_CERTIFICATE',
   };
 
   for (const [docField, keyConst] of Object.entries(fileMappings)) {

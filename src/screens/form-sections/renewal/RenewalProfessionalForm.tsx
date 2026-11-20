@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
     ActivityIndicator,
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
@@ -55,7 +56,10 @@ type FileKey =
   | 'studentSelfieFile'
   | 'collegeFrontPhotoFile'
   | 'thankingVideoFile'
-  | 'parentsPassbookFile';
+  | 'parentsPassbookFile'
+  | 'feesReceiptFile'
+  | 'thankingVolunteerLetterFile'
+  | 'thankingDonorLetterFile';
 
 interface UploadMeta {
   isUploading: boolean;
@@ -84,6 +88,9 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
     collegeFrontPhotoFile: { isUploading: false, uploaded: false, progress: 0 },
     thankingVideoFile: { isUploading: false, uploaded: false, progress: 0 },
     parentsPassbookFile: { isUploading: false, uploaded: false, progress: 0 },
+    feesReceiptFile: { isUploading: false, uploaded: false, progress: 0 },
+    thankingVolunteerLetterFile: { isUploading: false, uploaded: false, progress: 0 },
+    thankingDonorLetterFile: { isUploading: false, uploaded: false, progress: 0 },
   });
 
   const { control, handleSubmit, setValue, watch, formState } =
@@ -125,6 +132,9 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
         collegeFrontPhotoFile: undefined,
         thankingVideoFile: undefined,
         parentsPassbookFile: undefined,
+        feesReceiptFile: undefined,
+        thankingVolunteerLetterFile: undefined,
+        thankingDonorLetterFile: undefined,
       },
     });
 
@@ -135,6 +145,9 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
     'collegeFrontPhotoFile',
     'thankingVideoFile',
     'parentsPassbookFile',
+    'feesReceiptFile',
+    'thankingVolunteerLetterFile',
+    'thankingDonorLetterFile',
   ]);
 
   useEffect(() => {
@@ -259,6 +272,9 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
     collegeFrontFile,
     videoFile,
     parentsPassbookFile,
+    feesReceiptFile,
+    thankingVolunteerLetterFile,
+    thankingDonorLetterFile,
   ] = fileValues;
 
   return (
@@ -494,11 +510,10 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
               control={control}
               name="latestResultPercentage"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Latest Result / Semester Result (%)"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(t ? parseFloat(t) : undefined)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={onChange}
                   placeholder="e.g. 85.5"
                   error={formState.errors.latestResultPercentage?.message}
                 />
@@ -508,11 +523,10 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
               control={control}
               name="totalScholarshipAmount"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Total Scholarship Amount"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(t ? parseFloat(t) : undefined)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={onChange}
                   prefix="₹"
                   placeholder="Amount received last year"
                   error={formState.errors.totalScholarshipAmount?.message}
@@ -631,11 +645,10 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
               control={control}
               name="expectedCollegeFees"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Expected College Fees"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(t ? parseFloat(t) : undefined)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={onChange}
                   prefix="₹"
                   placeholder="Annual fees"
                   error={formState.errors.expectedCollegeFees?.message}
@@ -646,11 +659,10 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
               control={control}
               name="totalEducationalExpenses"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Total Educational Expenses for the Year (Expected)"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(t ? parseFloat(t) : undefined)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={onChange}
                   prefix="₹"
                   placeholder="Including tuition + living"
                   error={formState.errors.totalEducationalExpenses?.message}
@@ -742,11 +754,10 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
               control={control}
               name="parentsBankBalance"
               render={({ field: { onChange, value } }) => (
-                <VPInputField
+                <DecimalInputField
                   label="Parents Bank Balance (Earning Member)"
-                  value={value !== undefined ? String(value) : ''}
-                  onChangeText={(t) => onChange(t ? parseFloat(t) : undefined)}
-                  keyboardType="numeric"
+                  value={value}
+                  onChangeValue={onChange}
                   prefix="₹"
                   placeholder="Current balance"
                   error={formState.errors.parentsBankBalance?.message}
@@ -856,6 +867,42 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
               onDelete={() => handleDeleteFile('parentsPassbookFile')}
               acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
             />
+
+            {/* Fees Receipt */}
+            <FileUploadField
+              title="College Fees Receipt"
+              subtitle="Upload 1 file. Max 100 MB."
+              badge="Optional"
+              file={feesReceiptFile?.file}
+              meta={uploadMeta.feesReceiptFile}
+              onUpload={() => handlePickFile('feesReceiptFile')}
+              onDelete={() => handleDeleteFile('feesReceiptFile')}
+              acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
+            />
+
+            {/* Thanking Volunteer Letter */}
+            <FileUploadField
+              title="Thanking Letter to Volunteer"
+              subtitle="Upload 1 file. Max 100 MB."
+              badge="Optional"
+              file={thankingVolunteerLetterFile?.file}
+              meta={uploadMeta.thankingVolunteerLetterFile}
+              onUpload={() => handlePickFile('thankingVolunteerLetterFile')}
+              onDelete={() => handleDeleteFile('thankingVolunteerLetterFile')}
+              acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
+            />
+
+            {/* Thanking Donor Letter */}
+            <FileUploadField
+              title="Thanking Letter to Donor"
+              subtitle="Upload 1 file. Max 100 MB."
+              badge="Optional"
+              file={thankingDonorLetterFile?.file}
+              meta={uploadMeta.thankingDonorLetterFile}
+              onUpload={() => handlePickFile('thankingDonorLetterFile')}
+              onDelete={() => handleDeleteFile('thankingDonorLetterFile')}
+              acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
+            />
           </FormCard>
 
           {/* Submission Error */}
@@ -872,7 +919,7 @@ export default function RenewalProfessionalForm({ navigation }: Props) {
           <View style={styles.submitContainer}>
             <TouchableOpacity
               style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-              onPress={handleSubmit(onSubmit)}
+              onPress={() => handleSubmit(onSubmit)()}
               disabled={submitting}
               activeOpacity={0.8}
             >

@@ -1,6 +1,8 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Alert, BackHandler, Text, View } from 'react-native';
 import { getFormConfig } from '../forms/shared/registry';
+import { getDraft } from '../services/draftStorage';
 import { useFormEngineStore } from '../store/useFormEngineStore';
 
 // Import shared/professional form section components
@@ -42,11 +44,21 @@ import PayanaFamilySection from '../screens/form-sections/payana/FamilySection';
 import PayanaGuidelinesSection from '../screens/form-sections/payana/GuidelinesSection';
 import PayanaPersonalSection from '../screens/form-sections/payana/PersonalSection';
 
+// Import New Student-specific form section components
+import NsAcademicSection from '../screens/form-sections/newStudent/AcademicSection';
+import NsAddressSection from '../screens/form-sections/newStudent/AddressSection';
+import NsCategorySection from '../screens/form-sections/newStudent/CategorySection';
+import NsContactSection from '../screens/form-sections/newStudent/ContactSection';
+import NsDocumentSection from '../screens/form-sections/newStudent/DocumentSection';
+import NsFamilySection from '../screens/form-sections/newStudent/FamilySection';
+import NsGuidelinesSection from '../screens/form-sections/newStudent/GuidelinesSection';
+import NsPersonalSection from '../screens/form-sections/newStudent/PersonalSection';
+
 interface FormRendererProps {
   navigation: any;
   route: {
     params?: {
-      formType?: 'professional' | 'puc' | 'payana' | 'semiProfessional';
+      formType?: 'professional' | 'puc' | 'payana' | 'semiProfessional' | 'newStudent';
     };
   };
 }
@@ -99,18 +111,66 @@ const payanaComponentMap: Record<string, React.ComponentType<any>> = {
   success: SuccessSection,
 };
 
+const newStudentComponentMap: Record<string, React.ComponentType<any>> = {
+  guidelines: NsGuidelinesSection,
+  personal: NsPersonalSection,
+  contact: NsContactSection,
+  address: NsAddressSection,
+  family: NsFamilySection,
+  category: NsCategorySection,
+  academic: NsAcademicSection,
+  documents: NsDocumentSection,
+  review: ReviewSection,
+  success: SuccessSection,
+};
+
 export default function FormRenderer({ navigation, route }: FormRendererProps) {
-  const { currentStep, initializeForm } = useFormEngineStore();
+  const router = useRouter();
+  // All hooks must run unconditionally (rules-of-hooks): never add hook calls
+  // below the early returns in this component.
+  const { currentStep, setCurrentStep, initializeForm, restoreDraft } = useFormEngineStore();
   const { formType = 'professional' } = route.params || {};
 
-  // Initialize form when component mounts or formType changes
+  // Initialize form — restore a saved offline draft when one exists.
   React.useEffect(() => {
-    try {
-      initializeForm(formType);
-    } catch (error) {
-      console.error('Failed to initialize form:', error);
+    let cancelled = false;
+    async function init() {
+      try {
+        const draft = await getDraft(formType);
+        if (cancelled) return;
+        initializeForm(formType);
+        if (draft) {
+          restoreDraft(draft);
+        }
+      } catch (error) {
+        console.error('Failed to initialize form:', error);
+      }
     }
-  }, [formType, initializeForm]);
+    init();
+    return () => { cancelled = true; };
+  }, [formType, initializeForm, restoreDraft]);
+
+  // Android hardware back: step back inside the form; at the first
+  // step, confirm before discarding entered data.
+  React.useEffect(() => {
+    const onBackPress = () => {
+      if (currentStep > 0) {
+        setCurrentStep(currentStep - 1);
+        return true;
+      }
+      Alert.alert(
+        'Discard application?',
+        'Going back will lose the details you have entered in this form.',
+        [
+          { text: 'Keep Editing', style: 'cancel', onPress: () => {} },
+          { text: 'Discard', style: 'destructive', onPress: () => router.replace('/form-selection') },
+        ]
+      );
+      return true;
+    };
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, [currentStep, setCurrentStep, router]);
 
   let config;
   try {
@@ -133,6 +193,7 @@ export default function FormRenderer({ navigation, route }: FormRendererProps) {
     if (formType === 'puc') return pucComponentMap;
     if (formType === 'payana') return payanaComponentMap;
     if (formType === 'semiProfessional') return semiProfessionalComponentMap;
+    if (formType === 'newStudent') return newStudentComponentMap;
     return professionalComponentMap;
   };
   
@@ -147,13 +208,14 @@ export default function FormRenderer({ navigation, route }: FormRendererProps) {
     );
   }
 
-  // Create navigation object that uses step-based navigation instead of screen navigation
-  const { setCurrentStep } = useFormEngineStore();
-  
+  // Step-based section navigation. At the first step, Back exits to the
+  // scholarship selection screen instead of doing nothing.
   const sectionNavigation = {
     goBack: () => {
       if (currentStep > 0) {
         setCurrentStep(currentStep - 1);
+      } else {
+        router.replace('/form-selection');
       }
     },
     navigate: (stepName: string) => {

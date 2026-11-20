@@ -22,7 +22,6 @@ export async function getRenewalProfessionalDropdowns(): Promise<
 > {
   try {
     const response = await api.get('/professionalrenewal/dropdowns');
-    console.log('[getRenewalProfessionalDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
     
     // Handle both wrapped (data.Data) and unwrapped (data) responses
     const dropdownData = response.data.Data || response.data;
@@ -39,18 +38,7 @@ export async function getRenewalProfessionalDropdowns(): Promise<
   }
 }
 
-function appendFileToFormData(
-  formData: FormData,
-  key: string,
-  doc: UploadedDocument | undefined
-): void {
-  if (!doc?.file?.uri) return;
-  formData.append(key, {
-    uri: doc.file.uri,
-    name: doc.file.name || `${key}.jpg`,
-    type: doc.file.type || 'application/octet-stream',
-  } as any);
-}
+import { appendFileToFormData } from '@/submission/attachFiles';
 
 export async function submitRenewalProfessional(
   values: RenewalProfessionalFormValues
@@ -94,6 +82,9 @@ export async function submitRenewalProfessional(
   appendFileToFormData(formData, 'CollegeFrontPhotoFile', values.collegeFrontPhotoFile);
   appendFileToFormData(formData, 'ThankingVideoFile', values.thankingVideoFile);
   appendFileToFormData(formData, 'ParentsPassbookFile', values.parentsPassbookFile);
+  appendFileToFormData(formData, 'FeesReceiptPath', values.feesReceiptFile);
+  appendFileToFormData(formData, 'ThankingVolunteerLetterPath', values.thankingVolunteerLetterFile);
+  appendFileToFormData(formData, 'ThankingDonarLetterPath', values.thankingDonorLetterFile);
 
   try {
     const response = await api.post('/professionalrenewal/create', formData);

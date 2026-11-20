@@ -74,10 +74,10 @@ export const pucFormat11AddressSchema = z.object({
 export const pucFormat11FamilySchema = z.object({
   FatherOccupation: z.number().min(1, { message: "Father's occupation is required" }),
   MotherOccupation: z.number().min(1, { message: "Mother's occupation is required" }),
-  TotalFamilyMembers: z.number().min(1, { message: 'At least 1 family member' }),
+  TotalFamilyMembers: z.number({ message: 'Total family members is required' }).min(1, { message: 'At least 1 family member required' }),
   FamilyAnnualIncome: z
-    .number()
-    .min(0, { message: 'Annual income must be at least 0' }),
+    .number({ message: 'Family annual income is required' })
+    .positive({ message: 'Annual family income must be greater than 0' }),
 });
 
 // ============================================================================
@@ -86,8 +86,8 @@ export const pucFormat11FamilySchema = z.object({
 
 export const pucFormat11AcademicSchema = z.object({
   SSLCPercentage: z
-    .number()
-    .min(0, { message: 'Percentage must be at least 0' })
+    .number({ message: 'Percentage is required' })
+    .min(1, { message: 'Percentage must be greater than 0' })
     .max(100, { message: 'Percentage cannot exceed 100' }),
   CourseJoined: z.number().min(1, { message: 'Course is required' }),
   CollegeName: z.string().min(1, { message: 'College name is required' }),
@@ -124,6 +124,11 @@ export const pucFormat11DocumentsSchema = z.object({
   FeeReceipts: z.custom<UploadedDocument>().optional(),
   BankPassbook: z.custom<UploadedDocument>().optional(),
   AadhaarCard: z.custom<UploadedDocument>().optional(),
+  ElectricityBill: z.custom<UploadedDocument>().optional(),
+  RationCard: z.custom<UploadedDocument>().optional(),
+  DwellingUnitPhoto: z.custom<UploadedDocument>().optional(),
+  HouseVideo: z.custom<UploadedDocument>().optional(),
+  IncomeCertificate: z.custom<UploadedDocument>().optional(),
 });
 
 // ============================================================================

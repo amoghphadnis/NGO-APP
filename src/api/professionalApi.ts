@@ -21,9 +21,7 @@ export async function createProfessionalStudent(
   } catch (error: any) {
     console.error('[createProfessionalStudent] API Error:', {
       status: error.response?.status,
-      data: error.response?.data,
       message: error.message,
-      headers: error.response?.headers,
     });
     return normalizeApiError(error);
   }

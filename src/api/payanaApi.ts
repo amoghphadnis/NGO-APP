@@ -18,19 +18,15 @@ const BASE_URL = '/payana-students';
 export async function createPayanaStudent(
   formData: FormData
 ): Promise<NormalizedApiResponse<undefined>> {
-  console.log(`[createPayanaStudent] Sending multipart request to ${BASE_URL}/create`);
 
   try {
     const response = await api.post(`${BASE_URL}/create`, formData);
 
-    console.log(`[createPayanaStudent] Response status:`, response.status);
-    console.log(`[createPayanaStudent] Response data:`, response.data);
 
     return normalizeApiResponse<undefined>(response.data);
   } catch (error: any) {
     console.error(`[createPayanaStudent] API Error:`, {
       status: error.response?.status,
-      data: error.response?.data,
       message: error.message,
     });
     return normalizeApiError(error);
@@ -65,7 +61,6 @@ export async function getPayanaDropdowns(): Promise<
 > {
   try {
     const response = await api.get(`${BASE_URL}/dropdowns`);
-    console.log('[getPayanaDropdowns] Raw response:', JSON.stringify(response.data, null, 2));
     
     // Handle both wrapped (data.Data) and unwrapped (data) responses
     const dropdownData = response.data.Data || response.data;

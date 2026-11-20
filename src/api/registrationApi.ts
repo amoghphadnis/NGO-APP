@@ -1,5 +1,3 @@
-import { environment } from '@/config/environment';
-import { Linking } from 'react-native';
 import api, { ApiError } from './client';
 
 export interface RegisterRequest {
@@ -62,7 +60,7 @@ export const registrationApi = {
 
   async forgotPassword(data: ForgotPasswordRequest): Promise<ForgotPasswordResponse> {
     try {
-      const response = await api.post('/registration/forgotpassword', data);
+      const response = await api.post('/registration/forgot-password', data);
       return response.data as ForgotPasswordResponse;
     } catch (error) {
       if (error instanceof ApiError) {
@@ -84,7 +82,7 @@ export const registrationApi = {
 
   async resetPassword(data: ResetPasswordRequest): Promise<ResetPasswordResponse> {
     try {
-      const response = await api.post('/registration/resetpassword', data);
+      const response = await api.put('/registration/reset-password', data);
       return response.data as ResetPasswordResponse;
     } catch (error) {
       if (error instanceof ApiError) {
@@ -99,12 +97,5 @@ export const registrationApi = {
       }
       throw new Error('Network error. Please try again.');
     }
-  },
-
-  openGoogleLogin(): void {
-    const url = `${environment.API_BASE_URL}/registration/google-login`;
-    Linking.openURL(url).catch(() => {
-      console.error('[registrationApi] Failed to open Google login URL:', url);
-    });
   },
 };

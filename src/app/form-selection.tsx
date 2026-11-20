@@ -1,8 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
+    Alert,
     Dimensions,
     Image,
+    Linking,
     ScrollView,
     StyleSheet,
     Text,
@@ -12,12 +15,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppFooter from '@/components/common/AppFooter';
+// import BrandLogo from '@/components/common/BrandLogo';
 import type { HomeSection, ScholarshipCardItem } from '@/config/homeSections';
 import { homeSections } from '@/config/homeSections';
+import { DraftSummary, listDrafts } from '@/services/draftStorage';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
+import { fetchApplicationDeadlines, ProgramDeadline, ProgramKey } from '@/utils/applicationDeadline';
 import { navigateToDashboard } from '@/utils/navigateToDashboard';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -26,9 +32,44 @@ export default function FormSelectionScreen() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const [deadlines, setDeadlines] = useState<Partial<Record<ProgramKey, ProgramDeadline>>>({});
+  const [drafts, setDrafts] = useState<DraftSummary[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchApplicationDeadlines().then((d) => {
+      if (mounted) setDeadlines(d);
+    });
+    listDrafts().then((d) => {
+      if (mounted) setDrafts(d);
+    });
+    return () => { mounted = false; };
+  }, []);
 
   const handleFormSelect = (formType: string) => {
+    const deadline = deadlines[formType as ProgramKey];
+    if (deadline?.closed) {
+      Alert.alert(
+        'Applications Closed',
+        `The last date to apply was ${deadline.lastDate}. New applications are no longer accepted.`
+      );
+      return;
+    }
     (router.push as any)(`/form-engine?formType=${formType}`);
+  };
+
+  const handleContactSupport = () => {
+    Alert.alert(
+      'Contact Support',
+      'Vidya Poshak Helpline: 0836-2747357',
+      [
+        {
+          text: 'Call Now',
+          onPress: () => Linking.openURL('tel:08362747357'),
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
   };
 
   const handlePrimaryLogin = () => {
@@ -54,35 +95,56 @@ export default function FormSelectionScreen() {
         </View>
         {isNew && (
           <View style={styles.cardsGrid}>
-            {(section.items as ScholarshipCardItem[]).map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.scholarshipCard}
-                onPress={() => handleFormSelect(item.formType)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.scholarshipCardHeader}>
-                  <View style={styles.scholarshipIconContainer}>
-                    <Ionicons name={item.icon} size={24} color={colors.primary} />
-                  </View>
-                  <Text style={styles.scholarshipCardTitle}>{item.title}</Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={colors.textSecondary}
-                    style={styles.chevron}
-                  />
-                </View>
-                <Text style={styles.scholarshipDescription}>{item.description}</Text>
-                <View style={styles.benefitsContainer}>
-                  {item.benefits.map((benefit, index) => (
-                    <View key={index} style={styles.benefitPill}>
-                      <Text style={styles.benefitPillText}>{benefit}</Text>
+            {(section.items as ScholarshipCardItem[]).map((item) => {
+              const deadline = deadlines[item.formType as ProgramKey];
+              const closed = deadline?.closed === true;
+              const draft = drafts.find((d) => d.formType === item.formType);
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.scholarshipCard, closed && styles.scholarshipCardClosed]}
+                  onPress={() => handleFormSelect(item.formType)}
+                  activeOpacity={0.8}
+                  disabled={closed}
+                >
+                  <View style={styles.scholarshipCardHeader}>
+                    <View style={styles.scholarshipIconContainer}>
+                      <Ionicons name={item.icon} size={24} color={closed ? colors.textSecondary : colors.primary} />
                     </View>
-                  ))}
-                </View>
-              </TouchableOpacity>
-            ))}
+                    <Text style={styles.scholarshipCardTitle}>{item.title}</Text>
+                    <Ionicons
+                      name={closed ? 'lock-closed-outline' : 'chevron-forward'}
+                      size={20}
+                      color={colors.textSecondary}
+                      style={styles.chevron}
+                    />
+                  </View>
+                  <Text style={styles.scholarshipDescription}>{item.description}</Text>
+                  {draft && !closed && (
+                    <View style={styles.draftBadge}>
+                      <Ionicons name="document-outline" size={14} color={colors.primary} />
+                      <Text style={styles.draftBadgeText}>
+                        Draft saved — tap to resume
+                      </Text>
+                    </View>
+                  )}
+                  {deadline?.lastDate && (
+                    <Text style={[styles.deadlineText, closed && styles.deadlineClosedText]}>
+                      {closed
+                        ? `Applications closed — last date was ${deadline.lastDate}`
+                        : `Last date to apply: ${deadline.lastDate}`}
+                    </Text>
+                  )}
+                  <View style={styles.benefitsContainer}>
+                    {item.benefits.map((benefit, index) => (
+                      <View key={index} style={styles.benefitPill}>
+                        <Text style={styles.benefitPillText}>{benefit}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
       </View>
@@ -107,10 +169,13 @@ export default function FormSelectionScreen() {
             />
             <View style={styles.heroGradientOverlay} />
             <View style={styles.heroTopRow}>
-              <View>
-                {/* <Text style={styles.brandTitle}>VIDYA POSHAK</Text>
-                <Text style={styles.brandTagline}>Empowering Education, Enriching Lives</Text> */}
-              </View>
+              {/* <View style={styles.brandRow}>
+                <BrandLogo size={28} onPrimary />
+                <View>
+                  <Text style={styles.brandTitle}>VIDYA POSHAK</Text>
+                  <Text style={styles.brandTagline}>Empowering Education, Enriching Lives</Text>
+                </View>
+              </View> */}
               {/* <TouchableOpacity
                 style={styles.heroLoginButton}
                 onPress={isLoggedIn ? handlePrimaryDashboard : handlePrimaryLogin}
@@ -121,6 +186,8 @@ export default function FormSelectionScreen() {
                 </Text>
               </TouchableOpacity> */}
             </View>
+
+            <View style={styles.heroGoldAccent} />
 
             <View style={styles.heroContent}>
               <View style={styles.heroTextContainer}>
@@ -192,7 +259,7 @@ export default function FormSelectionScreen() {
           </View>
           <TouchableOpacity
             style={styles.supportButton}
-            onPress={() => (router.push as any)('/help')}
+            onPress={handleContactSupport}
             activeOpacity={0.8}
           >
             <Text style={styles.supportButtonText}>Contact Support</Text>
@@ -249,6 +316,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: spacing.md,
+  },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.brandNavy + 'B3',
+    borderRadius: 12,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  heroGoldAccent: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 3,
+    backgroundColor: colors.gold,
   },
   brandTitle: {
     fontSize: platform.normalize.fontSize.caption,
@@ -367,6 +451,31 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     width: '100%',
     ...platform.elevation.card,
+  },
+  scholarshipCardClosed: {
+    opacity: 0.6,
+  },
+  deadlineText: {
+    fontSize: platform.normalize.fontSize.small,
+    lineHeight: platform.normalize.lineHeight.small,
+    color: colors.warning,
+    fontWeight: '600',
+    marginBottom: spacing.sm,
+  },
+  deadlineClosedText: {
+    color: colors.error,
+  },
+  draftBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: spacing.sm,
+  },
+  draftBadgeText: {
+    fontSize: platform.normalize.fontSize.small,
+    lineHeight: platform.normalize.lineHeight.small,
+    color: colors.primary,
+    fontWeight: '600',
   },
   scholarshipCardHeader: {
     flexDirection: 'row',

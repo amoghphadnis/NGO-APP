@@ -46,3 +46,9 @@ app-example
 # release artifacts
 /release/
 /Build/
+
+# EAS credentials (contains keystore passwords)
+credentials.json
+
+# downloaded EAS build artifacts
+*.aab

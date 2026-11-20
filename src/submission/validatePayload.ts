@@ -1,5 +1,6 @@
 import { FormType } from '@/forms/shared/types';
-import { PayanaFormValues, ProfessionalFormValues, PucFormValues, SemiProfessionalFormValues } from '@/types/forms';
+import { NewStudentFormValues, PayanaFormValues, ProfessionalFormValues, PucFormValues, SemiProfessionalFormValues } from '@/types/forms';
+import { newStudentFormSchema } from '@/validation/newStudentSchemas';
 import { payanaFormSchema } from '@/validation/payanaSchemas';
 import { professionalFormSchema } from '@/validation/professionalSchemas';
 import { pucFormat11FormSchema } from '@/validation/pucFormat11Schemas';
@@ -12,7 +13,7 @@ export interface ValidationResult {
 
 export function validatePayload(
   formType: FormType,
-  formData: ProfessionalFormValues | PucFormValues | SemiProfessionalFormValues | PayanaFormValues
+  formData: ProfessionalFormValues | PucFormValues | SemiProfessionalFormValues | PayanaFormValues | NewStudentFormValues
 ): ValidationResult {
   console.log(`[validatePayload] Validating ${formType} form data`);
   
@@ -32,6 +33,19 @@ export function validatePayload(
   if (formType === 'semiProfessional') {
     const result = semiProfessionalFormSchema.safeParse(formData);
     console.log(`[validatePayload] SemiProfessional validation:`, result.success ? 'passed' : 'failed');
+    if (result.success) {
+      return { success: true };
+    }
+
+    return {
+      success: false,
+      errors: result.error.issues.map((issue) => issue.message),
+    };
+  }
+
+  if (formType === 'newStudent') {
+    const result = newStudentFormSchema.safeParse(formData);
+    console.log(`[validatePayload] NewStudent validation:`, result.success ? 'passed' : 'failed');
     if (result.success) {
       return { success: true };
     }

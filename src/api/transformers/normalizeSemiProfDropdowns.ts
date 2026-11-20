@@ -12,6 +12,8 @@ export interface NormalizedSemiProfDropdowns {
   fatherOccupations: NormalizedDropdownOption[];
   motherOccupations: NormalizedDropdownOption[];
   places: NormalizedDropdownOption[];
+  areaTypes: NormalizedDropdownOption[];
+  houseTypes: NormalizedDropdownOption[];
   collegeTypes: NormalizedDropdownOption[];
   semiProfessionalCourses: NormalizedDropdownOption[];
   lastDate?: string;
@@ -21,7 +23,6 @@ export interface NormalizedSemiProfDropdowns {
  * Normalizes the GET /form-data response for Semi Professional dropdowns
  */
 export function normalizeSemiProfessionalDropdowns(apiResponse: any): NormalizedSemiProfDropdowns {
-  console.log('[normalizeSemiProfDropdowns] Raw API response:', JSON.stringify(apiResponse, null, 2));
 
   // The contract wraps master lists inside a `Masters` object; fall back to the root object
   const masters = apiResponse.Masters || apiResponse;
@@ -50,7 +51,24 @@ export function normalizeSemiProfessionalDropdowns(apiResponse: any): Normalized
       masters.MotherOcc ||
       masters.motherOcc ||
       [],
-    places: masters.PlaceList || masters.Places || masters.places || [],
+    places:
+      masters.PlaceList ||
+      masters.Places ||
+      masters.places ||
+      [],
+    areaTypes:
+      masters.AreaList ||
+      masters.AreaTypes ||
+      masters.areaTypes ||
+      masters.areas ||
+      [],
+    houseTypes:
+      masters.HouseList ||
+      masters.HouseTypes ||
+      masters.houseTypes ||
+      masters.Houses ||
+      masters.houses ||
+      [],
     collegeTypes: masters.CollegeTypeList || masters.CollegeTypes || masters.collegeTypes || [],
     semiProfessionalCourses:
       masters.SemiProfessionalCourseList ||
@@ -60,13 +78,15 @@ export function normalizeSemiProfessionalDropdowns(apiResponse: any): Normalized
   };
 
   const normalized: NormalizedSemiProfDropdowns = {
-    lastDate: apiResponse.LastDate,
+    lastDate: apiResponse.LastDate || apiResponse.lastDate,
     districts: normalizeGenericDropdown(raw.districts),
     genders: normalizeGenericDropdown(raw.genders),
     casteCategories: normalizeGenericDropdown(raw.casteCategories),
     fatherOccupations: normalizeGenericDropdown(raw.fatherOccupations),
     motherOccupations: normalizeGenericDropdown(raw.motherOccupations),
     places: normalizeGenericDropdown(raw.places),
+    areaTypes: normalizeAreaTypes(raw.areaTypes),
+    houseTypes: normalizeHouseTypes(raw.houseTypes),
     collegeTypes: normalizeGenericDropdown(raw.collegeTypes),
     semiProfessionalCourses: normalizeGenericDropdown(raw.semiProfessionalCourses),
   };
@@ -82,8 +102,32 @@ function normalizeGenericDropdown(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.Id ?? item.ID ?? item.id ?? item.value,
-      label: item.Name ?? item.name ?? item.label ?? '',
+      value: item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value ?? item.PlaceID ?? item.DistrictID,
+      label: item.Name ?? item.name ?? item.label ?? item.Text ?? item.PlaceName ?? item.DistrictName ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
+}
+
+function normalizeAreaTypes(data: any[]): NormalizedDropdownOption[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return data
+    .map((item) => ({
+      value: item.AreaTypeID ?? item.AreaTypeId ?? item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value,
+      label: item.AreaTypeName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
+}
+
+function normalizeHouseTypes(data: any[]): NormalizedDropdownOption[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return data
+    .map((item) => ({
+      value: item.HouseTypeID ?? item.HouseTypeId ?? item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value,
+      label: item.HouseTypeName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }

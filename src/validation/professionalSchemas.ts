@@ -7,14 +7,14 @@ export const professionalPersonalDetailsSchema = z.object({
   StudentName: z.string().min(1, { message: 'Student name is required' }),
   DateOfBirth: z.string().min(1, { message: 'Date of birth is required' }),
   ContactNumber: z.string().min(10, { message: 'Valid 10-digit contact number required' }).max(10),
-  AlternateNumber: z.string().optional(),
+  AlternateNumber: z.string().min(10, { message: 'Valid 10-digit alternate number required' }).max(10),
   ResidentialAddress: z.string().min(1, { message: 'Residential address is required' }),
-  GoogleMapLink: z.string().optional(),
+  GoogleMapLink: z.string().min(1, { message: 'Google Map link is required' }).url('Enter a valid URL'),
   AreaTypeID: z.number().min(1, { message: 'Area type is required' }),
   DistrictID: z.number().min(1, { message: 'District is required' }),
   OtherDistrict: z.string().optional(),
   GenderID: z.number().min(1, { message: 'Gender is required' }),
-  CasteCategoryID: z.number().min(1, { message: 'Caste category is required' }),
+  CasteCategoryID: z.number().optional(),
 }).refine(
   (data) => {
     if (data.DistrictID === 11) {
@@ -34,16 +34,16 @@ export const professionalFamilyDetailsSchema = z.object({
   MotherName: z.string().min(1, { message: 'Mother name is required' }),
   FatherOccupationID: z.number().min(1, { message: 'Father occupation is required' }),
   MotherOccupationID: z.number().min(1, { message: 'Mother occupation is required' }),
-  FamilyMembers: z.number().min(1, { message: 'At least 1 family member required' }),
+  FamilyMembers: z.number({ message: 'Total family members is required' }).min(1, { message: 'At least 1 family member required' }),
   HouseTypeID: z.number().min(1, { message: 'House type is required' }),
   MonthlyRent: z.number().optional(),
-  FamilyIncome: z.number().positive({ message: 'Family income must be positive' }),
+  FamilyIncome: z.number().min(0, { message: 'Family income is required' }),
 });
 
 // Professional Academic schema
 export const academicDetailsSchema = z.object({
-  PUPercentage: z.number()
-    .min(0, { message: 'Percentage must be at least 0' })
+  PUPercentage: z.number({ message: 'PU/12th percentage is required' })
+    .min(1, { message: 'Percentage must be greater than 0' })
     .max(100, { message: 'Percentage cannot exceed 100' }),
   CETRank: z.number().optional(),
   NEETRank: z.number().optional(),

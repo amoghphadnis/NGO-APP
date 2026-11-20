@@ -80,9 +80,11 @@ export default function ContactSection({ navigation }: ContactSectionProps) {
               label="Alternate Number"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter alternate number (optional)"
+              placeholder="Enter 10-digit alternate number"
               keyboardType="phone-pad"
+              maxLength={10}
               error={formState.errors.alternateNumber?.message}
+              required
             />
           )}
         />

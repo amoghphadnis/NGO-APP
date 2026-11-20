@@ -1,4 +1,4 @@
-export type FormType = 'professional' | 'puc' | 'payana' | 'semiProfessional';
+export type FormType = 'professional' | 'puc' | 'payana' | 'semiProfessional' | 'newStudent';
 
 export type FormStep = 
   | 'guidelines'

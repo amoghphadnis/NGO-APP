@@ -1,4 +1,4 @@
-import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
@@ -7,18 +7,26 @@ interface ButtonProps {
   title: string;
   onPress: () => void;
   disabled?: boolean;
+  loading?: boolean;
   style?: ViewStyle;
 }
 
-export default function Button({ title, onPress, disabled, style }: ButtonProps) {
+export default function Button({ title, onPress, disabled, loading, style }: ButtonProps) {
+  const isDisabled = disabled || loading;
   return (
     <TouchableOpacity
-      style={[styles.button, style, disabled && styles.disabled]}
+      style={[styles.button, style, isDisabled && styles.disabled]}
       onPress={onPress}
       activeOpacity={0.8}
-      disabled={disabled}
+      disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !!isDisabled, busy: !!loading }}
     >
-      <Text style={styles.text}>{title}</Text>
+      {loading ? (
+        <ActivityIndicator color="#FFFFFF" size="small" />
+      ) : (
+        <Text style={styles.text}>{title}</Text>
+      )}
     </TouchableOpacity>
   );
 }

@@ -21,18 +21,11 @@ export interface LoginResponse {
 export const authApi = {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      console.log('Login attempt:', credentials.Email);
       const response = await api.post('/registration/login', credentials);
-      console.log('Login success:', response.data);
+      // Never log the response — it contains the JWT and user PII.
       return response.data as LoginResponse;
     } catch (error) {
-      console.error('Login error:', error);
       if (error instanceof ApiError) {
-        console.error('API Error details:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          message: error.message,
-        });
         // Handle specific error cases
         if (error.response?.status === 401) {
           throw new Error('Invalid credentials');

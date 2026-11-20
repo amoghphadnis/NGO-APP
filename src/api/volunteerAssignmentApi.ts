@@ -112,13 +112,28 @@ function normalizeDistricts(raw: any): SelectListItemDto[] {
   );
 }
 
-function normalizeVolunteers(raw: any): SelectListItemDto[] {
+export function normalizeVolunteers(raw: any): SelectListItemDto[] {
   if (!Array.isArray(raw)) return [];
-  return raw.map((v: any) =>
-    v.Value !== undefined && v.Text !== undefined
-      ? { Value: String(v.Value), Text: v.Text }
-      : { Value: String(v.Id), Text: v.DisplayName || v.Name }
-  );
+  return raw
+    .map((v: any) => {
+      if (v.Value !== undefined && v.Text !== undefined) {
+        return { Value: String(v.Value), Text: v.Text };
+      }
+      // Professional DTO: { VolunteerID, VolunteerName, Taluk }
+      // Payana / SemiProf DTO: { Id, Name, Taluk, DisplayName }
+      const id = v.VolunteerID ?? v.Id;
+      const text = v.VolunteerName ?? v.DisplayName ?? v.Name;
+      return { Value: String(id ?? ''), Text: text };
+    })
+    // Drop malformed rows so they can't surface as dummy/blank options.
+    .filter(
+      (v) =>
+        v.Value !== '' &&
+        v.Value !== 'undefined' &&
+        v.Value !== 'null' &&
+        Number(v.Value) > 0 &&
+        !!v.Text
+    );
 }
 
 export function createVolunteerAssignmentApi(program: VolunteerAssignmentProgram): VolunteerAssignmentApi {
@@ -144,7 +159,15 @@ export function createVolunteerAssignmentApi(program: VolunteerAssignmentProgram
     async getStudents(districtId) {
       districtIdQuerySchema.parse(districtId);
       const res = await api.get(`${prefix}/students?districtId=${districtId}`);
-      return res.data as VolunteerAssignmentStudentsResponse;
+      const data = res.data as VolunteerAssignmentStudentsResponse;
+      // Program-specific field normalization: Professional / Semi-Professional
+      // controllers expose AnnualIncome instead of FamilyIncome.
+      const rows = (data.data ?? []).map((s: any) => ({
+        ...s,
+        FamilyIncome:
+          s.FamilyIncome ?? (s.AnnualIncome != null ? Number(s.AnnualIncome) : null),
+      }));
+      return { ...data, data: rows } as VolunteerAssignmentStudentsResponse;
     },
 
     async getVolunteers(districtId) {

@@ -1,3 +1,4 @@
+import { createNewStudent } from '@/api/newStudentApi';
 import { createPayanaStudent } from '@/api/payanaApi';
 import { createProfessionalStudent } from '@/api/professionalApi';
 import { createPUCStudent } from '@/api/pucApi';
@@ -41,6 +42,8 @@ export async function submitApplication(
       response = await createSemiProfessionalStudent(payload);
     } else if (formType === 'puc') {
       response = await createPUCStudent(payload);
+    } else if (formType === 'newStudent') {
+      response = await createNewStudent(payload);
     } else {
       logError('submission', 'submission_failed', {
         submissionId, formType,
@@ -55,7 +58,18 @@ export async function submitApplication(
       };
     }
 
-    logInfo('submission', 'submission_succeeded', { submissionId, formType });
+    // The create*Student APIs normalize failures into { success: false } results
+    // instead of throwing — only log success when the flag is actually true.
+    if (response.success === false) {
+      logError('submission', 'submission_failed', {
+        submissionId,
+        formType,
+        errorCode: 'API_FAILURE',
+        message: truncateMessage(response.error || response.message),
+      });
+    } else {
+      logInfo('submission', 'submission_succeeded', { submissionId, formType });
+    }
     return { ...response, submissionId };
   } catch (error: any) {
     logError('submission', 'submission_failed', {

@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { z } from 'zod';
 
+import ApplicationTitleBanner from '@/components/common/ApplicationTitleBanner';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
@@ -51,7 +52,75 @@ export default function GuidelinesSection({ navigation }: any) {
       nextDisabled={isNextDisabled}
       nextLabel="Accept & Continue"
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ApplicationTitleBanner />
+
+      {/* Instructions — keep documents ready (web parity) */}
+      <FormSectionHeader
+          icon="document-text"
+          title="Instructions"
+          subtitle="Please keep the following documents and information ready before filling out the application form:"
+        />
+
+        <FormCard>
+          <View style={styles.documentItem}>
+            <Ionicons name="document" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>1. PUC II Year Marks Card</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="camera" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>2. Student&apos;s Selfie/Photograph</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>3. CET Rank Sheet</Text>
+              <Text style={styles.documentSubtitle}>(For B.Sc-Nursing, GNM- Nursing, Physiotherapy, B.Sc Agriculture, Veterinary Science &amp; Horticulture)</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>4. Agriculture/ Veterinary/ Horticulture (PT Rank)</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="flash" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>5. Latest Electricity Bill</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="home" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>6. Dwelling Unit Photo</Text>
+              <Text style={styles.documentSubtitle}>(Photo of the student with family members in front of the house)</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="card" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>7. Ration Card (Both sides)</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="receipt" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>8. Income Certificate</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="videocam" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>9. Short Video of the House</Text>
+              <Text style={styles.documentSubtitle}>Please record a short video of your house, starting from the outside and moving inside. The video should cover all rooms, including the kitchen, and must be recorded in landscape mode.</Text>
+            </View>
+          </View>
+        </FormCard>
+
         {/* Eligibility Criteria */}
         <FormSectionHeader
           icon="checkmark-circle"
@@ -63,7 +132,7 @@ export default function GuidelinesSection({ navigation }: any) {
           <View style={styles.guidelineItem}>
             <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              The student should have appeared for the <Text style={styles.bold}>PUC II / 12 Grade examination for the first time in 2026</Text>
+              The student should have appeared for the <Text style={styles.bold}>PUC II /12th Grade examination for the first time in 2026</Text>
             </Text>
           </View>
           <View style={styles.guidelineItem}>
@@ -96,79 +165,11 @@ export default function GuidelinesSection({ navigation }: any) {
               <Text style={styles.bold}>Parents must be residents of Karnataka</Text>
             </Text>
           </View>
-        </FormCard>
-
-        {/* Deadline */}
-        <FormCard>
           <View style={styles.guidelineItem}>
             <Ionicons name="calendar" size={20} color={colors.warning} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              <Text style={styles.bold}>Last date to apply: 30 Jun 2026</Text>
+              <Text style={styles.bold}>Last date to apply: 10 Nov 2026</Text>
             </Text>
-          </View>
-        </FormCard>
-
-        {/* Required Documents */}
-        <FormSectionHeader
-          icon="attach"
-          title="Required Documents (9 Total)"
-          subtitle="Keep these documents ready for upload (PDF/JPG/PNG, max 2MB each)"
-        />
-
-        <FormCard>
-          <View style={styles.documentItem}>
-            <Ionicons name="document" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>1. PUC II Year Marks Card</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="camera" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>2. Student's Selfie/Photograph</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>3. CET Rank Sheet</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>4. Agriculture/Veterinary/Horticulture (PT Rank) Sheet</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="home" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>5. Dwelling Unit Photo</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="videocam" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>6. House Video</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="flash" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>7. Latest Electricity Bill</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="receipt" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>8. Income Certificate</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="card" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>9. Ration Card (Both Sides)</Text>
-            </View>
           </View>
         </FormCard>
 
@@ -195,13 +196,12 @@ export default function GuidelinesSection({ navigation }: any) {
                   )}
                 </View>
                 <Text style={styles.checkboxLabel}>
-                  I have read and understood all the guidelines and instructions. I confirm that all information I provide will be true and accurate.
+                  I have read and agree to the Terms &amp; Conditions.
                 </Text>
               </TouchableOpacity>
             )}
           />
         </FormCard>
-      </ScrollView>
     </FormScreenLayout>
   );
 }
@@ -239,6 +239,12 @@ const styles = StyleSheet.create({
     lineHeight: platform.normalize.lineHeight.body,
     color: colors.textPrimary,
     fontWeight: '600',
+  },
+  documentSubtitle: {
+    fontSize: platform.normalize.fontSize.small,
+    lineHeight: platform.normalize.lineHeight.small,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   checkboxContainer: {
     flexDirection: 'row',

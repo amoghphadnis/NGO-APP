@@ -2,8 +2,10 @@
  * Types for Volunteer Student List APIs
  * 
  * APIs:
- * - GET /api/professionalstudents/studentlist
- * - GET /api/pucstudents/studentlist
+ * - GET /api/professional-students/list
+ * - GET /api/puc-students/list
+ * - GET /api/semi-professional-students/list
+ * - GET /api/payana-students/list
  */
 
 // ============================================================================

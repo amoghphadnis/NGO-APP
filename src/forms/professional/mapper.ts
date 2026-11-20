@@ -46,15 +46,14 @@ export function professionalMapper(formData: ProfessionalFormValues): FormData {
   if (formData.personal.ContactNumber) {
     fd.append('ContactNumber', formData.personal.ContactNumber);
   }
-  if (formData.personal.AlternateNumber) {
-    fd.append('AlternateNumber', formData.personal.AlternateNumber);
-  }
+  // Always send optional strings — the backend uses AddWithValue(name, value)
+  // and a missing form field becomes a null parameter, which ADO.NET treats as
+  // "parameter not supplied" and fails the INSERT.
+  fd.append('AlternateNumber', formData.personal.AlternateNumber || '');
   if (formData.personal.ResidentialAddress) {
     fd.append('ResidentialAddress', formData.personal.ResidentialAddress);
   }
-  if (formData.personal.GoogleMapLink) {
-    fd.append('GoogleMapLink', formData.personal.GoogleMapLink);
-  }
+  fd.append('GoogleMapLink', formData.personal.GoogleMapLink || '');
   if (formData.personal.AreaTypeID) {
     fd.append('AreaTypeID', toString(formData.personal.AreaTypeID));
   }

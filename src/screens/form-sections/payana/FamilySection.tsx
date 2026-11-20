@@ -49,7 +49,7 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
     motherName: '',
     fatherOccupationID: undefined,
     motherOccupationID: undefined,
-    familyMembers: 1,
+    familyMembers: undefined,
     familyIncome: '',
     parentBank: '',
   };
@@ -63,14 +63,14 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
   const onSubmit = (data: PayanaFamilyFormValues) => {
     updateSectionData('family', data);
     updateValidationState('family', { isValid: true, data });
-    markStepComplete(4);
+    markStepComplete(5);
     navigation.navigate('category');
   };
 
   return (
     <FormScreenLayout
       title="Family Information"
-      step={5}
+      step={6}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={!formState.isValid || loadingDropdowns}
@@ -124,6 +124,7 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
               onChange={onChange}
               placeholder="Select father's occupation"
               error={formState.errors.fatherOccupationID?.message}
+              required
               disabled={loadingDropdowns}
             />
           )}
@@ -140,23 +141,8 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
               onChange={onChange}
               placeholder="Select mother's occupation"
               error={formState.errors.motherOccupationID?.message}
-              disabled={loadingDropdowns}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="familyMembers"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Family Members"
-              value={value?.toString()}
-              onChangeText={(text) => onChange(parseInt(text) || 0)}
-              placeholder="Enter number of family members"
-              keyboardType="number-pad"
-              error={formState.errors.familyMembers?.message}
               required
+              disabled={loadingDropdowns}
             />
           )}
         />
@@ -188,6 +174,25 @@ export default function FamilySection({ navigation }: FamilySectionProps) {
               placeholder="Enter parent bank balance"
               keyboardType="number-pad"
               error={formState.errors.parentBank?.message}
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="familyMembers"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Family Members"
+              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
+              onChangeText={(text) => {
+                const clean = text.replace(/[^0-9]/g, '');
+                onChange(clean === '' ? undefined : parseInt(clean, 10));
+              }}
+              placeholder="Enter number of family members"
+              keyboardType="number-pad"
+              error={formState.errors.familyMembers?.message}
               required
             />
           )}

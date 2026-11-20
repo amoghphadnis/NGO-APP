@@ -1,10 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet } from 'react-native';
 
 import { getPayanaDropdowns } from '@/api/payanaApi';
-import { getPUCDropdowns } from '@/api/pucApi';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
@@ -20,32 +19,17 @@ interface AcademicSectionProps {
 export default function AcademicSection({ navigation }: AcademicSectionProps) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const [courseOptions, setCourseOptions] = useState<Option<number>[]>([]);
   const [collegeTypeOptions, setCollegeTypeOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
     async function loadDropdowns() {
-      // Load college types from Payana dropdowns
       const payanaResponse = await getPayanaDropdowns();
-      console.log('[Payana AcademicSection] Payana dropdown response:', payanaResponse);
       if (payanaResponse.success && payanaResponse.data) {
         setCollegeTypeOptions(payanaResponse.data.collegeTypes?.map((c: any) => ({
           value: Number(c.value),
           label: c.label
         })) || []);
-        console.log('[Payana AcademicSection] College type options:', payanaResponse.data.collegeTypes);
-      }
-
-      // Load courses from general student dropdowns (Payana endpoint doesn't have courses)
-      const pucResponse = await getPUCDropdowns();
-      console.log('[Payana AcademicSection] PUC dropdown response:', pucResponse);
-      if (pucResponse.success && pucResponse.data) {
-        setCourseOptions(pucResponse.data.courses?.map((c: any) => ({
-          value: Number(c.value),
-          label: c.label
-        })) || []);
-        console.log('[Payana AcademicSection] Course options:', pucResponse.data.courses);
       }
 
       setLoadingDropdowns(false);
@@ -54,7 +38,6 @@ export default function AcademicSection({ navigation }: AcademicSectionProps) {
   }, []);
 
   const academicData = (formData as any).academic ?? {
-    courseID: 0,
     collegeName: '',
     collegeTypeID: 0,
     collegeCNumber: '',
@@ -62,6 +45,7 @@ export default function AcademicSection({ navigation }: AcademicSectionProps) {
     courseStream: '',
     annualFees: '',
     totalExpenses: '',
+    reference: '',
     studentAchievements: '',
     securedPercentage: '',
   };
@@ -75,14 +59,14 @@ export default function AcademicSection({ navigation }: AcademicSectionProps) {
   const onSubmit = (data: PayanaAcademicFormValues) => {
     updateSectionData('academic', data);
     updateValidationState('academic', { isValid: true, data });
-    markStepComplete(6);
-    navigation.navigate('bank');
+    markStepComplete(7);
+    navigation.navigate('documents');
   };
 
   return (
     <FormScreenLayout
       title="Academic Details"
-      step={7}
+      step={8}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={!formState.isValid || loadingDropdowns}
@@ -97,32 +81,14 @@ export default function AcademicSection({ navigation }: AcademicSectionProps) {
       <FormCard>
         <Controller
           control={control}
-          name="courseID"
-          render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Course"
-              value={value}
-              options={courseOptions}
-              onChange={onChange}
-              placeholder="Select course"
-              error={formState.errors.courseID?.message}
-              required
-              disabled={loadingDropdowns}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
           name="collegeName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="College Name"
-              value={value}
+              value={value ?? ''}
               onChangeText={onChange}
               placeholder="Enter college name"
               error={formState.errors.collegeName?.message}
-              required
             />
           )}
         />
@@ -138,7 +104,6 @@ export default function AcademicSection({ navigation }: AcademicSectionProps) {
               onChange={onChange}
               placeholder="Select college type"
               error={formState.errors.collegeTypeID?.message}
-              required
               disabled={loadingDropdowns}
             />
           )}
@@ -222,16 +187,32 @@ export default function AcademicSection({ navigation }: AcademicSectionProps) {
 
         <Controller
           control={control}
+          name="reference"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Who Referred you regarding Payana?"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter reference name"
+              error={formState.errors.reference?.message}
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
           name="studentAchievements"
           render={({ field: { onChange, value } }) => (
             <VPInputField
               label="Student Achievements"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter achievements (optional)"
+              placeholder="Enter achievements"
               multiline
               numberOfLines={3}
               error={formState.errors.studentAchievements?.message}
+              required
             />
           )}
         />

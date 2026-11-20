@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import VPInputField from '@/components/common/VPInputField';
@@ -41,14 +41,18 @@ export default function BankSection({ navigation }: any) {
     navigation.navigate('documents');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = false;
 
   return (
     <FormScreenLayout
       title="Bank Details"
       step={7}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader
@@ -63,12 +67,11 @@ export default function BankSection({ navigation }: any) {
           control={control}
           name="ParentsBankBalance"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <DecimalInputField
               label="Parents Bank Balance"
-              value={String(value)}
-              onChangeText={(text) => onChange(Number(text))}
+              value={value}
+              onChangeValue={(v) => onChange(v ?? 0)}
               placeholder="Enter parents bank balance"
-              keyboardType="numeric"
               error={formState.errors.ParentsBankBalance?.message}
               helperText="Current bank balance of parents/guardian"
               required

@@ -21,27 +21,29 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Modal,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { HouseVisitApprovalApi } from '@/api/houseVisitApprovalApi';
 import AppFooter from '@/components/common/AppFooter';
+import EmptyState from '@/components/common/EmptyState';
+import AppTopBar from '@/components/layout/AppTopBar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { HouseVisitApprovalItem } from '@/types/houseVisitApproval';
-import { canApprove } from '@/utils/roleUtils';
+import { canApproveReject } from '@/utils/roleUtils';
 
 const MANAGER_STATUS_COLORS: Record<string, string> = {
   Pending: colors.warning,
@@ -70,8 +72,7 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
   } | null>(null);
   const [remark, setRemark] = useState('');
 
-  const isBranchExecutive = user?.Role === 'Branch Executives';
-  const userCanApprove = canApprove(user?.Role);
+  const userCanApprove = canApproveReject(user?.Role);
 
   const { data: items, isLoading, isError, error, refetch } = useQuery({
     queryKey: api.queryKeys.list,
@@ -137,7 +138,8 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
   const renderItem = ({ item }: { item: HouseVisitApprovalItem }) => {
     const managerColor = MANAGER_STATUS_COLORS[item.approveStatus] || colors.textSecondary;
     const volunteerColor = VOLUNTEER_STATUS_COLORS[item.volunteerApprovalStatus || ''] || colors.textSecondary;
-    const isPending = item.approveStatus === 'Pending';
+    // Treat a blank manager status as Pending (backend sends "" for awaiting records)
+    const isPending = !item.approveStatus || item.approveStatus === 'Pending';
 
     return (
       <View style={styles.card}>
@@ -150,8 +152,8 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
               {item.courseInstitution || 'No course info'}
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: managerColor }]}>
-            <Text style={styles.statusText}>{item.approveStatus}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: isPending ? MANAGER_STATUS_COLORS.Pending : managerColor }]}>
+            <Text style={styles.statusText}>{item.approveStatus || 'Pending'}</Text>
           </View>
         </View>
 
@@ -159,8 +161,8 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
         <View style={styles.dualStatusRow}>
           <View style={styles.dualStatusItem}>
             <Text style={styles.dualStatusLabel}>Manager</Text>
-            <View style={[styles.miniBadge, { backgroundColor: managerColor }]}>
-              <Text style={styles.miniBadgeText}>{item.approveStatus}</Text>
+            <View style={[styles.miniBadge, { backgroundColor: isPending ? MANAGER_STATUS_COLORS.Pending : managerColor }]}>
+              <Text style={styles.miniBadgeText}>{item.approveStatus || 'Pending'}</Text>
             </View>
           </View>
           <View style={styles.dualStatusItem}>
@@ -206,9 +208,9 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
     );
   };
 
-  if (!userCanApprove && !isBranchExecutive) {
+  if (!userCanApprove) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.errorContainer}>
           <Ionicons name="lock-closed-outline" size={48} color={colors.textSecondary} />
           <Text style={styles.errorText}>
@@ -222,7 +224,7 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading house visit approvals...</Text>
@@ -234,7 +236,7 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
           <Text style={styles.errorText}>
@@ -250,12 +252,18 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <AppTopBar />
+
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{title}</Text>
-        <Text style={styles.headerSubtitle}>
-          {items?.length || 0} house visit{items?.length === 1 ? '' : 's'}
-        </Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>{title}</Text>
+            <Text style={styles.headerSubtitle}>
+              {items?.length || 0} house visit{items?.length === 1 ? '' : 's'}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <FlatList
@@ -267,10 +275,10 @@ export default function HouseVisitApprovalListScreen({ title, api }: HouseVisitA
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="document-text-outline" size={48} color={colors.textSecondary} />
-            <Text style={styles.emptyText}>No house visits pending approval</Text>
-          </View>
+          <EmptyState
+            icon="document-text-outline"
+            title="No house visits pending approval"
+          />
         }
       />
 
@@ -358,6 +366,21 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: spacing.sm,
+    padding: spacing.xs,
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: platform.normalize.fontSize.h2,

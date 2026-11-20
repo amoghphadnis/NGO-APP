@@ -1,15 +1,16 @@
 import { dashboardApi } from '@/api/dashboardApi';
 import AppFooter from '@/components/common/AppFooter';
+import AppTopBar from '@/components/layout/AppTopBar';
 import { DASHBOARD_MENU_ITEMS, DASHBOARD_MENU_SECTIONS } from '@/config/appContent';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { DashboardError, DashboardErrorCode, DashboardResponseDto } from '@/types/dashboard';
-import { canApprove, canAssignVolunteers, canCreatePayana } from '@/utils/roleUtils';
+import { canApproveReject, canAssignVolunteers } from '@/utils/roleUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Animated,
     FlatList,
@@ -38,6 +39,13 @@ const STAT_CARDS: StatCardConfig[] = [
   { label: 'Pending Payana Apps',       field: 'pendingPayana',        icon: 'bicycle-outline',        route: '/approval/payana' },
   { label: 'Pending Prof Apps',         field: 'pendingProfessional',  icon: 'briefcase-outline',      route: '/approval/professional' },
   { label: 'Pending Semi Prof Apps',    field: 'pendingSemiProfessional', icon: 'book-outline',        route: '/approval/semi-professional' },
+];
+
+const VOLUNTEER_CARDS = [
+  { label: 'PUC Students', field: 'puc', icon: 'school-outline' as const, route: '/volunteer/puc' },
+  { label: 'Payana Students', field: 'payana', icon: 'bicycle-outline' as const, route: '/volunteer/payana' },
+  { label: 'Prof Students', field: 'prof', icon: 'briefcase-outline' as const, route: '/volunteer/professional' },
+  { label: 'Semi-Prof Students', field: 'semiProf', icon: 'book-outline' as const, route: '/volunteer/semi-professional' },
 ];
 
 interface DrawerNavItem {
@@ -80,37 +88,57 @@ function DrawerSidebar({
   user,
   dashboard,
 }: DrawerProps) {
-  const userCanApprove = canApprove(user?.Role) || user?.Role === 'Branch Executives';
-  const navItems: DrawerNavItem[] = userCanApprove ? [
-    {
-      icon: 'school-outline',
-      label: 'Pending PUC Apps',
-      badge: dashboard?.notifications?.pendingPUC ?? 0,
-      route: '/approval/puc',
-    },
-    {
-      icon: 'bicycle-outline',
-      label: 'Pending Payana Apps',
-      badge: dashboard?.notifications?.pendingPayana ?? 0,
-      route: '/approval/payana',
-    },
-    {
-      icon: 'briefcase-outline',
-      label: 'Pending Prof Apps',
-      badge: dashboard?.notifications?.pendingProfessional ?? 0,
-      route: '/approval/professional',
-    },
-    {
-      icon: 'book-outline',
-      label: 'Pending Semi Prof Apps',
-      badge: dashboard?.notifications?.pendingSemiProfessional ?? 0,
-      route: '/approval/semi-professional',
-    },
+  const n = dashboard?.notifications;
+  const isVolunteer = user?.Role === 'Volunteer';
+  const isBranchExecutive = user?.Role === 'Branch Executives';
+  const userCanApprove = canApproveReject(user?.Role);
+
+  // Approval/Reject grids — web parity for Branch Executives (13 items)
+  const approvalItems: DrawerNavItem[] = userCanApprove ? [
+    { icon: 'school-outline',     label: 'PUC Student Approval',              badge: n?.pendingPUC ?? 0,                 route: '/approval/puc' },
+    { icon: 'bicycle-outline',    label: 'Payana Student Approval',           badge: n?.pendingPayana ?? 0,              route: '/approval/payana' },
+    { icon: 'briefcase-outline',  label: 'New Professional Approval',         badge: n?.pendingProfessional ?? 0,        route: '/approval/professional' },
+    { icon: 'book-outline',       label: 'Semi Professional Approval',        badge: n?.pendingSemiProfessional ?? 0,    route: '/approval/semi-professional' },
+    { icon: 'document-outline',   label: 'Format 1.1 PUC Approval',           badge: 0,                                  route: '/approval/format11-puc' },
+    { icon: 'document-outline',   label: 'Format 1.1 Professional Approval',  badge: 0,                                  route: '/approval/format11-professional' },
+    { icon: 'home-outline',       label: 'PUC House Visit Approval',          badge: n?.pendingHousePUC ?? 0,            route: '/approval/house-visit/puc' },
+    { icon: 'home-outline',       label: 'Payana House Visit Approval',       badge: n?.pendingHousePayana ?? 0,         route: '/approval/house-visit/payana' },
+    { icon: 'home-outline',       label: 'Prof House Visit Approval',         badge: n?.pendingHouseProfessional ?? 0,   route: '/approval/house-visit/professional' },
+    { icon: 'home-outline',       label: 'Semi Prof House Visit Approval',    badge: n?.pendingHouseSemiProfessional ?? 0, route: '/approval/house-visit/semi-professional' },
+    { icon: 'refresh-outline',    label: 'PUC Renewal Approval',              badge: n?.pendingPUCRenewal ?? 0,          route: '/approval/renewal-puc' },
+    { icon: 'refresh-outline',    label: 'Payana Renewal Approval',           badge: n?.pendingPayanaRenewal ?? 0,       route: '/approval/renewal-payana' },
+    { icon: 'refresh-outline',    label: 'Prof Renewal Approval',             badge: n?.pendingProfessionalRenewal ?? 0, route: '/approval/renewal-professional' },
   ] : [];
+
+  const volunteerItems = [
+    { label: 'PUC Students',             route: '/volunteer/puc',               icon: 'school-outline' as const },
+    { label: 'Payana Students',          route: '/volunteer/payana',            icon: 'bicycle-outline' as const },
+    { label: 'Professional Students',    route: '/volunteer/professional',      icon: 'briefcase-outline' as const },
+    { label: 'Semi Professional Students', route: '/volunteer/semi-professional', icon: 'book-outline' as const },
+  ];
 
   const initials = getInitials(user?.UserName ?? 'VP');
 
   if (!open) return null;
+
+  const renderNavItem = (item: { icon: any; label: string; route: string; badge?: number }, iconColor: string = colors.primary) => (
+    <TouchableOpacity
+      key={item.route + item.label}
+      style={styles.drawerItem}
+      onPress={() => onNavigate(item.route)}
+      activeOpacity={0.7}
+    >
+      <Ionicons name={item.icon} size={20} color={iconColor} />
+      <Text style={styles.drawerItemLabel}>{item.label}</Text>
+      {(item.badge ?? 0) > 0 && (
+        <View style={styles.drawerBadge}>
+          <Text style={styles.drawerBadgeText}>
+            {item.badge! > 99 ? '99+' : String(item.badge)}
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
@@ -138,66 +166,88 @@ function DrawerSidebar({
 
         {/* Nav items */}
         <ScrollView style={styles.drawerNav} showsVerticalScrollIndicator={false}>
-          <Text style={styles.drawerSectionLabel}>{DASHBOARD_MENU_SECTIONS.approvals.toUpperCase()}</Text>
-          {navItems.map((item) => (
-            <TouchableOpacity
-              key={item.label}
-              style={styles.drawerItem}
-              onPress={() => onNavigate(item.route)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name={item.icon} size={20} color={colors.primary} />
-              <Text style={styles.drawerItemLabel}>{item.label}</Text>
-              {item.badge > 0 && (
-                <View style={styles.drawerBadge}>
-                  <Text style={styles.drawerBadgeText}>
-                    {item.badge > 99 ? '99+' : String(item.badge)}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+          {isVolunteer && (
+            <>
+              {/* Web parity: Volunteers only see the 4 house-visit lists */}
+              <Text style={styles.drawerSectionLabel}>
+                STUDENTS APPROVAL HOUSE VISIT
+              </Text>
+              {volunteerItems.map((item) => renderNavItem(item))}
+              <View style={styles.drawerDivider} />
+            </>
+          )}
 
-          <View style={styles.drawerDivider} />
+          {!isVolunteer && userCanApprove && (
+            <>
+              <Text style={styles.drawerSectionLabel}>APPROVAL / REJECT</Text>
+              {approvalItems.map((item) => renderNavItem(item))}
+              <View style={styles.drawerDivider} />
+            </>
+          )}
 
-          <Text style={styles.drawerSectionLabel}>VOLUNTEER ASSIGNMENT</Text>
-          {[
-            { label: 'PUC',               route: '/volunteer-assignment/puc',               icon: 'school-outline' as const },
-            { label: 'Payana',            route: '/volunteer-assignment/payana',            icon: 'bicycle-outline' as const },
-            { label: 'Professional',      route: '/volunteer-assignment/professional',      icon: 'briefcase-outline' as const },
-            { label: 'Semi Professional', route: '/volunteer-assignment/semi-professional', icon: 'book-outline' as const },
-          ].map((item) => (
-            <TouchableOpacity
-              key={item.route}
-              style={styles.drawerItem}
-              onPress={() => onNavigate(item.route)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name={item.icon} size={20} color={colors.primary} />
-              <Text style={styles.drawerItemLabel}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
+          {!isVolunteer && isBranchExecutive && (
+            <>
+              <Text style={styles.drawerSectionLabel}>PAYANA STUDENTS</Text>
+              {renderNavItem({ icon: 'star-outline', label: 'New Payana Application', route: '/form-engine?formType=payana' })}
+              <View style={styles.drawerDivider} />
 
-          <View style={styles.drawerDivider} />
+              <Text style={styles.drawerSectionLabel}>STUDENT REGISTRATION</Text>
+              {renderNavItem({ icon: 'person-add-outline', label: 'PUC Student Registration', route: '/form-engine?formType=newStudent' })}
+              <View style={styles.drawerDivider} />
 
-          <Text style={styles.drawerSectionLabel}>{DASHBOARD_MENU_SECTIONS.renewals.toUpperCase()}</Text>
-          {[
-            { ...DASHBOARD_MENU_ITEMS.renewalPuc, icon: 'refresh-outline' as const },
-            { ...DASHBOARD_MENU_ITEMS.renewalProfessional, icon: 'refresh-outline' as const },
-            { ...DASHBOARD_MENU_ITEMS.renewalPayana, icon: 'refresh-outline' as const },
-          ].map((item) => (
-            <TouchableOpacity
-              key={item.route}
-              style={styles.drawerItem}
-              onPress={() => onNavigate(item.route)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name={item.icon} size={20} color={colors.success} />
-              <Text style={styles.drawerItemLabel}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
+              <Text style={styles.drawerSectionLabel}>FORMAT 1.1</Text>
+              {[
+                { icon: 'school-outline' as const,    label: 'PUC Format 1.1',            route: '/form-engine?formType=puc' },
+                { icon: 'briefcase-outline' as const, label: 'Professional Format 1.1',   route: '/form-engine?formType=professional' },
+              ].map((item) => renderNavItem(item))}
+              <View style={styles.drawerDivider} />
 
-          <View style={styles.drawerDivider} />
+              <Text style={styles.drawerSectionLabel}>RENEWAL FORMS</Text>
+              {[
+                { ...DASHBOARD_MENU_ITEMS.renewalPuc, icon: 'refresh-outline' as const },
+                { ...DASHBOARD_MENU_ITEMS.renewalProfessional, icon: 'refresh-outline' as const },
+                { ...DASHBOARD_MENU_ITEMS.renewalPayana, icon: 'refresh-outline' as const },
+              ].map((item) => renderNavItem(item, colors.success))}
+              <View style={styles.drawerDivider} />
+
+              <Text style={styles.drawerSectionLabel}>ASSIGN VOLUNTEERS</Text>
+              {[
+                { label: 'PUC',               route: '/volunteer-assignment/puc',               icon: 'school-outline' as const },
+                { label: 'Payana',            route: '/volunteer-assignment/payana',            icon: 'bicycle-outline' as const },
+                { label: 'Professional',      route: '/volunteer-assignment/professional',      icon: 'briefcase-outline' as const },
+                { label: 'Semi Professional', route: '/volunteer-assignment/semi-professional', icon: 'book-outline' as const },
+              ].map((item) => renderNavItem(item))}
+              <View style={styles.drawerDivider} />
+
+              <Text style={styles.drawerSectionLabel}>ASSIGN BRANCH EXECUTIVES</Text>
+              {renderNavItem({ icon: 'map-outline', label: 'District Mapping', route: '/admin/district-mapping' })}
+              <View style={styles.drawerDivider} />
+            </>
+          )}
+
+          {!isVolunteer && !isBranchExecutive && (
+            <>
+              {/* Other roles (Employee, Account Manager, Resource Modulization): legacy sections unchanged */}
+              <Text style={styles.drawerSectionLabel}>VOLUNTEER ASSIGNMENT</Text>
+              {[
+                { label: 'PUC',               route: '/volunteer-assignment/puc',               icon: 'school-outline' as const },
+                { label: 'Payana',            route: '/volunteer-assignment/payana',            icon: 'bicycle-outline' as const },
+                { label: 'Professional',      route: '/volunteer-assignment/professional',      icon: 'briefcase-outline' as const },
+                { label: 'Semi Professional', route: '/volunteer-assignment/semi-professional', icon: 'book-outline' as const },
+              ].map((item) => renderNavItem(item))}
+
+              <View style={styles.drawerDivider} />
+
+              <Text style={styles.drawerSectionLabel}>{DASHBOARD_MENU_SECTIONS.renewals.toUpperCase()}</Text>
+              {[
+                { ...DASHBOARD_MENU_ITEMS.renewalPuc, icon: 'refresh-outline' as const },
+                { ...DASHBOARD_MENU_ITEMS.renewalProfessional, icon: 'refresh-outline' as const },
+                { ...DASHBOARD_MENU_ITEMS.renewalPayana, icon: 'refresh-outline' as const },
+              ].map((item) => renderNavItem(item, colors.success))}
+
+              <View style={styles.drawerDivider} />
+            </>
+          )}
 
           {/* Diagnostics */}
           <TouchableOpacity
@@ -232,8 +282,8 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
-  const backdropAnim = useRef(new Animated.Value(0)).current;
+  const [slideAnim] = useState(() => new Animated.Value(-DRAWER_WIDTH));
+  const [backdropAnim] = useState(() => new Animated.Value(0));
 
   const openDrawer = useCallback(() => {
     setDrawerOpen(true);
@@ -308,7 +358,7 @@ export default function DashboardScreen() {
   }, [logout, router]);
 
   useEffect(() => {
-    fetchDashboard();
+    void Promise.resolve().then(fetchDashboard);
   }, [fetchDashboard]);
 
   const onRefresh = useCallback(() => {
@@ -322,17 +372,21 @@ export default function DashboardScreen() {
 
   const notificationCount = dashboard?.totalPending ?? 0;
 
-  const renderStatCard = ({ item }: { item: StatCardConfig }) => (
+  const isVolunteer = user?.Role === 'Volunteer';
+
+  const renderStatCard = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={styles.statCard}
       onPress={() => (router.push as any)(item.route)}
       activeOpacity={0.75}
     >
       <Ionicons name={item.icon} size={24} color={colors.primary} style={styles.statIcon} />
-      <Text style={styles.statCount}>
-        {loading ? '—' : String(getCountForCard(item.field))}
-      </Text>
-      <Text style={styles.statLabel}>{item.label}</Text>
+      {!isVolunteer && (
+        <Text style={styles.statCount}>
+          {loading ? '—' : String(getCountForCard(item.field))}
+        </Text>
+      )}
+      <Text style={[styles.statLabel, isVolunteer && { marginTop: spacing.sm, fontWeight: '600' }]}>{item.label}</Text>
       <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} style={styles.statChevron} />
     </TouchableOpacity>
   );
@@ -380,21 +434,6 @@ export default function DashboardScreen() {
         </View>
       )}
 
-      {!loading && !error && canCreatePayana(user?.Role) && (
-        <>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <TouchableOpacity
-            style={styles.quickActionCard}
-            onPress={() => (router.push as any)(DASHBOARD_MENU_ITEMS.newPayana.route)}
-            activeOpacity={0.75}
-          >
-            <Ionicons name="star-outline" size={24} color={colors.primary} />
-            <Text style={styles.quickActionLabel}>{DASHBOARD_MENU_ITEMS.newPayana.label}</Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-        </>
-      )}
-
       {!loading && !error && canAssignVolunteers(user?.Role) && (
         <>
           <Text style={styles.sectionTitle}>Volunteer Assignment</Text>
@@ -418,8 +457,11 @@ export default function DashboardScreen() {
         </>
       )}
 
-      {!loading && !error && user?.Role !== 'Volunteer' && (
+      {!loading && !error && !isVolunteer && (
         <Text style={styles.sectionTitle}>Pending Approvals</Text>
+      )}
+      {!loading && !error && isVolunteer && (
+        <Text style={styles.sectionTitle}>Assigned House Visits</Text>
       )}
     </>
   );
@@ -434,33 +476,12 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top Bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          style={styles.topBarIcon}
-          onPress={openDrawer}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="menu-outline" size={26} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        <Text style={styles.brandName}>Vidya Poshak</Text>
-
-        <TouchableOpacity
-          style={styles.topBarIcon}
-          onPress={() => (router.push as any)('/notifications')}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{notificationCount}</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      <AppTopBar variant="menu" onMenuPress={openDrawer} badgeCount={notificationCount} />
 
       {/* Main content */}
       <View style={styles.mainContent}>
         <FlatList
-          data={!loading && !error && user?.Role !== 'Volunteer' ? STAT_CARDS : []}
+          data={!loading && !error ? (isVolunteer ? VOLUNTEER_CARDS : STAT_CARDS) : []}
           keyExtractor={(item) => item.field}
           renderItem={renderStatCard}
           numColumns={2}
@@ -512,13 +533,31 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     minHeight: 52,
   },
+  brandContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   brandName: {
     fontSize: platform.normalize.fontSize.h3,
     lineHeight: platform.normalize.lineHeight.h3,
     color: '#FFFFFF',
     fontWeight: '700',
-    flex: 1,
-    textAlign: 'center',
+  },
+  drawerBrandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: spacing.sm,
+  },
+  drawerBrandText: {
+    fontSize: platform.normalize.fontSize.caption,
+    lineHeight: platform.normalize.lineHeight.caption,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   topBarIcon: {
     minWidth: 44,

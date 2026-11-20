@@ -14,12 +14,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
     FlatList,
     RefreshControl,
+    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -28,9 +29,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { houseVisitApi } from '@/api/houseVisitApi';
+import { houseVisitApprovalApis } from '@/api/houseVisitApprovalApi';
 import { VolunteerAssignmentApi } from '@/api/volunteerAssignmentApi';
 import AppFooter from '@/components/common/AppFooter';
+import AppTopBar from '@/components/layout/AppTopBar';
 import VolunteerPickerModal from '@/components/volunteer/VolunteerPickerModal';
+import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
@@ -42,6 +46,7 @@ import {
     VolunteerAssignmentProgram,
     VolunteerAssignmentStudentDto,
 } from '@/types/volunteerAssignment';
+import { canAssignVolunteers } from '@/utils/roleUtils';
 
 // ── Program metadata ────────────────────────────────────────────────────────
 
@@ -70,6 +75,8 @@ export default function VolunteerAssignmentScreen({
 }: VolunteerAssignmentScreenProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
+  const userCanAssign = canAssignVolunteers(user?.Role);
   const meta = PROGRAM_META[program];
 
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | undefined>();
@@ -143,9 +150,28 @@ export default function VolunteerAssignmentScreen({
 
   const districts = districtsQuery.data?.data ?? [];
   const students = studentsQuery.data?.data ?? [];
+  // "Pending" means not yet visited — visited students are listed but excluded
+  // from the count.
+  const pendingCount = students.filter((s) => !s.IsHouseVisitCompleted).length;
   const volunteers = volunteersQuery.data?.data ?? [];
 
   const isMutating = assignMutation.isPending || reassignMutation.isPending || cancelMutation.isPending;
+
+  // Auto-select user district or first district when districts load
+  useEffect(() => {
+    if (selectedDistrictId === undefined && districts.length > 0) {
+      if (user?.District) {
+        const match = districts.find(
+          (d: SelectListItemDto) => d.Text?.trim().toLowerCase() === user.District?.trim().toLowerCase()
+        );
+        if (match) {
+          setSelectedDistrictId(Number(match.Value));
+          return;
+        }
+      }
+      setSelectedDistrictId(Number(districts[0].Value));
+    }
+  }, [districts, user?.District, selectedDistrictId]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
@@ -169,9 +195,31 @@ export default function VolunteerAssignmentScreen({
     router.push(link as any);
   };
 
-  const handleEditHouseVisit = (student: VolunteerAssignmentStudentDto) => {
-    if (!student.HouseVisitID) return;
-    const link = `/housevisit/edit?houseVisitId=${student.HouseVisitID}&program=${program}`;
+  const handleEditHouseVisit = async (student: VolunteerAssignmentStudentDto) => {
+    let visitId = student.HouseVisitID ?? null;
+
+    // Some program controllers mark a visit complete without returning its
+    // record id. Resolve it from the program's approval grid, which does
+    // expose HouseVisitID per student.
+    if (!visitId) {
+      try {
+        const approvalApi = houseVisitApprovalApis[program];
+        const items = await approvalApi.getList();
+        const match = items.find((i) => Number(i.studentId) === Number(student.StudentID));
+        visitId = match?.id ?? null;
+      } catch {
+        // Fall through to the not-found alert below.
+      }
+    }
+
+    if (!visitId) {
+      Alert.alert(
+        'House visit record not found',
+        `No saved house visit record was found for ${student.StudentName || 'this student'}. Please contact your coordinator.`
+      );
+      return;
+    }
+    const link = `/housevisit/edit?houseVisitId=${visitId}&program=${program}`;
     router.push(link as any);
   };
 
@@ -245,7 +293,11 @@ export default function VolunteerAssignmentScreen({
       </TouchableOpacity>
 
       {showDistrictDropdown && (
-        <View style={styles.dropdownMenu}>
+        <ScrollView
+          style={styles.dropdownMenu}
+          nestedScrollEnabled
+          showsVerticalScrollIndicator
+        >
           {districts.map((d: SelectListItemDto) => (
             <TouchableOpacity
               key={d.Value}
@@ -265,7 +317,7 @@ export default function VolunteerAssignmentScreen({
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       )}
     </View>
   );
@@ -344,36 +396,38 @@ export default function VolunteerAssignmentScreen({
           <Text style={styles.sourceText}>Source: {item.Source ?? '—'}</Text>
         </View>
 
-        {/* Action buttons */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[styles.actionBtn, isAssigned ? styles.reassignBtn : styles.assignBtn]}
-            onPress={() => handleOpenPicker(item)}
-            disabled={isMutating}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name={isAssigned ? 'swap-horizontal-outline' : 'person-add-outline'}
-              size={16}
-              color="#FFFFFF"
-            />
-            <Text style={styles.actionBtnText}>
-              {isAssigned ? 'Reassign' : 'Assign'}
-            </Text>
-          </TouchableOpacity>
-
-          {isAssigned && !isVisited && (
+        {/* Action buttons (Assign / Reassign / Cancel) — only for coordinators/admins */}
+        {userCanAssign && (
+          <View style={styles.actionRow}>
             <TouchableOpacity
-              style={[styles.actionBtn, styles.cancelBtn]}
-              onPress={() => handleCancelAssignment(item)}
+              style={[styles.actionBtn, isAssigned ? styles.reassignBtn : styles.assignBtn]}
+              onPress={() => handleOpenPicker(item)}
               disabled={isMutating}
               activeOpacity={0.7}
             >
-              <Ionicons name="remove-circle-outline" size={16} color="#FFFFFF" />
-              <Text style={styles.actionBtnText}>Cancel</Text>
+              <Ionicons
+                name={isAssigned ? 'swap-horizontal-outline' : 'person-add-outline'}
+                size={16}
+                color="#FFFFFF"
+              />
+              <Text style={styles.actionBtnText}>
+                {isAssigned ? 'Reassign' : 'Assign'}
+              </Text>
             </TouchableOpacity>
-          )}
-        </View>
+
+            {isAssigned && !isVisited && (
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.cancelBtn]}
+                onPress={() => handleCancelAssignment(item)}
+                disabled={isMutating}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="remove-circle-outline" size={16} color="#FFFFFF" />
+                <Text style={styles.actionBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
 
         {/* House Visit action — only for assigned, not-yet-visited students */}
         {isAssigned && !isVisited && (
@@ -437,19 +491,7 @@ export default function VolunteerAssignmentScreen({
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top Bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Ionicons name={meta.icon} size={20} color="#FFFFFF" style={styles.topBarIcon} />
-        <Text style={styles.topBarTitle} numberOfLines={1}>
-          {meta.title}
-        </Text>
-      </View>
+      <AppTopBar />
 
       <View style={styles.body}>
         {/* District selector */}
@@ -467,7 +509,7 @@ export default function VolunteerAssignmentScreen({
         {/* Students count */}
         {selectedDistrictId !== undefined && !studentsQuery.isLoading && !studentsQuery.error && (
           <Text style={styles.resultsCount}>
-            {students.length} student{students.length !== 1 ? 's' : ''} pending house visit
+            {pendingCount} student{pendingCount !== 1 ? 's' : ''} pending house visit
           </Text>
         )}
 
@@ -490,12 +532,12 @@ export default function VolunteerAssignmentScreen({
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={styles.loadingText}>Loading students...</Text>
               </View>
-            ) : null
+            ) : undefined
           }
           refreshControl={
             <RefreshControl
               refreshing={studentsQuery.isFetching}
-              onRefresh={() => studentsQuery.refetch()}
+              onRefresh={() => { void studentsQuery.refetch(); }}
               colors={[colors.primary]}
               tintColor={colors.primary}
             />
@@ -602,17 +644,14 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   dropdownMenu: {
-    position: 'absolute',
-    top: 52,
-    left: 0,
-    right: 0,
     backgroundColor: colors.card,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.border,
+    marginTop: spacing.xs,
+    maxHeight: 220,
+    overflow: 'hidden',
     ...platform.elevation.card,
-    maxHeight: 250,
-    zIndex: 100,
   },
   dropdownItem: {
     paddingHorizontal: spacing.md,

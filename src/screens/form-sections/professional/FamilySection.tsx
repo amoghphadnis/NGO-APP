@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { Alert } from 'react-native';
 
 import { getProfessionalDropdowns } from '@/api/professionalApi';
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
@@ -46,7 +48,7 @@ export default function FamilySection({ navigation }: any) {
     MotherName: '',
     FatherOccupationID: 0,
     MotherOccupationID: 0,
-    FamilyMembers: 1,
+    FamilyMembers: undefined,
     HouseTypeID: 0,
     MonthlyRent: undefined,
     FamilyIncome: 0,
@@ -58,7 +60,7 @@ export default function FamilySection({ navigation }: any) {
       MotherName: familyData.MotherName ?? '',
       FatherOccupationID: familyData.FatherOccupationID ?? 0,
       MotherOccupationID: familyData.MotherOccupationID ?? 0,
-      FamilyMembers: familyData.FamilyMembers ?? 1,
+      FamilyMembers: familyData.FamilyMembers || undefined,
       HouseTypeID: familyData.HouseTypeID ?? 0,
       MonthlyRent: familyData.MonthlyRent,
       FamilyIncome: familyData.FamilyIncome ?? 0,
@@ -77,7 +79,11 @@ export default function FamilySection({ navigation }: any) {
     navigation.navigate('academic');
   };
 
-  const isNextDisabled = !formState.isValid || loadingDropdowns;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = loadingDropdowns;
 
   return (
     <FormScreenLayout
@@ -85,7 +91,7 @@ export default function FamilySection({ navigation }: any) {
       step={3}
       totalSteps={7}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader
@@ -101,7 +107,7 @@ export default function FamilySection({ navigation }: any) {
           name="FatherName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Father's Name"
+              label="Father/Guardian name"
               value={value}
               onChangeText={onChange}
               placeholder="Enter father's full name"
@@ -116,7 +122,7 @@ export default function FamilySection({ navigation }: any) {
           name="MotherName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Mother's Name"
+              label="Mother/Guardian name"
               value={value}
               onChangeText={onChange}
               placeholder="Enter mother's full name"
@@ -131,7 +137,7 @@ export default function FamilySection({ navigation }: any) {
           name="FatherOccupationID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Father's Occupation"
+              label="Father/Guardian Occupation"
               placeholder="Select father's occupation"
               value={value}
               onChange={onChange}
@@ -148,7 +154,7 @@ export default function FamilySection({ navigation }: any) {
           name="MotherOccupationID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Mother's Occupation"
+              label="Mother/Guardian Occupation"
               placeholder="Select mother's occupation"
               value={value}
               onChange={onChange}
@@ -174,7 +180,7 @@ export default function FamilySection({ navigation }: any) {
           name="FamilyMembers"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Total Family Members"
+              label="Total Number of Family Members"
               value={value === undefined || value === null ? '' : String(value)}
               onChangeText={(text) => {
                 const cleanText = text.replace(/[^0-9]/g, '');
@@ -213,16 +219,11 @@ export default function FamilySection({ navigation }: any) {
             control={control}
             name="MonthlyRent"
             render={({ field: { onChange, value } }) => (
-              <VPInputField
-                label="Monthly Rent"
-                value={value === undefined || value === null ? '' : String(value)}
-                onChangeText={(text) => {
-                  const cleanText = text.replace(/[^0-9]/g, '');
-                  const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
-                  onChange(num);
-                }}
+              <DecimalInputField
+                label="Monthly Rent (If rented house)"
+                value={value}
+                onChangeValue={onChange}
                 placeholder="Enter monthly rent"
-                keyboardType="numeric"
                 prefix="₹"
                 error={formState.errors.MonthlyRent?.message}
               />
@@ -234,16 +235,11 @@ export default function FamilySection({ navigation }: any) {
           control={control}
           name="FamilyIncome"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Family Income"
-              value={value === undefined || value === null ? '' : String(value)}
-              onChangeText={(text) => {
-                const cleanText = text.replace(/[^0-9]/g, '');
-                const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
-                onChange(num);
-              }}
+            <DecimalInputField
+              label="Family Income (Monthly)"
+              value={value}
+              onChangeValue={onChange}
               placeholder="Enter family income"
-              keyboardType="numeric"
               prefix="₹"
               error={formState.errors.FamilyIncome?.message}
               helperText="Total income from all sources"

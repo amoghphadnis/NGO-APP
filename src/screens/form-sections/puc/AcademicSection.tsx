@@ -2,9 +2,10 @@ import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 
 import { getPUCDropdowns } from '@/api/pucApi';
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import VPInputField from '@/components/common/VPInputField';
@@ -43,11 +44,11 @@ export default function AcademicSection({ navigation }: any) {
 
   const academicData = isPUCForm(formData)
     ? formData.academic
-    : { SSLCPercentage: 0, CourseJoined: 0, CollegeName: '', CollegeType: 0, CollegeFees: 0, CollegeContactNumber: '', Achievement: '' };
+    : { SSLCPercentage: undefined as any, CourseJoined: 0, CollegeName: '', CollegeType: 0, CollegeFees: 0, CollegeContactNumber: '', Achievement: '' };
 
   const { control, handleSubmit, formState } = useForm<PucFormat11AcademicFormValues>({
     defaultValues: {
-      SSLCPercentage: academicData.SSLCPercentage || 0,
+      SSLCPercentage: academicData.SSLCPercentage || undefined,
       CourseJoined: academicData.CourseJoined || 0,
       CollegeName: academicData.CollegeName,
       CollegeType: academicData.CollegeType || 0,
@@ -59,6 +60,8 @@ export default function AcademicSection({ navigation }: any) {
     mode: 'onChange',
   });
 
+
+
   const onSubmit = (data: PucFormat11AcademicFormValues) => {
     updateSectionData('academic', data);
     updateValidationState('academic', { isValid: true, data });
@@ -66,14 +69,18 @@ export default function AcademicSection({ navigation }: any) {
     navigation.navigate('bank');
   };
 
-  const isNextDisabled = !formState.isValid || loadingDropdowns;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = loadingDropdowns;
 
   return (
     <FormScreenLayout
       title="Academic Details"
       step={6}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader
@@ -88,12 +95,11 @@ export default function AcademicSection({ navigation }: any) {
           control={control}
           name="SSLCPercentage"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
+            <DecimalInputField
               label="SSLC Percentage"
-              value={String(value)}
-              onChangeText={(text) => onChange(Number(text))}
+              value={value}
+              onChangeValue={onChange}
               placeholder="Enter SSLC percentage"
-              keyboardType="numeric"
               error={formState.errors.SSLCPercentage?.message}
               helperText="Percentage obtained in SSLC (0-100)"
               required

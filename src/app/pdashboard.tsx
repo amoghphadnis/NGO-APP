@@ -1,15 +1,16 @@
 import { dashboardApi } from '@/api/dashboardApi';
 import AppFooter from '@/components/common/AppFooter';
-import { DASHBOARD_MENU_ITEMS, DASHBOARD_MENU_SECTIONS } from '@/config/appContent';
+import AppTopBar from '@/components/layout/AppTopBar';
+import { DASHBOARD_MENU_ITEMS } from '@/config/appContent';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { DashboardError, DashboardErrorCode, PDashboardResponseDto } from '@/types/dashboard';
-import { canCreatePayana } from '@/utils/roleUtils';
+import { canAssignRoles, canAssignVolunteers, canManageSettings, canManageUsers, canViewDonors, isAdminRole } from '@/utils/roleUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Animated,
     FlatList,
@@ -38,6 +39,15 @@ const STAT_CARDS: StatCardConfig[] = [
   { label: 'Pending Payana Apps',       field: 'pendingPayana',        icon: 'bicycle-outline',        route: '/approval/payana' },
   { label: 'Pending Prof Apps',         field: 'pendingProfessional',  icon: 'briefcase-outline',      route: '/approval/professional' },
   { label: 'Pending Semi Prof Apps',    field: 'pendingSemiProfessional', icon: 'book-outline',        route: '/approval/semi-professional' },
+];
+
+// Admin / Admin(CEO) body cards — web-exact admin menu (no approval stats)
+const ADMIN_CARDS = [
+  { label: 'Manage Users',        icon: 'people-outline' as const,     route: '/admin/users' },
+  { label: 'Assign Role',         icon: 'person-add-outline' as const, route: '/admin/assign-role' },
+  { label: 'Update Last Date',    icon: 'calendar-outline' as const,   route: '/admin/update-last-date' },
+  { label: 'Semi-Prof Courses',   icon: 'school-outline' as const,     route: '/admin/semi-prof-courses' },
+  { label: 'Student Tracking',    icon: 'search-outline' as const,     route: '/my-applications' },
 ];
 
 interface DrawerNavItem {
@@ -80,36 +90,48 @@ function DrawerSidebar({
   user,
   dashboard,
 }: DrawerProps) {
-  const navItems: DrawerNavItem[] = [
-    {
-      icon: 'school-outline',
-      label: 'Pending PUC Apps',
-      badge: dashboard?.notifications?.pendingPUC ?? 0,
-      route: '/approval/puc',
-    },
-    {
-      icon: 'bicycle-outline',
-      label: 'Pending Payana Apps',
-      badge: dashboard?.notifications?.pendingPayana ?? 0,
-      route: '/approval/payana',
-    },
-    {
-      icon: 'briefcase-outline',
-      label: 'Pending Prof Apps',
-      badge: dashboard?.notifications?.pendingProfessional ?? 0,
-      route: '/approval/professional',
-    },
-    {
-      icon: 'book-outline',
-      label: 'Pending Semi Prof Apps',
-      badge: dashboard?.notifications?.pendingSemiProfessional ?? 0,
-      route: '/approval/semi-professional',
-    },
+  const n = dashboard?.notifications;
+  const isAdmin = isAdminRole(user?.Role);
+
+  // Approval/Reject grids — Program Manager sees all 13 per web parity
+  const approvalItems: DrawerNavItem[] = [
+    { icon: 'school-outline',     label: 'PUC Student Approval',              badge: n?.pendingPUC ?? 0,                   route: '/approval/puc' },
+    { icon: 'bicycle-outline',    label: 'Payana Student Approval',           badge: n?.pendingPayana ?? 0,                route: '/approval/payana' },
+    { icon: 'briefcase-outline',  label: 'New Professional Approval',         badge: n?.pendingProfessional ?? 0,          route: '/approval/professional' },
+    { icon: 'book-outline',       label: 'Semi Professional Approval',        badge: n?.pendingSemiProfessional ?? 0,      route: '/approval/semi-professional' },
+    { icon: 'document-outline',   label: 'Format 1.1 PUC Approval',           badge: 0,                                    route: '/approval/format11-puc' },
+    { icon: 'document-outline',   label: 'Format 1.1 Professional Approval',  badge: 0,                                    route: '/approval/format11-professional' },
+    { icon: 'home-outline',       label: 'PUC House Visit Approval',          badge: n?.pendingHousePUC ?? 0,              route: '/approval/house-visit/puc' },
+    { icon: 'home-outline',       label: 'Payana House Visit Approval',       badge: n?.pendingHousePayana ?? 0,           route: '/approval/house-visit/payana' },
+    { icon: 'home-outline',       label: 'Prof House Visit Approval',         badge: n?.pendingHouseProfessional ?? 0,     route: '/approval/house-visit/professional' },
+    { icon: 'home-outline',       label: 'Semi Prof House Visit Approval',    badge: n?.pendingHouseSemiProfessional ?? 0, route: '/approval/house-visit/semi-professional' },
+    { icon: 'refresh-outline',    label: 'PUC Renewal Approval',              badge: n?.pendingPUCRenewal ?? 0,            route: '/approval/renewal-puc' },
+    { icon: 'refresh-outline',    label: 'Payana Renewal Approval',           badge: n?.pendingPayanaRenewal ?? 0,         route: '/approval/renewal-payana' },
+    { icon: 'refresh-outline',    label: 'Prof Renewal Approval',             badge: n?.pendingProfessionalRenewal ?? 0,   route: '/approval/renewal-professional' },
   ];
 
   const initials = getInitials(user?.UserName ?? 'VP');
 
   if (!open) return null;
+
+  const renderNavItem = (item: { icon: any; label: string; route: string; badge?: number }, iconColor: string = colors.primary) => (
+    <TouchableOpacity
+      key={item.route + item.label}
+      style={styles.drawerItem}
+      onPress={() => onNavigate(item.route)}
+      activeOpacity={0.7}
+    >
+      <Ionicons name={item.icon} size={20} color={iconColor} />
+      <Text style={styles.drawerItemLabel}>{item.label}</Text>
+      {(item.badge ?? 0) > 0 && (
+        <View style={styles.drawerBadge}>
+          <Text style={styles.drawerBadgeText}>
+            {item.badge! > 99 ? '99+' : String(item.badge)}
+          </Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
@@ -130,46 +152,92 @@ function DrawerSidebar({
         </View>
 
         <ScrollView style={styles.drawerNav} showsVerticalScrollIndicator={false}>
-          <Text style={styles.drawerSectionLabel}>{DASHBOARD_MENU_SECTIONS.approvals.toUpperCase()}</Text>
-          {navItems.map((item) => (
-            <TouchableOpacity
-              key={item.label}
-              style={styles.drawerItem}
-              onPress={() => onNavigate(item.route)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name={item.icon} size={20} color={colors.primary} />
-              <Text style={styles.drawerItemLabel}>{item.label}</Text>
-              {item.badge > 0 && (
-                <View style={styles.drawerBadge}>
-                  <Text style={styles.drawerBadgeText}>
-                    {item.badge > 99 ? '99+' : String(item.badge)}
-                  </Text>
-                </View>
+          {isAdmin ? (
+            <>
+              {/* Web-exact Admin / Admin(CEO) menu — admin functions only */}
+              <Text style={styles.drawerSectionLabel}>USER APPROVAL &amp; CREDENTIALS</Text>
+              {renderNavItem({ icon: 'people-outline', label: 'Manage Users', route: '/admin/users' })}
+              {canAssignRoles(user?.Role) &&
+                renderNavItem({ icon: 'person-add-outline', label: 'Assign Role', route: '/admin/assign-role' })}
+              <View style={styles.drawerDivider} />
+
+              <Text style={styles.drawerSectionLabel}>APPLICATION SETTINGS</Text>
+              {renderNavItem({ icon: 'calendar-outline', label: 'Update Last Date', route: '/admin/update-last-date' })}
+              <View style={styles.drawerDivider} />
+
+              <Text style={styles.drawerSectionLabel}>SEMI PROFESSIONAL COURSES</Text>
+              {renderNavItem({ icon: 'school-outline', label: 'Manage Courses', route: '/admin/semi-prof-courses' })}
+              <View style={styles.drawerDivider} />
+
+              <Text style={styles.drawerSectionLabel}>STUDENT TRACKING</Text>
+              {renderNavItem({ icon: 'search-outline', label: 'Track Students', route: '/my-applications' })}
+              <View style={styles.drawerDivider} />
+            </>
+          ) : (
+            <>
+              {/* Program Manager — full operational menu per web parity */}
+              <Text style={styles.drawerSectionLabel}>APPROVAL / REJECT</Text>
+              {approvalItems.map((item) => renderNavItem(item))}
+              <View style={styles.drawerDivider} />
+
+              {canManageUsers(user?.Role) && (
+                <>
+                  <Text style={styles.drawerSectionLabel}>USER APPROVAL &amp; CREDENTIALS</Text>
+                  {renderNavItem({ icon: 'people-outline', label: 'Manage Users', route: '/admin/users' })}
+                  <View style={styles.drawerDivider} />
+                </>
               )}
-            </TouchableOpacity>
-          ))}
 
-          <View style={styles.drawerDivider} />
+              <Text style={styles.drawerSectionLabel}>PAYANA STUDENTS</Text>
+              {renderNavItem({ icon: 'star-outline', label: 'New Payana Application', route: '/form-engine?formType=payana' })}
+              <View style={styles.drawerDivider} />
 
-          <Text style={styles.drawerSectionLabel}>{DASHBOARD_MENU_SECTIONS.renewals.toUpperCase()}</Text>
-          {[
-            { ...DASHBOARD_MENU_ITEMS.renewalPuc, icon: 'refresh-outline' as const },
-            { ...DASHBOARD_MENU_ITEMS.renewalProfessional, icon: 'refresh-outline' as const },
-            { ...DASHBOARD_MENU_ITEMS.renewalPayana, icon: 'refresh-outline' as const },
-          ].map((item) => (
-            <TouchableOpacity
-              key={item.route}
-              style={styles.drawerItem}
-              onPress={() => onNavigate(item.route)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name={item.icon} size={20} color={colors.success} />
-              <Text style={styles.drawerItemLabel}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
+              <Text style={styles.drawerSectionLabel}>FORMAT 1.1</Text>
+              {[
+                { icon: 'school-outline' as const,    label: 'PUC Format 1.1',          route: '/form-engine?formType=puc' },
+                { icon: 'briefcase-outline' as const, label: 'Professional Format 1.1', route: '/form-engine?formType=professional' },
+              ].map((item) => renderNavItem(item))}
+              <View style={styles.drawerDivider} />
 
-          <View style={styles.drawerDivider} />
+              <Text style={styles.drawerSectionLabel}>RENEWAL FORMS</Text>
+              {[
+                { ...DASHBOARD_MENU_ITEMS.renewalPuc, icon: 'refresh-outline' as const },
+                { ...DASHBOARD_MENU_ITEMS.renewalProfessional, icon: 'refresh-outline' as const },
+                { ...DASHBOARD_MENU_ITEMS.renewalPayana, icon: 'refresh-outline' as const },
+              ].map((item) => renderNavItem(item, colors.success))}
+              <View style={styles.drawerDivider} />
+
+              {canAssignVolunteers(user?.Role) && (
+                <>
+                  <Text style={styles.drawerSectionLabel}>ASSIGN VOLUNTEERS</Text>
+                  {[
+                    { label: 'PUC',               route: '/volunteer-assignment/puc',               icon: 'school-outline' as const },
+                    { label: 'Payana',            route: '/volunteer-assignment/payana',            icon: 'bicycle-outline' as const },
+                    { label: 'Professional',      route: '/volunteer-assignment/professional',      icon: 'briefcase-outline' as const },
+                    { label: 'Semi Professional', route: '/volunteer-assignment/semi-professional', icon: 'book-outline' as const },
+                  ].map((item) => renderNavItem(item))}
+                  <View style={styles.drawerDivider} />
+                </>
+              )}
+
+              {canViewDonors(user?.Role) && (
+                <>
+                  <Text style={styles.drawerSectionLabel}>DONOR MANAGEMENT</Text>
+                  {renderNavItem({ icon: 'gift-outline', label: 'Manage Donors', route: '/admin/donors' })}
+                  <View style={styles.drawerDivider} />
+                </>
+              )}
+
+              {canManageSettings(user?.Role) && (
+                <>
+                  <Text style={styles.drawerSectionLabel}>APPLICATION SETTINGS</Text>
+                  {renderNavItem({ icon: 'calendar-outline', label: 'Update Last Date', route: '/admin/update-last-date' })}
+                  {renderNavItem({ icon: 'school-outline', label: 'Semi-Prof Courses', route: '/admin/semi-prof-courses' })}
+                  <View style={styles.drawerDivider} />
+                </>
+              )}
+            </>
+          )}
 
           {/* Diagnostics */}
           <TouchableOpacity
@@ -203,8 +271,8 @@ export default function PDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
-  const backdropAnim = useRef(new Animated.Value(0)).current;
+  const [slideAnim] = useState(() => new Animated.Value(-DRAWER_WIDTH));
+  const [backdropAnim] = useState(() => new Animated.Value(0));
 
   const openDrawer = useCallback(() => {
     setDrawerOpen(true);
@@ -263,7 +331,7 @@ export default function PDashboardScreen() {
   }, [logout, router]);
 
   useEffect(() => {
-    fetchDashboard();
+    void Promise.resolve().then(fetchDashboard);
   }, [fetchDashboard]);
 
   const onRefresh = useCallback(() => {
@@ -271,21 +339,25 @@ export default function PDashboardScreen() {
     fetchDashboard();
   }, [fetchDashboard]);
 
+  const isAdmin = isAdminRole(user?.Role);
+
   const getCountForCard = (field: StatCardConfig['field']): number => {
     return dashboard?.notifications?.[field] ?? 0;
   };
 
-  const renderStatCard = ({ item }: { item: StatCardConfig }) => (
+  const renderStatCard = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={styles.statCard}
       onPress={() => (router.push as any)(item.route)}
       activeOpacity={0.75}
     >
       <Ionicons name={item.icon} size={24} color={colors.primary} style={styles.statIcon} />
-      <Text style={styles.statCount}>
-        {loading ? '—' : String(getCountForCard(item.field))}
-      </Text>
-      <Text style={styles.statLabel}>{item.label}</Text>
+      {item.field !== undefined ? (
+        <Text style={styles.statCount}>
+          {loading ? '—' : String(getCountForCard(item.field))}
+        </Text>
+      ) : null}
+      <Text style={[styles.statLabel, item.field === undefined && { marginTop: spacing.sm, fontWeight: '600' }]}>{item.label}</Text>
       <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} style={styles.statChevron} />
     </TouchableOpacity>
   );
@@ -319,21 +391,6 @@ export default function PDashboardScreen() {
         </View>
       )}
 
-      {!loading && !error && canCreatePayana(user?.Role) && (
-        <>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <TouchableOpacity
-            style={styles.quickActionCard}
-            onPress={() => (router.push as any)(DASHBOARD_MENU_ITEMS.newPayana.route)}
-            activeOpacity={0.75}
-          >
-            <Ionicons name="star-outline" size={24} color={colors.primary} />
-            <Text style={styles.quickActionLabel}>{DASHBOARD_MENU_ITEMS.newPayana.label}</Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-        </>
-      )}
-
       {!loading && !error && (
         <Text style={styles.sectionTitle}>Pending Approvals</Text>
       )}
@@ -342,6 +399,20 @@ export default function PDashboardScreen() {
 
   const renderFooter = () => (
     <View style={styles.footerContainer}>
+      {/* Admin / Admin(CEO): administration shortcuts below the pending stats,
+          matching the web admin dashboard which shows both. */}
+      {isAdmin && !loading && !error && (
+        <View style={styles.adminSection}>
+          <Text style={styles.sectionTitle}>Administration</Text>
+          <View style={styles.adminGrid}>
+            {ADMIN_CARDS.map((item) => (
+              <View key={item.label} style={styles.adminGridItem}>
+                {renderStatCard({ item })}
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
       <AppFooter compact />
       <Text style={styles.footerCopyright}>Copyright © Vidya Poshak 2026</Text>
     </View>
@@ -349,29 +420,16 @@ export default function PDashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.topBar}>
-        <TouchableOpacity style={styles.topBarIcon} onPress={openDrawer} activeOpacity={0.7}>
-          <Ionicons name="menu-outline" size={26} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        <Text style={styles.brandName}>Vidya Poshak</Text>
-
-        <TouchableOpacity
-          style={styles.topBarIcon}
-          onPress={() => (router.push as any)('/notifications')}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+      <AppTopBar variant="menu" onMenuPress={openDrawer} />
 
       <View style={styles.mainContent}>
         <FlatList
           data={!loading && !error ? STAT_CARDS : []}
-          keyExtractor={(item) => item.field}
+          keyExtractor={(item) => item.label}
           renderItem={renderStatCard}
           numColumns={2}
           ListHeaderComponent={renderHeader}
+          ListFooterComponent={renderFooter}
           columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
@@ -385,9 +443,6 @@ export default function PDashboardScreen() {
           }
           style={styles.flatList}
         />
-        
-        {/* Sticky Footer */}
-        {renderFooter()}
       </View>
 
       <DrawerSidebar
@@ -418,13 +473,32 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     minHeight: 52,
   },
+  brandContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   brandName: {
     fontSize: platform.normalize.fontSize.h3,
     lineHeight: platform.normalize.lineHeight.h3,
     color: '#FFFFFF',
     fontWeight: '700',
-    flex: 1,
-    textAlign: 'center',
+  },
+  drawerBrandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: spacing.sm,
+  },
+  drawerBrandText: {
+    fontSize: platform.normalize.fontSize.caption,
+    lineHeight: platform.normalize.lineHeight.caption,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   topBarIcon: {
     minWidth: 44,
@@ -553,6 +627,18 @@ const styles = StyleSheet.create({
     fontSize: platform.normalize.fontSize.small,
     lineHeight: platform.normalize.lineHeight.small,
     color: colors.textSecondary,
+  },
+  adminSection: {
+    alignSelf: 'stretch',
+    marginBottom: spacing.sm,
+  },
+  adminGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  adminGridItem: {
+    width: '48%',
   },
   // ── Drawer ──────────────────────────────────────────────
   backdrop: {

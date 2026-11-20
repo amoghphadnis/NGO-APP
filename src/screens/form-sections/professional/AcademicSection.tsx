@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { Alert } from 'react-native';
 
+import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import VPInputField from '@/components/common/VPInputField';
@@ -12,7 +14,7 @@ export default function AcademicSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const academicData = (formData as any).academic ?? {
-    PUPercentage: 0,
+    PUPercentage: undefined,
     CETRank: undefined,
     NEETRank: undefined,
     CourseApplying: '',
@@ -21,7 +23,7 @@ export default function AcademicSection({ navigation }: any) {
 
   const { control, handleSubmit, formState } = useForm<AcademicDetailsFormValues>({
     defaultValues: {
-      PUPercentage: academicData.PUPercentage ?? 0,
+      PUPercentage: academicData.PUPercentage || undefined,
       CETRank: academicData.CETRank,
       NEETRank: academicData.NEETRank,
       CourseApplying: academicData.CourseApplying ?? '',
@@ -38,7 +40,11 @@ export default function AcademicSection({ navigation }: any) {
     navigation.navigate('documents');
   };
 
-  const isNextDisabled = !formState.isValid;
+  const onInvalid = () => {
+    Alert.alert('Missing Required Details', 'Please fill all details marked with * before proceeding.');
+  };
+
+  const isNextDisabled = false;
 
   return (
     <FormScreenLayout
@@ -46,7 +52,7 @@ export default function AcademicSection({ navigation }: any) {
       step={4}
       totalSteps={7}
       onBack={navigation.goBack}
-      onNext={handleSubmit(onSubmit)}
+      onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
       <FormSectionHeader
@@ -61,12 +67,11 @@ export default function AcademicSection({ navigation }: any) {
           control={control}
           name="PUPercentage"
           render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="PU/12th Percentage"
-              value={value?.toString() ?? ''}
-              onChangeText={(text) => onChange(parseFloat(text) || 0)}
+            <DecimalInputField
+              label="Secured Percentage in 12th Grade"
+              value={value}
+              onChangeValue={onChange}
               placeholder="Enter percentage"
-              keyboardType="numeric"
               suffix="%"
               error={formState.errors.PUPercentage?.message}
               helperText="Enter your PU/12th grade percentage"
@@ -80,7 +85,7 @@ export default function AcademicSection({ navigation }: any) {
           name="CETRank"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="CET Rank"
+              label="CET Rank (Mandatory for Engineering course)"
               value={value === undefined || value === null ? '' : String(value)}
               onChangeText={(text) => {
                 const cleanText = text.replace(/[^0-9]/g, '');
@@ -127,7 +132,7 @@ export default function AcademicSection({ navigation }: any) {
           name="CourseApplying"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Course Applying For"
+              label="Course Applying"
               value={value}
               onChangeText={onChange}
               placeholder="Enter course name"

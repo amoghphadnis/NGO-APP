@@ -29,12 +29,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { pucApprovalApi } from '@/api/pucApprovalApi';
 import AppFooter from '@/components/common/AppFooter';
+import EmptyState from '@/components/common/EmptyState';
+import AppTopBar from '@/components/layout/AppTopBar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { PucApprovalStudent } from '@/types/pucApproval';
-import { canApprove } from '@/utils/roleUtils';
+import { canApproveReject } from '@/utils/roleUtils';
 
 const STATUS_COLORS: Record<string, string> = {
   Pending: colors.warning,
@@ -53,7 +55,7 @@ export default function PucApprovalListScreen() {
   const [remark, setRemark] = useState('');
 
   const isBranchExecutive = user?.Role === 'Branch Executives';
-  const userCanApprove = canApprove(user?.Role);
+  const userCanApprove = canApproveReject(user?.Role);
 
   const { data: students, isLoading, isError, error, refetch } = useQuery({
     queryKey: pucApprovalApi.queryKeys.list(
@@ -129,8 +131,16 @@ export default function PucApprovalListScreen() {
     const statusKey = Object.keys(STATUS_COLORS).find(
       (k) => k.toLowerCase() === (item.ApprovalStatus || '').toLowerCase()
     );
-    const statusColor = statusKey ? STATUS_COLORS[statusKey] : colors.textSecondary;
-    const isPending = (item.ApprovalStatus || '').toLowerCase() === 'pending';
+    // Backend may return an empty status for students that are actually awaiting
+    // approval (dashboard counts them as pending) — treat blank as Pending.
+    const normalizedStatus = (item.ApprovalStatus || '').trim().toLowerCase();
+    const isPending = normalizedStatus === '' || normalizedStatus === 'pending';
+    const statusColor = isPending
+      ? STATUS_COLORS.Pending
+      : statusKey
+        ? STATUS_COLORS[statusKey]
+        : colors.textSecondary;
+    const displayStatus = item.ApprovalStatus?.trim() || 'Pending';
 
     return (
       <View style={styles.card}>
@@ -144,7 +154,7 @@ export default function PucApprovalListScreen() {
             </Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{item.ApprovalStatus}</Text>
+            <Text style={styles.statusText}>{displayStatus}</Text>
           </View>
         </View>
 
@@ -182,9 +192,9 @@ export default function PucApprovalListScreen() {
     );
   };
 
-  if (!userCanApprove && !isBranchExecutive) {
+  if (!userCanApprove) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.errorContainer}>
           <Ionicons name="lock-closed-outline" size={48} color={colors.textSecondary} />
           <Text style={styles.errorText}>
@@ -198,7 +208,7 @@ export default function PucApprovalListScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading approval list...</Text>
@@ -210,7 +220,7 @@ export default function PucApprovalListScreen() {
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
           <Text style={styles.errorText}>
@@ -226,12 +236,18 @@ export default function PucApprovalListScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <AppTopBar />
+
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>PUC Approval</Text>
-        <Text style={styles.headerSubtitle}>
-          {students?.length || 0} student{students?.length === 1 ? '' : 's'}
-        </Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>PUC Approval</Text>
+            <Text style={styles.headerSubtitle}>
+              {students?.length || 0} student{students?.length === 1 ? '' : 's'}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <FlatList
@@ -243,10 +259,10 @@ export default function PucApprovalListScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="document-text-outline" size={48} color={colors.textSecondary} />
-            <Text style={styles.emptyText}>No students pending approval</Text>
-          </View>
+          <EmptyState
+            icon="document-text-outline"
+            title="No students pending approval"
+          />
         }
       />
 
@@ -335,6 +351,21 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: spacing.sm,
+    padding: spacing.xs,
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: platform.normalize.fontSize.h2,

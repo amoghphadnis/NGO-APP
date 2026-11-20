@@ -40,7 +40,7 @@ function buildValidPayana(overrides: Partial<PayanaFormValues> = {}): PayanaForm
     contact: {
       email: 'test@test.com',
       contactNumber: '9876543210',
-      alternateNumber: '',
+      alternateNumber: '9876543211',
     },
     address: {
       residentialAddress: 'Test Address',
@@ -73,6 +73,7 @@ function buildValidPayana(overrides: Partial<PayanaFormValues> = {}): PayanaForm
       courseStream: '',
       annualFees: '100000',
       totalExpenses: '150000',
+      reference: 'Test Referrer',
       studentAchievements: 'District topper',
       securedPercentage: '85',
     },
@@ -100,26 +101,31 @@ function buildValidSemiProfessional(): SemiProfessionalFormValues {
       studentName: 'Test Student',
       dateOfBirth: '2000-01-01',
       contactNumber: '9876543210',
+      alternateNumber: '9876543211',
       genderID: 1,
       casteCategoryID: 1,
+      areaTypeID: 1,
       districtID: 1,
       otherDistrict: '',
-      taluk: 'Test Taluk',
-      address: 'Test Address',
-      placeID: 1,
+      residentialAddress: 'Test Address',
+      googleMapLink: 'https://maps.google.com/test',
     },
     family: {
+      fatherName: 'Test Father',
+      motherName: 'Test Mother',
       fatherOccupationID: 1,
       motherOccupationID: 2,
       familyMembers: 4,
-      annualIncome: 50000,
+      houseTypeID: 1,
+      familyIncome: 50000,
     },
     academic: {
       puPercentage: 85,
-      semiProfessionalCourseID: 1,
-      collegeName: 'Test College',
-      collegeTypeID: 1,
-      collegeFees: 25000,
+      cetRank: 1234,
+      ptRank: 5678,
+      semiProfessionalCourseID: 3,
+      courseApplying: 'B.Sc Nursing',
+      courseStream: 'Nursing',
     },
     documents: {},
   };
@@ -233,7 +239,7 @@ describe('Form Submission', () => {
     it('should log missing files for Payana', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
 
-      preparePayload('payana', buildValidPayana({ documents: {} }));
+      preparePayload('payana', buildValidPayana({ documents: { houseVisitLink: 'https://maps.google.com/test' } }));
 
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Missing file: latestMarksCard')
@@ -246,44 +252,41 @@ describe('Form Submission', () => {
       const payload = preparePayload('semiProfessional', buildValidSemiProfessional());
       const keys = formDataKeys(payload);
 
-      // Contract fields must be present
+      // Contract fields must be present (aligned with web form)
       expect(keys).toContain('Email');
       expect(keys).toContain('StudentName');
-      expect(keys).toContain('DateOfBirth');
+      expect(keys).toContain('DOB');
       expect(keys).toContain('ContactNumber');
       expect(keys).toContain('GenderID');
       expect(keys).toContain('CasteCategoryID');
+      expect(keys).toContain('AreaTypeID');
       expect(keys).toContain('DistrictID');
       expect(keys).toContain('OtherDistrict');
-      expect(keys).toContain('Taluk');
-      expect(keys).toContain('Address');
-      expect(keys).toContain('PlaceID');
+      expect(keys).toContain('ResidentialAddress');
+      expect(keys).toContain('GoogleMapLink');
+      expect(keys).toContain('FatherName');
+      expect(keys).toContain('MotherName');
       expect(keys).toContain('FatherOccupationID');
       expect(keys).toContain('MotherOccupationID');
       expect(keys).toContain('FamilyMembers');
-      expect(keys).toContain('AnnualIncome');
+      expect(keys).toContain('HouseTypeID');
+      expect(keys).toContain('FamilyIncome');
       expect(keys).toContain('PUPercentage');
+      expect(keys).toContain('CETRank');
+      expect(keys).toContain('NEETRank');
+      expect(keys).toContain('CourseApplying');
+      expect(keys).toContain('CourseStream');
+
+      // Backend SQL required fields must be present
+      expect(keys).toContain('DateOfBirth');
+      expect(keys).toContain('Address');
+      expect(keys).toContain('PlaceID');
+      expect(keys).toContain('AnnualIncome');
       expect(keys).toContain('SemiProfessionalCourseID');
       expect(keys).toContain('CollegeName');
       expect(keys).toContain('CollegeTypeID');
       expect(keys).toContain('CollegeFees');
       expect(keys).toContain('HouseVisitLink');
-
-      // Legacy/obsolete fields must NOT be present
-      expect(keys).not.toContain('DOB');
-      expect(keys).not.toContain('ResidentialAddress');
-      expect(keys).not.toContain('AreaTypeID');
-      expect(keys).not.toContain('AlternateNumber');
-      expect(keys).not.toContain('GoogleMapLink');
-      expect(keys).not.toContain('FatherName');
-      expect(keys).not.toContain('MotherName');
-      expect(keys).not.toContain('HouseTypeID');
-      expect(keys).not.toContain('MonthlyRent');
-      expect(keys).not.toContain('FamilyIncome');
-      expect(keys).not.toContain('CETRank');
-      expect(keys).not.toContain('PTRank');
-      expect(keys).not.toContain('CourseApplying');
-      expect(keys).not.toContain('CourseStream');
       expect(keys).not.toContain('StudentSelfie');
       expect(keys).not.toContain('CETRankSheet');
       expect(keys).not.toContain('PTRankSheet');
@@ -297,25 +300,55 @@ describe('Form Submission', () => {
     it('should emit SemiProfessional document file keys when documents are provided', () => {
       const data = buildValidSemiProfessional();
       data.documents = {
-        pucMarksCard: {
-          file: { uri: 'file://puc.jpg', name: 'puc.jpg', type: 'image/jpeg' },
+        studentSelfie: {
+          file: { uri: 'file://selfie.jpg', name: 'selfie.jpg', type: 'image/jpeg' },
+          uploadedAt: new Date().toISOString(),
+        },
+        cetRankSheet: {
+          file: { uri: 'file://cet.pdf', name: 'cet.pdf', type: 'application/pdf' },
+          uploadedAt: new Date().toISOString(),
+        },
+        ptRankSheet: {
+          file: { uri: 'file://pt.pdf', name: 'pt.pdf', type: 'application/pdf' },
+          uploadedAt: new Date().toISOString(),
+        },
+        dwellingUnitPhoto: {
+          file: { uri: 'file://house.jpg', name: 'house.jpg', type: 'image/jpeg' },
+          uploadedAt: new Date().toISOString(),
+        },
+        marksSheet12: {
+          file: { uri: 'file://marks.jpg', name: 'marks.jpg', type: 'image/jpeg' },
+          uploadedAt: new Date().toISOString(),
+        },
+        houseVideo: {
+          file: { uri: 'file://video.mp4', name: 'video.mp4', type: 'video/mp4' },
+          uploadedAt: new Date().toISOString(),
+        },
+        electricityBill: {
+          file: { uri: 'file://bill.jpg', name: 'bill.jpg', type: 'image/jpeg' },
           uploadedAt: new Date().toISOString(),
         },
         incomeCertificate: {
-          file: { uri: 'file://income.pdf', name: 'income.pdf', type: 'application/pdf' },
+          file: { uri: 'file://income.jpg', name: 'income.jpg', type: 'image/jpeg' },
           uploadedAt: new Date().toISOString(),
         },
-        aadharCard: {
-          file: { uri: 'file://aadhar.jpg', name: 'aadhar.jpg', type: 'image/jpeg' },
+        rationCard: {
+          file: { uri: 'file://ration.jpg', name: 'ration.jpg', type: 'image/jpeg' },
           uploadedAt: new Date().toISOString(),
         },
       };
       const payload = preparePayload('semiProfessional', data);
       const keys = formDataKeys(payload);
 
-      expect(keys).toContain('PUCMarksCard');
+      expect(keys).toContain('StudentSelfie');
+      expect(keys).toContain('CETRankSheet');
+      expect(keys).toContain('PTRankSheet');
+      expect(keys).toContain('DwellingUnitPhoto');
+      expect(keys).toContain('MarksSheet12');
+      expect(keys).toContain('HouseVideo');
+      expect(keys).toContain('ElectricityBill');
       expect(keys).toContain('IncomeCertificate');
-      expect(keys).toContain('AadharCard');
+      expect(keys).toContain('RationCard');
     });
 
     it('should emit PUC Format 1.1 multipart fields with contract names', () => {
@@ -580,6 +613,55 @@ describe('Form Submission', () => {
         expect(error.submissionId).toBeDefined();
         expect(error.submissionId).toMatch(/^sub_[0-9a-f]{8}$/);
       }
+    });
+
+    it('should normalize areas into places for PUC dropdowns', () => {
+      const { normalizePUCDropdowns } = require('@/api/transformers/normalizeDropdowns');
+      const apiResponse = {
+        success: true,
+        areas: [
+          { Disabled: false, Group: null, Selected: false, Text: 'Urban', Value: '1' },
+          { Disabled: false, Group: null, Selected: false, Text: 'Rural', Value: '2' },
+          { Disabled: false, Group: null, Selected: false, Text: 'Semi-Urban', Value: '3' },
+        ],
+      };
+      const normalized = normalizePUCDropdowns(apiResponse);
+      expect(normalized.places).toBeDefined();
+      expect(normalized.places).toHaveLength(3);
+      expect(normalized.places![0]).toEqual({ value: '1', label: 'Urban' });
+      expect(normalized.places![1]).toEqual({ value: '2', label: 'Rural' });
+      expect(normalized.places![2]).toEqual({ value: '3', label: 'Semi-Urban' });
+    });
+
+    it('should allow Expo convertFormDataAsync to process attached files without throwing Unsupported FormDataPart implementation', async () => {
+      const { convertFormDataAsync } = require('expo/src/winter/fetch/convertFormData');
+      const mockFormData = buildValidPucFormat11({
+        documents: {
+          StudentSelfie: {
+            file: { uri: 'file://selfie.jpg', name: 'selfie.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+          SSLCMarksCard: {
+            file: { uri: 'file://sslc.jpg', name: 'sslc.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+          FeeReceipts: {
+            file: { uri: 'file://fees.pdf', name: 'fees.pdf', type: 'application/pdf' },
+            uploadedAt: new Date().toISOString(),
+          },
+          BankPassbook: {
+            file: { uri: 'file://passbook.jpg', name: 'passbook.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+          AadhaarCard: {
+            file: { uri: 'file://aadhaar.jpg', name: 'aadhaar.jpg', type: 'image/jpeg' },
+            uploadedAt: new Date().toISOString(),
+          },
+        },
+      });
+
+      const payload = preparePayload('puc', mockFormData);
+      await expect(convertFormDataAsync(payload)).resolves.toHaveProperty('boundary');
     });
   });
 });

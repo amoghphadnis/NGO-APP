@@ -43,6 +43,9 @@ export const renewalProfessionalSchema = z.object({
   collegeFrontPhotoFile: z.custom<UploadedDocument>().optional(),
   thankingVideoFile: z.custom<UploadedDocument>().optional(),
   parentsPassbookFile: z.custom<UploadedDocument>().optional(),
+  feesReceiptFile: z.custom<UploadedDocument>().optional(),
+  thankingVolunteerLetterFile: z.custom<UploadedDocument>().optional(),
+  thankingDonorLetterFile: z.custom<UploadedDocument>().optional(),
 });
 
 export type RenewalProfessionalFormValues = z.infer<typeof renewalProfessionalSchema>;

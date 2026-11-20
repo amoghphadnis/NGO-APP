@@ -1,9 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { DocumentFile, DocumentsMetaItem } from '@/store/useFormEngineStore';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
-import { typography } from '@/theme/typography';
-import { DocumentFile, DocumentsMetaItem } from '@/store/useFormEngineStore';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface FileUploadFieldProps {
   title: string;
@@ -39,6 +37,12 @@ export default function FileUploadField({
     return 'empty';
   };
 
+  const fileExceedsLimit = !!(file?.size && file.size > maxSize);
+  const renderFileSize = (size: number) =>
+    fileExceedsLimit
+      ? `${formatFileSize(size)} — over ${Math.round(maxSize / 1024 / 1024)}MB limit`
+      : formatFileSize(size);
+
   const renderEmptyState = () => (
     <View style={styles.uploadArea}>
       <View style={styles.uploadIcon}>
@@ -46,7 +50,7 @@ export default function FileUploadField({
       </View>
       <Text style={styles.uploadTitle}>Upload {title}</Text>
       <Text style={styles.uploadSubtitle}>
-        Tap to browse or drag & drop
+        Tap below to choose a file
       </Text>
       <Text style={styles.uploadInfo}>
         {acceptedTypes.map(type => type.split('/')[1].toUpperCase()).join(', ')} up to {Math.round(maxSize / 1024 / 1024)} MB
@@ -63,23 +67,14 @@ export default function FileUploadField({
         <View style={styles.fileRow}>
           <View style={styles.fileInfo}>
             <Text style={styles.fileName} numberOfLines={1}>{file.name}</Text>
-            <Text style={styles.fileSize}>{formatFileSize(file.size || 0)}</Text>
+            <Text style={[styles.fileSize, fileExceedsLimit && styles.fileSizeError]}>{renderFileSize(file.size || 0)}</Text>
           </View>
           <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
             <Text style={styles.cancelButtonText}>✕</Text>
           </TouchableOpacity>
         </View>
       )}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View 
-            style={[styles.progressFill, { width: `${meta?.progress || 0}%` }]} 
-          />
-        </View>
-        <Text style={styles.progressText}>{meta?.progress || 0}%</Text>
-      </View>
-      <Text style={styles.uploadingText}>Uploading to server...</Text>
-      <Text style={styles.uploadingSubtext}>Please don't close the app during upload</Text>
+      <Text style={styles.uploadingText}>Preparing file…</Text>
     </View>
   );
 
@@ -89,20 +84,32 @@ export default function FileUploadField({
         <View style={styles.fileRow}>
           <View style={styles.fileInfo}>
             <Text style={styles.fileName} numberOfLines={1}>{file.name}</Text>
-            <Text style={styles.fileSize}>{formatFileSize(file.size || 0)}</Text>
-            <Text style={styles.verifiedText}>Verified</Text>
+            <Text style={[styles.fileSize, fileExceedsLimit && styles.fileSizeError]}>{renderFileSize(file.size || 0)}</Text>
+            <Text style={styles.verifiedText}>Attached</Text>
           </View>
           <View style={styles.fileActions}>
-            <TouchableOpacity style={styles.actionButton} onPress={onView}>
-              <Text style={styles.actionButtonText}>👁</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={onDelete}>
+            {onView && (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={onView}
+                accessibilityRole="button"
+                accessibilityLabel={`View ${title}`}
+              >
+                <Text style={styles.actionButtonText}>👁</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={onDelete}
+              accessibilityRole="button"
+              accessibilityLabel={`Remove ${title}`}
+            >
               <Text style={styles.actionButtonText}>🗑</Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
-      <Text style={styles.successMessage}>Document verified and accepted successfully</Text>
+      <Text style={styles.successMessage}>File attached — it will be uploaded when you submit the application</Text>
     </View>
   );
 
@@ -256,6 +263,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: 2,
   },
+  fileSizeError: {
+    color: '#EF4444',
+    fontWeight: '600',
+  },
   verifiedText: {
     fontSize: 12,
     color: '#22C55E',
@@ -268,38 +279,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
   },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  progressBar: {
-    flex: 1,
-    height: 6,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 3,
-    marginRight: spacing.sm,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primary,
-  },
   uploadingText: {
     fontSize: 14,
     color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.xs,
-  },
-  uploadingSubtext: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    textAlign: 'center',
   },
   uploadedArea: {
     paddingVertical: spacing.md,

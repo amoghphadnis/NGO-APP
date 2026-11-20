@@ -1,10 +1,17 @@
 import AppFooter from '@/components/common/AppFooter';
 import StickyActionFooter from '@/components/common/StickyActionFooter';
+import AppTopBar from '@/components/layout/AppTopBar';
 import ProgressHeader from '@/components/layout/ProgressHeader';
+import { getFormConfig } from '@/forms/shared/registry';
+import { useFormEngineStore } from '@/store/useFormEngineStore';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Meta screens that are not counted as data-entry "pages".
+const NON_PAGE_STEPS = new Set(['review', 'success']);
 
 interface FormScreenLayoutProps {
   children: React.ReactNode;
@@ -39,19 +46,51 @@ export default function FormScreenLayout({
   loading = false,
   remainingSteps,
 }: FormScreenLayoutProps) {
-  const currentStep = step || 1;
-  const progress = (currentStep / totalSteps) * 100;
-  const actualRemainingSteps = remainingSteps || (totalSteps - currentStep);
+  const { currentFormType, currentStep: storeStep, completedSteps } =
+    useFormEngineStore();
+
+  // Inside the form engine, derive the displayed step/total from the active
+  // form config so every section shows consistent "Step X of N" numbering.
+  // `review` and `success` are meta screens and don't count as pages.
+  // The `step`/`totalSteps` props remain as a fallback for non-form-engine
+  // callers (none today) — an explicit `step` prop is ignored while a form
+  // is active.
+  let displayStep = step ?? 1;
+  let displayTotal = totalSteps;
+  let completedPages: number | undefined;
+
+  if (currentFormType) {
+    const config = getFormConfig(currentFormType);
+    const pageCount = config.steps.filter((s) => !NON_PAGE_STEPS.has(s)).length;
+    displayStep = Math.min(storeStep + 1, pageCount);
+    displayTotal = pageCount;
+    completedPages = config.steps.reduce(
+      (count, stepId, index) =>
+        !NON_PAGE_STEPS.has(stepId) && completedSteps[index] ? count + 1 : count,
+      0
+    );
+  }
+
+  // Progress reflects pages actually completed — 0% before the user has
+  // finished anything, never more than 100%.
+  const progress =
+    completedPages !== undefined
+      ? Math.min(100, (completedPages / displayTotal) * 100)
+      : (displayStep / displayTotal) * 100;
+  const actualRemainingSteps =
+    remainingSteps ?? Math.max(0, displayTotal - displayStep);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <AppTopBar hideBell />
+
       {/* Screen Title - ABOVE content, not inside cards */}
       <Text style={styles.titleHeader}>{title}</Text>
 
       {/* Progress Header */}
       <ProgressHeader 
-        step={currentStep}
-        total={totalSteps}
+        step={displayStep}
+        total={displayTotal}
       />
 
       {/* Step Meta Information */}
@@ -83,7 +122,7 @@ export default function FormScreenLayout({
         showNext={showNext}
         loading={loading}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

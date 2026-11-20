@@ -25,6 +25,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { houseVisitApi } from '@/api/houseVisitApi';
 import { HouseVisitEditApi, houseVisitEditApis } from '@/api/houseVisitEditApi';
 import AppFooter from '@/components/common/AppFooter';
+import BrandLogo from '@/components/common/BrandLogo';
+import AppTopBar from '@/components/layout/AppTopBar';
 import { generateSubmissionId, error as logError, info as logInfo, truncateStack } from '@/diagnostics';
 import { MAX_MESSAGE_LENGTH } from '@/diagnostics/diagnosticTypes';
 import { FormType } from '@/forms/shared/types';
@@ -618,11 +620,7 @@ export default function HouseVisitFormScreen() {
           UploadedFiles: formData.uploadedFiles,
         };
 
-        console.log('[HouseVisit] Submitting payload:', JSON.stringify(payload, null, 2));
-
         const response = await houseVisitApi.create(payload);
-
-        console.log('[HouseVisit] API response:', JSON.stringify(response, null, 2));
 
         if (response.success) {
           logInfo('submission', 'submission_succeeded', { submissionId, formType, screen: 'HouseVisitForm' });
@@ -671,12 +669,10 @@ export default function HouseVisitFormScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{editMode ? 'Edit House Visit' : 'House Visit Form'}</Text>
-        <View style={{ width: 40 }} />
+      <AppTopBar />
+
+      <View style={styles.watermarkWrap} pointerEvents="none">
+        <BrandLogo variant="watermark" size={280} />
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
@@ -995,6 +991,7 @@ export default function HouseVisitFormScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, position: 'relative' },
+  watermarkWrap: { position: 'absolute', top: '30%', left: 0, right: 0, alignItems: 'center', zIndex: 0 },
   header: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   backButton: { padding: spacing.xs, marginRight: spacing.sm },
   headerTitle: { flex: 1, fontSize: 18, fontWeight: '600', color: '#FFFFFF' },
@@ -1017,7 +1014,7 @@ const styles = StyleSheet.create({
   familyLabel: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, marginBottom: spacing.sm },
   addButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, padding: spacing.sm, borderRadius: 8, gap: spacing.xs },
   addButtonText: { color: '#FFFFFF', fontWeight: '500' },
-  submitButton: { backgroundColor: colors.success, padding: spacing.md, borderRadius: 12, alignItems: 'center', marginTop: spacing.lg },
+  submitButton: { backgroundColor: colors.primary, padding: spacing.md, borderRadius: 12, alignItems: 'center', marginTop: spacing.lg },
   submitButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
   uploadSection: { marginTop: spacing.md, padding: spacing.md, backgroundColor: colors.background, borderRadius: 8, borderWidth: 1, borderColor: colors.border },
   uploadButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, padding: spacing.sm, borderRadius: 8, gap: spacing.xs, marginTop: spacing.sm },

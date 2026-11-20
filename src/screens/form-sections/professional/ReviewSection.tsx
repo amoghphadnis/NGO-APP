@@ -1,16 +1,28 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { getProfessionalDropdowns } from '@/api/professionalApi';
+import { NormalizedDropdownOption } from '@/api/transformers/normalizeDropdowns';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
+import UploadSizeNotice from '@/components/form/UploadSizeNotice';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import { getFormConfig } from '@/forms/shared/registry';
 import { preparePayload, submitApplication } from '@/submission';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
-import { isPayanaForm, isProfessionalForm } from '@/types/forms';
+import { isNewStudentForm, isPayanaForm, isProfessionalForm, isPUCForm } from '@/types/forms';
+import { confirmNoDuplicate, getContactNumber } from '@/utils/duplicateCheck';
+import { getTotalUploadSizeBytes, isTotalUploadSizeExceeded } from '@/utils/uploadSize';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
+
+const labelFor = (options: NormalizedDropdownOption[] | undefined, value: number | undefined | null): string => {
+  if (value === undefined || value === null || value === 0) return 'N/A';
+  const found = options?.find((o) => Number(o.value) === Number(value));
+  return found ? found.label : `ID ${value}`;
+};
 
 export default function ReviewSection({ navigation }: any) {
   const {
@@ -26,10 +38,46 @@ export default function ReviewSection({ navigation }: any) {
   const [declarationAccepted, setDeclarationAccepted] = useState(false);
   const submitLock = useRef(false);
 
+  const [dropdowns, setDropdowns] = useState<{
+    genders: NormalizedDropdownOption[];
+    castes: NormalizedDropdownOption[];
+    areaTypes?: NormalizedDropdownOption[];
+    districts: NormalizedDropdownOption[];
+    fatherOccupations?: NormalizedDropdownOption[];
+    motherOccupations?: NormalizedDropdownOption[];
+    houseTypes?: NormalizedDropdownOption[];
+  }>({
+    genders: [],
+    castes: [],
+    districts: [],
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadDropdowns() {
+      const response = await getProfessionalDropdowns();
+      if (mounted && response.success && response.data) {
+        setDropdowns({
+          genders: response.data.genders ?? [],
+          castes: response.data.castes ?? [],
+          areaTypes: response.data.areaTypes ?? [],
+          districts: response.data.districts ?? [],
+          fatherOccupations: response.data.fatherOcc ?? [],
+          motherOccupations: response.data.motherOcc ?? [],
+          houseTypes: response.data.houseTypes ?? [],
+        });
+      }
+    }
+    loadDropdowns();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const isFormComplete = () => {
     if (isProfessionalForm(formData)) {
       const p = formData.personal;
-      const hasPersonal = p.StudentName && p.DateOfBirth && p.Email && p.ContactNumber && p.GenderID && p.CasteCategoryID && p.DistrictID && p.AreaTypeID && p.ResidentialAddress;
+      const hasPersonal = p.StudentName && p.DateOfBirth && p.Email && p.ContactNumber && p.AlternateNumber && p.GenderID && p.DistrictID && p.AreaTypeID && p.ResidentialAddress && p.GoogleMapLink;
       const hasFamily = formData.family.FatherName && formData.family.MotherName && formData.family.FatherOccupationID && formData.family.MotherOccupationID && formData.family.FamilyMembers > 0 && formData.family.HouseTypeID && formData.family.FamilyIncome > 0;
       const hasAcademic = formData.academic.PUPercentage !== undefined && formData.academic.CourseApplying && formData.academic.CourseStream;
 
@@ -48,22 +96,62 @@ export default function ReviewSection({ navigation }: any) {
       return hasPersonal && hasFamily && hasAcademic && hasAllDocuments;
     }
 
+    if (isPUCForm(formData)) {
+      const p = formData.personal;
+      const c = formData.contact;
+      const a = formData.address;
+      const f = formData.family;
+      const ac = formData.academic;
+      const b = formData.bank;
+      const docs = (formData.documents as any) ?? {};
+
+      const hasPersonal = !!(p?.StudentName && p?.DateOfBirth && p?.Gender && p?.Caste);
+      const hasContact = !!(c?.Email && c?.ContactNumber);
+      const hasAddress = !!(a?.District && a?.Taluk && a?.ResidentialAddress);
+      const hasFamily = !!(f?.FatherOccupation && f?.MotherOccupation && (f?.TotalFamilyMembers ?? 0) > 0 && (f?.FamilyAnnualIncome ?? 0) > 0);
+      const hasAcademic = !!(ac?.SSLCPercentage !== undefined && ac?.CourseJoined && ac?.CollegeName && ac?.CollegeType && ac?.CollegeContactNumber);
+      const hasBank = !!(b?.AccountHolderName && b?.AccountNumber && b?.IFSCCode && b?.BankName && b?.BranchName);
+      const hasDocs = !!(
+        docs?.StudentSelfie?.file && docs?.SSLCMarksCard?.file && docs?.FeeReceipts?.file &&
+        docs?.BankPassbook?.file && docs?.AadhaarCard?.file && docs?.ElectricityBill?.file &&
+        docs?.RationCard?.file && docs?.DwellingUnitPhoto?.file && docs?.HouseVideo?.file &&
+        docs?.IncomeCertificate?.file
+      );
+
+      return hasPersonal && hasContact && hasAddress && hasFamily && hasAcademic && hasBank && hasDocs;
+    }
+
     if (isPayanaForm(formData)) {
       const hasPersonal = formData.personal.studentName && formData.personal.dateOfBirth;
-      const hasContact = formData.contact.email && formData.contact.contactNumber;
+      const hasContact = formData.contact.email && formData.contact.contactNumber && formData.contact.alternateNumber;
       const hasAddress = formData.address.districtID && formData.address.taluka;
       const hasFamily = formData.family.fatherName && formData.family.motherName;
-      const hasAcademic = formData.academic.courseID && formData.academic.collegeName;
+      const hasAcademic = formData.academic.courseSA && formData.academic.annualFees;
       const hasBank = formData.bank.accountHolderName && formData.bank.bankAccountNo && formData.bank.ifscCode;
       const hasAgreement = formData.agreement.isAgreed;
 
       return hasPersonal && hasContact && hasAddress && hasFamily && hasAcademic && hasBank && hasAgreement;
     }
 
+    if (isNewStudentForm(formData)) {
+      const d = formData.documents;
+      const hasPersonal = formData.personal.studentName && formData.personal.dateOfBirth && formData.personal.genderID;
+      const hasContact = formData.contact.contactNumber && formData.contact.alternateNumber;
+      const hasAddress = formData.address.address && formData.address.taluka && formData.address.districtID;
+      const hasFamily = formData.family.fatherName && formData.family.motherName;
+      const hasCategory = formData.category.casteCategoryID && formData.category.areaTypeID && formData.category.houseTypeID && formData.category.referenceSourceID;
+      const hasAcademic = formData.academic.courseID && formData.academic.collegeName && formData.academic.collegeTypeID;
+      const hasDocs = d?.sslcMarksCard?.file && d?.studentPhoto?.file && d?.electricityBill?.file && d?.rationCards?.file && d?.incomeCertificate?.file && d?.familyPhoto?.file && d?.houseVideo?.file && d?.houseVisitLink;
+
+      return hasPersonal && hasContact && hasAddress && hasFamily && hasCategory && hasAcademic && hasDocs;
+    }
+
     return true;
   };
 
-  const canSubmit = isFormComplete() && declarationAccepted;
+  const totalUploadBytes = getTotalUploadSizeBytes((formData as any).documents);
+  const uploadSizeExceeded = isTotalUploadSizeExceeded((formData as any).documents);
+  const canSubmit = isFormComplete() && declarationAccepted && !uploadSizeExceeded;
 
   const onSubmit = async () => {
     // Synchronous re-entry guard — prevents double-tap before React re-renders.
@@ -81,6 +169,16 @@ export default function ReviewSection({ navigation }: any) {
     }
 
     try {
+      const proceed = await confirmNoDuplicate(
+        currentFormType,
+        getContactNumber(currentFormType, formData),
+      );
+      if (!proceed) {
+        setSubmissionLoading(false);
+        submitLock.current = false;
+        return;
+      }
+
       const payload = preparePayload(currentFormType, formData);
       const response = await submitApplication(currentFormType, payload);
 
@@ -89,7 +187,11 @@ export default function ReviewSection({ navigation }: any) {
       }
 
       setSubmissionSuccess(true, response.data?.applicationId || undefined);
-      markStepComplete(5);
+      // Mark the review step's own config index complete (varies by form type).
+      try {
+        const reviewIndex = getFormConfig(currentFormType).steps.indexOf('review');
+        if (reviewIndex >= 0) markStepComplete(reviewIndex);
+      } catch { /* non-fatal */ }
       navigation.navigate('success');
     } catch (error: any) {
       const submissionId = error?.submissionId;
@@ -157,16 +259,13 @@ export default function ReviewSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Review Application"
-      step={6}
-      totalSteps={7}
       onBack={navigation.goBack}
       onNext={onSubmit}
       nextDisabled={!canSubmit || submissionState.isSubmitting}
       nextLabel="Submit Application"
       loading={submissionState.isSubmitting}
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <FormSectionHeader
+      <FormSectionHeader
           icon="checkmark-circle"
           title="Application Summary"
           subtitle="Review all information before submitting"
@@ -180,10 +279,10 @@ export default function ReviewSection({ navigation }: any) {
             "Date of Birth": formData.personal.DateOfBirth,
             "Contact Number": formData.personal.ContactNumber,
             "Alternate Number": formData.personal.AlternateNumber || 'N/A',
-            "Gender ID": formData.personal.GenderID,
-            "Caste Category ID": formData.personal.CasteCategoryID,
-            "Area Type ID": formData.personal.AreaTypeID,
-            "District ID": formData.personal.DistrictID,
+            "Gender": labelFor(dropdowns.genders, formData.personal.GenderID),
+            "Caste Category": labelFor(dropdowns.castes, formData.personal.CasteCategoryID),
+            "Area Type": labelFor(dropdowns.areaTypes, formData.personal.AreaTypeID),
+            "District": labelFor(dropdowns.districts, formData.personal.DistrictID),
             "Other District": formData.personal.OtherDistrict || 'N/A',
             "Residential Address": formData.personal.ResidentialAddress,
             "Google Map Link": formData.personal.GoogleMapLink || 'N/A',
@@ -197,10 +296,10 @@ export default function ReviewSection({ navigation }: any) {
           {
             "Father's Name": formData.family.FatherName,
             "Mother's Name": formData.family.MotherName,
-            "Father's Occupation ID": formData.family.FatherOccupationID || 'N/A',
-            "Mother's Occupation ID": formData.family.MotherOccupationID || 'N/A',
+            "Father's Occupation": labelFor(dropdowns.fatherOccupations, formData.family.FatherOccupationID),
+            "Mother's Occupation": labelFor(dropdowns.motherOccupations, formData.family.MotherOccupationID),
             "Family Members": formData.family.FamilyMembers,
-            "House Type ID": formData.family.HouseTypeID,
+            "House Type": labelFor(dropdowns.houseTypes, formData.family.HouseTypeID),
             "Monthly Rent": formData.family.MonthlyRent ? `₹${formData.family.MonthlyRent}` : 'N/A',
             "Family Income": `₹${formData.family.FamilyIncome}`,
           },
@@ -302,6 +401,108 @@ export default function ReviewSection({ navigation }: any) {
           </FormCard>
         )}
 
+        {isPUCForm(formData) && renderSection(
+          "Applicant's Information",
+          {
+            "Student Name": formData.personal.StudentName,
+            "Date of Birth": formData.personal.DateOfBirth,
+            "Gender": labelFor(dropdowns.genders, formData.personal.Gender),
+            "Caste Category": labelFor(dropdowns.castes, formData.personal.Caste),
+          },
+          "person",
+          () => navigation.navigate('personal')
+        )}
+
+        {isPUCForm(formData) && renderSection(
+          "Contact Details",
+          {
+            "Email": formData.contact.Email,
+            "Contact Number": formData.contact.ContactNumber,
+            "Alternate Number": formData.contact.AlternateNumber || 'N/A',
+          },
+          "call",
+          () => navigation.navigate('contact')
+        )}
+
+        {isPUCForm(formData) && renderSection(
+          "Address Details",
+          {
+            "District": labelFor(dropdowns.districts, formData.address.District),
+            "Other District": formData.address.OtherDistrict || 'N/A',
+            "Taluk": formData.address.Taluk,
+            "Residential Address": formData.address.ResidentialAddress,
+          },
+          "home",
+          () => navigation.navigate('address')
+        )}
+
+        {isPUCForm(formData) && renderSection(
+          "Family Details",
+          {
+            "Father's Occupation": labelFor(dropdowns.fatherOccupations, formData.family.FatherOccupation),
+            "Mother's Occupation": labelFor(dropdowns.motherOccupations, formData.family.MotherOccupation),
+            "Family Members": formData.family.TotalFamilyMembers,
+            "Family Annual Income": `₹${formData.family.FamilyAnnualIncome}`,
+          },
+          "people",
+          () => navigation.navigate('family')
+        )}
+
+        {isPUCForm(formData) && renderSection(
+          "Academic Details",
+          {
+            "SSLC Percentage": `${formData.academic.SSLCPercentage}%`,
+            "College Name": formData.academic.CollegeName,
+            "College Fees": `₹${formData.academic.CollegeFees}`,
+            "College Contact Number": formData.academic.CollegeContactNumber,
+            "Achievement": formData.academic.Achievement || 'N/A',
+          },
+          "school",
+          () => navigation.navigate('academic')
+        )}
+
+        {isPUCForm(formData) && renderSection(
+          "Bank Details",
+          {
+            "Parents Bank Balance": `₹${formData.bank.ParentsBankBalance}`,
+            "Account Holder": formData.bank.AccountHolderName,
+            "Account Number": formData.bank.AccountNumber,
+            "IFSC Code": formData.bank.IFSCCode,
+            "Bank Name": formData.bank.BankName,
+            "Branch Name": formData.bank.BranchName,
+          },
+          "card",
+          () => navigation.navigate('bank')
+        )}
+
+        {isPUCForm(formData) && (
+          <FormCard>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleContainer}>
+                <Ionicons name="attach" size={20} color={colors.primary} style={styles.sectionIcon} />
+                <Text style={styles.sectionTitle}>Documents (10 Mandatory)</Text>
+              </View>
+              <TouchableOpacity onPress={() => navigation.navigate('documents')} style={styles.editButton}>
+                <Ionicons name="create" size={16} color={colors.primary} />
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.sectionContent}>
+              {renderDocumentStatus('1. Student Selfie', !!(formData.documents as any)?.StudentSelfie?.file)}
+              {renderDocumentStatus('2. SSLC Marks Card', !!(formData.documents as any)?.SSLCMarksCard?.file)}
+              {renderDocumentStatus('3. Fee Receipts', !!(formData.documents as any)?.FeeReceipts?.file)}
+              {renderDocumentStatus('4. Bank Passbook', !!(formData.documents as any)?.BankPassbook?.file)}
+              {renderDocumentStatus('5. Aadhaar Card', !!(formData.documents as any)?.AadhaarCard?.file)}
+              {renderDocumentStatus('6. Electricity Bill', !!(formData.documents as any)?.ElectricityBill?.file)}
+              {renderDocumentStatus('7. Ration Card', !!(formData.documents as any)?.RationCard?.file)}
+              {renderDocumentStatus('8. Dwelling Unit Photo', !!(formData.documents as any)?.DwellingUnitPhoto?.file)}
+              {renderDocumentStatus('9. House Video', !!(formData.documents as any)?.HouseVideo?.file)}
+              {renderDocumentStatus('10. Income Certificate', !!(formData.documents as any)?.IncomeCertificate?.file)}
+            </View>
+          </FormCard>
+        )}
+
         <FormSectionHeader
           icon="shield-checkmark"
           title="Declaration"
@@ -331,6 +532,8 @@ export default function ReviewSection({ navigation }: any) {
           </View>
         </FormCard>
 
+        <UploadSizeNotice totalBytes={totalUploadBytes} />
+
         {submissionState.error ? (
           <FormCard>
             <View style={styles.errorContainer}>
@@ -348,7 +551,6 @@ export default function ReviewSection({ navigation }: any) {
             </Text>
           </View>
         </FormCard>
-      </ScrollView>
     </FormScreenLayout>
   );
 }

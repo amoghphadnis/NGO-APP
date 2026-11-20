@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# Example run script — copy to run-scan.sh (git-ignored) or run the strix
+# command directly after exporting the env vars below in your shell.
+# DO NOT commit run-scan.sh or any file containing real credentials/tokens.
+
+set -euo pipefail
+
+DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Credentials come from the environment OR from strix-scan/.env (git-ignored).
+# The script sources the file directly; values are never echoed or logged.
+ENV_FILE="$DIR/.env"
+if [ -f "$ENV_FILE" ]; then set -a; . "$ENV_FILE"; set +a; fi
+: "${GROQ_API_KEY:?Set GROQ_API_KEY (env or strix-scan/.env)}"
+: "${TEST_VOLUNTEER_EMAIL:?Set TEST_VOLUNTEER_EMAIL (env or strix-scan/.env)}"
+: "${TEST_VOLUNTEER_PASSWORD:?Set TEST_VOLUNTEER_PASSWORD (env or strix-scan/.env)}"
+
+DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "D:/Strix_App_tester"
+
+# Auth instruction is generated at run time from env vars into this
+# git-ignored directory; it never contains credentials in tracked files.
+cat > "$DIR/auth-instruction.txt" <<EOF
+Authorized security test of a client-owned test server. Test ONLY the
+target API base URL below; do not touch any other host.
+
+Target: https://vpwebservices.testserver.envisage-workflow.in/api
+
+Authentication flow (use exactly this, do not invent another mechanism):
+  POST /registration/login
+  Content-Type: application/json
+  Body: {"Email": "${TEST_VOLUNTEER_EMAIL}", "Password": "${TEST_VOLUNTEER_PASSWORD}"}
+The response JSON contains a top-level "Token" field (JWT) plus UserID,
+UserName, Role, EmployeeID, AssignedRole, District, DistrictID.
+Use it as: Authorization: Bearer <Token> on subsequent requests.
+Log in once with this account only; never attempt other accounts.
+
+Scope for this first pass:
+  - Public API behavior (unauthenticated responses, error handling)
+  - Authentication (token validation, missing/invalid/garbled bearer)
+  - Authorization / broken function-level authorization (volunteer calling
+    elevated routes)
+  - IDOR/BOLA using ONLY object IDs that belong to the supplied test
+    volunteer account (from the login response UserID/EmployeeID); never
+    probe unrelated real users' data
+  - Excessive data exposure in responses for the test account
+  - Input validation (malformed fields, type confusion, injection probes)
+  - Common API security issues (mass assignment flags, verbose errors)
+
+Constraints:
+  - Read-only testing wherever possible. Be conservative with create,
+    update, approve, reject, assign, upload, and cancel endpoints.
+  - No DoS, brute-force, rate-limit abuse, bulk operations, or destructive
+    actions. No large data creation.
+EOF
+
+export STRIX_LLM="groq/openai/gpt-oss-120b"
+export LLM_API_KEY="$GROQ_API_KEY"
+
+uv run strix \
+  -n \
+  -t "https://vpwebservices.testserver.envisage-workflow.in/api" \
+  --instruction-file "$DIR/auth-instruction.txt" \
+  --scan-mode quick \
+  --max-budget 5
+
+# Report lands in strix_runs/<run>/penetration_test_report.md and
+# vulnerabilities/*.md under D:/Strix_App_tester. Optionally shred:
+rm -f "$DIR/auth-instruction.txt"

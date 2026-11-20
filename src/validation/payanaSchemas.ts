@@ -46,15 +46,15 @@ export const payanaIsAgreedSchema = z.boolean().refine((val) => val === true, {
 // Payana Personal schema
 export const payanaPersonalSchema = z.object({
   studentName: z.string().min(1, { message: 'Student name is required' }),
-  dateOfBirth: z.string().optional(),
+  dateOfBirth: z.string().min(1, { message: 'Date of birth is required' }),
   genderID: payanaGenderSchema,
-  casteCategoryID: payanaCasteCategorySchema,
+  casteCategoryID: z.number().optional(),
 });
 
 // Payana Contact schema
 export const payanaContactSchema = z.object({
   contactNumber: z.string().min(10, { message: 'Valid contact number required' }),
-  alternateNumber: z.string().optional(),
+  alternateNumber: z.string().min(10, { message: 'Valid 10-digit alternate number required' }).max(10),
   email: z.string().email({ message: 'Valid email required' }),
 });
 
@@ -65,7 +65,7 @@ export const payanaAddressSchema = z.object({
   taluka: z.string().min(1, { message: 'Taluka is required' }),
   districtID: payanaDistrictSchema,
   otherDistrict: z.string().optional(),
-  pincode: z.string().min(6, { message: 'Valid pincode required' }),
+  pincode: z.string().optional().refine((v) => !v || v.length === 6, { message: 'Valid 6-digit pincode required' }),
   placeID: payanaPlaceSchema,
 }).refine(
   (data) => {
@@ -83,15 +83,15 @@ export const payanaAddressSchema = z.object({
 // Payana Category schema
 export const payanaCategorySchema = z.object({
   casteCategoryID: payanaCasteCategorySchema,
-  houseTypeID: payanaHouseTypeSchema,
+  houseTypeID: z.number().optional(),
 });
 
 // Payana Family schema
 export const payanaFamilySchema = z.object({
   fatherName: z.string().min(1, { message: 'Father name is required' }),
   motherName: z.string().min(1, { message: 'Mother name is required' }),
-  fatherOccupationID: payanaOccupationSchema,
-  motherOccupationID: payanaOccupationSchema,
+  fatherOccupationID: z.number().min(1, { message: 'Father occupation is required' }),
+  motherOccupationID: z.number().min(1, { message: 'Mother occupation is required' }),
   familyMembers: payanaFamilyMembersSchema,
   familyIncome: payanaIncomeSchema,
   parentBank: payanaParentBankSchema,
@@ -99,15 +99,16 @@ export const payanaFamilySchema = z.object({
 
 // Payana Academic schema
 export const payanaAcademicSchema = z.object({
-  courseID: payanaCourseSchema,
-  collegeName: z.string().min(1, { message: 'College name is required' }),
-  collegeTypeID: payanaCollegeTypeSchema,
+  courseID: z.number().optional(),
+  collegeName: z.string().optional(),
+  collegeTypeID: z.number().optional(),
   collegeCNumber: z.string().optional(),
   courseSA: z.string().min(1, { message: 'Course specialization is required' }),
   courseStream: z.string().optional(),
   annualFees: payanaFeesSchema,
   totalExpenses: payanaExpensesSchema,
-  studentAchievements: z.string().optional(),
+  reference: z.string().min(1, { message: 'Reference is required' }),
+  studentAchievements: z.string().min(1, { message: 'Student achievements are required' }),
   securedPercentage: payanaSecuredPercentageSchema,
 });
 
@@ -127,7 +128,7 @@ export const payanaDocumentSchema = z.object({
   studentPhoto: z.any().optional(),
   dwellingUnit: z.any().optional(),
   aadhaarCard: z.any().optional(),
-  houseVisitLink: z.string().url().optional(),
+  houseVisitLink: z.string().min(1, { message: 'House visit link is required' }).url('Enter a valid URL'),
 });
 
 // Payana Agreement schema

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     FlatList,
     RefreshControl,
@@ -21,6 +21,7 @@ import { pucStudentApi } from '@/api/pucStudentApi';
 import { semiProfessionalStudentApi } from '@/api/semiProfessionalStudentApi';
 import StudentRowSkeleton, { TABLE_WIDTH } from '@/components/approval/StudentRowSkeleton';
 import AppFooter from '@/components/common/AppFooter';
+import AppTopBar from '@/components/layout/AppTopBar';
 import StudentDetailModal from '@/components/student/StudentDetailModal';
 import VolunteerStudentRow from '@/components/volunteer/VolunteerStudentRow';
 import { colors } from '@/theme/colors';
@@ -106,14 +107,21 @@ function mapToViewModel(
 export default function StudentListScreen({ studentType, title }: StudentListScreenProps) {
   const router = useRouter();
   const [searchText, setSearchText] = useState('');
+  // Debounced search: the raw text drives the input, only this value hits the API
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | undefined>();
   const [showDistrictDropdown, setShowDistrictDropdown] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentListViewModel | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchText.trim()), 350);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
   // Build query params
   const queryParams: StudentListQueryParams = {
-    ...(searchText && { search: searchText }),
+    ...(debouncedSearch && { search: debouncedSearch }),
     ...(selectedDistrictId !== undefined && { districtId: selectedDistrictId }),
   };
 
@@ -259,16 +267,7 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Top Bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.topBarTitle} numberOfLines={1}>{title}</Text>
-      </View>
+      <AppTopBar />
 
       <View style={styles.body}>
         {/* Student Detail Modal */}
@@ -389,7 +388,7 @@ export default function StudentListScreen({ studentType, title }: StudentListScr
                   refreshControl={
                     <RefreshControl
                       refreshing={isFetching}
-                      onRefresh={refetch}
+                      onRefresh={() => { void refetch(); }}
                       colors={[colors.primary]}
                       tintColor={colors.primary}
                     />
@@ -504,6 +503,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     ...platform.elevation.card,
     maxHeight: 200,
+    overflow: 'hidden',
     zIndex: 100,
   },
   dropdownItem: {

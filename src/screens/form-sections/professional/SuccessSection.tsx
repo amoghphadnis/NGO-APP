@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import BrandLogo from '@/components/common/BrandLogo';
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
@@ -10,14 +12,25 @@ import { spacing } from '@/theme/spacing';
 import { isProfessionalForm } from '@/types/forms';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
+const FORM_TYPE_LABELS: Record<string, string> = {
+  professional: 'Professional Scholarship',
+  puc: 'PUC Scholarship',
+  payana: 'Payana Scholarship',
+  semiProfessional: 'Semi Professional Scholarship',
+  newStudent: 'Student Registration',
+};
+
 export default function SuccessSection({ navigation }: any) {
-  const { formData, resetForm, submissionState } = useFormEngineStore();
-  
+  const router = useRouter();
+  const { formData, resetForm, submissionState, currentFormType } = useFormEngineStore();
+
   // Defensive rendering for nested state
   const personalData = isProfessionalForm(formData)
     ? formData.personal
     : { StudentName: '' };
-  const applicationId = submissionState?.applicationId || `VP${new Date().getFullYear()}${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+  // Never fabricate an ID the NGO has no record of — the real reference is
+  // communicated by the office after verification.
+  const applicationId = submissionState?.applicationId;
   const submissionDate = new Date().toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'long',
@@ -26,13 +39,12 @@ export default function SuccessSection({ navigation }: any) {
 
   const handleHome = () => {
     resetForm();
-    navigation.navigate('guidelines');
+    router.replace('/');
   };
 
   const handleExit = () => {
     resetForm();
-    // In a real app, this might navigate to login screen or close the app
-    navigation.navigate('guidelines');
+    router.replace('/form-selection');
   };
 
   return (
@@ -45,10 +57,15 @@ export default function SuccessSection({ navigation }: any) {
     >
       {/* Success Animation/Illustration */}
       <View style={styles.successContainer}>
+        <View style={styles.watermark} pointerEvents="none">
+          <BrandLogo variant="watermark" size={180} />
+        </View>
+        <BrandLogo size={44} />
         <View style={styles.successIconContainer}>
           <Ionicons name="checkmark-circle" size={80} color={colors.success} />
         </View>
         <Text style={styles.successTitle}>Application Submitted Successfully!</Text>
+        <View style={styles.goldDivider} />
         <Text style={styles.successSubtitle}>
           Your scholarship application has been received and is being processed.
         </Text>
@@ -64,7 +81,7 @@ export default function SuccessSection({ navigation }: any) {
       <FormCard>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Application ID:</Text>
-          <Text style={styles.detailValue}>{applicationId}</Text>
+          <Text style={styles.detailValue}>{applicationId || 'Will be shared after verification'}</Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Student Name:</Text>
@@ -77,7 +94,7 @@ export default function SuccessSection({ navigation }: any) {
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Form Type:</Text>
           <Text style={styles.detailValue}>
-            {useFormEngineStore.getState().currentFormType === 'professional' ? 'Professional Scholarship' : 'PUC Scholarship'}
+            {FORM_TYPE_LABELS[currentFormType || ''] || 'Scholarship Application'}
           </Text>
         </View>
       </FormCard>
@@ -163,7 +180,7 @@ export default function SuccessSection({ navigation }: any) {
           <View style={styles.stepItem}>
             <Ionicons name="help-circle" size={20} color={colors.primary} style={styles.stepIcon} />
             <Text style={styles.stepText}>
-              Contact support if you don't receive updates within 15 days
+              Contact support if you don&apos;t receive updates within 15 days
             </Text>
           </View>
         </View>
@@ -197,9 +214,28 @@ const styles = StyleSheet.create({
   successContainer: {
     alignItems: 'center',
     paddingVertical: spacing.xl,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  watermark: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   successIconContainer: {
     marginBottom: spacing.lg,
+    marginTop: spacing.sm,
+  },
+  goldDivider: {
+    width: 40,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.gold,
+    marginTop: spacing.sm,
   },
   successTitle: {
     fontSize: platform.normalize.fontSize.h1,
