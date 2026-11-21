@@ -21,6 +21,7 @@ import { DiagnosticEvent } from '@/diagnostics/diagnosticTypes';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
+import { safeGoBack } from '@/utils/navigateToDashboard';
 
 const LEVEL_COLORS: Record<string, string> = {
   error: colors.error,
@@ -131,7 +132,7 @@ export default function DiagnosticsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => safeGoBack('/pdashboard')} style={styles.backButton} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.topBarTitle}>Diagnostics</Text>

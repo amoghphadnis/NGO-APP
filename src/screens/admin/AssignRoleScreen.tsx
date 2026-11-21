@@ -31,6 +31,7 @@ import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { canAssignRoles } from '@/utils/roleUtils';
+import { safeGoBack } from '@/utils/navigateToDashboard';
 
 export default function AssignRoleScreen() {
   const router = useRouter();
@@ -134,7 +135,7 @@ export default function AssignRoleScreen() {
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => safeGoBack('/pdashboard')}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Go back"

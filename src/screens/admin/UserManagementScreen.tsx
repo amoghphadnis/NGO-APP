@@ -38,6 +38,7 @@ import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { canManageUsers, isDistrictScopedRole } from '@/utils/roleUtils';
+import { safeGoBack } from '@/utils/navigateToDashboard';
 
 type Tab = 'pending' | 'active';
 
@@ -234,7 +235,7 @@ export default function UserManagementScreen() {
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => safeGoBack('/pdashboard')}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Go back"
