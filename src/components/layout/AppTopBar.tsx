@@ -6,6 +6,7 @@ import BrandLogo from '@/components/common/BrandLogo';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
+import { safeGoBack } from '@/utils/navigateToDashboard';
 
 interface AppTopBarProps {
   /** 'menu' shows the drawer icon (dashboards); 'back' shows a back arrow. Default 'back'. */
@@ -32,7 +33,7 @@ export default function AppTopBar({
     <View style={styles.topBar}>
       <TouchableOpacity
         style={styles.iconButton}
-        onPress={variant === 'menu' ? onMenuPress : (onBackPress ?? (() => router.back()))}
+        onPress={variant === 'menu' ? onMenuPress : (onBackPress ?? (() => safeGoBack('/pdashboard')))}
         activeOpacity={0.7}
         accessibilityLabel={variant === 'menu' ? 'Open menu' : 'Go back'}
       >

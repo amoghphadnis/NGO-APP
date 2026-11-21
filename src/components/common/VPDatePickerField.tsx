@@ -137,8 +137,8 @@ export default function VPDatePickerField({
         />
       </TouchableOpacity>
 
-      {error && <Text style={styles.error}>{error}</Text>}
-      {!error && helperText && <Text style={styles.helper}>{helperText}</Text>}
+      {Boolean(error) ? <Text style={styles.error}>{error}</Text> : null}
+      {!error && helperText ? <Text style={styles.helper}>{helperText}</Text> : null}
 
       {Platform.OS === 'ios' && (
         <Modal

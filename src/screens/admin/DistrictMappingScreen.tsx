@@ -30,6 +30,7 @@ import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { canAssignVolunteers } from '@/utils/roleUtils';
+import { safeGoBack } from '@/utils/navigateToDashboard';
 
 export default function DistrictMappingScreen() {
   const queryClient = useQueryClient();
@@ -160,7 +161,7 @@ export default function DistrictMappingScreen() {
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => safeGoBack('/pdashboard')}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Go back"

@@ -35,6 +35,7 @@ import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
 import { canManageSettings } from '@/utils/roleUtils';
+import { safeGoBack } from '@/utils/navigateToDashboard';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -130,7 +131,7 @@ export default function ApplicationSettingsScreen() {
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => safeGoBack('/pdashboard')}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Go back"
@@ -148,7 +149,7 @@ export default function ApplicationSettingsScreen() {
 
       <FlatList
         data={settings}
-        keyExtractor={(item) => item.Id.toString()}
+        keyExtractor={(item) => item.FormType || item.Id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         refreshControl={
@@ -163,7 +164,7 @@ export default function ApplicationSettingsScreen() {
       />
 
       <EditDateModal
-        key={editing?.Id ?? 'closed'}
+        key={editing?.FormType ?? 'closed'}
         setting={editing}
         onClose={() => setEditing(null)}
         onSaved={() => {
@@ -187,8 +188,8 @@ function EditDateModal({ setting, onClose, onSaved }: EditDateModalProps) {
   const [date, setDate] = useState(setting?.LastDateToApply ?? '');
 
   const saveMutation = useMutation({
-    mutationFn: (vars: { id: number; lastDate: string }) =>
-      applicationSettingsApi.updateLastDate(vars.id, vars.lastDate),
+    mutationFn: (vars: { formType: string; lastDate: string }) =>
+      applicationSettingsApi.updateLastDate(vars.formType, vars.lastDate),
     onSuccess: () => {
       Alert.alert('Success', 'Last date updated.');
       onSaved();
@@ -208,7 +209,7 @@ function EditDateModal({ setting, onClose, onSaved }: EditDateModalProps) {
       );
       return;
     }
-    saveMutation.mutate({ id: setting.Id, lastDate: value });
+    saveMutation.mutate({ formType: setting.FormType, lastDate: value });
   };
 
   return (

@@ -7,7 +7,13 @@
  * NOTE for release: production builds MUST set EXPO_PUBLIC_API_URL, otherwise they would
  * fall back to the test server below. The fallback keeps local `expo start` working.
  */
-const TEST_API_BASE_URL = 'https://vpwebservices.testserver.envisage-workflow.in/api';
+import { Platform } from 'react-native';
+
+const REMOTE_API_BASE_URL = 'https://vpwebservices.testserver.envisage-workflow.in/api';
+const TEST_API_BASE_URL =
+  Platform.OS === 'web' && typeof window !== 'undefined'
+    ? '/api'
+    : REMOTE_API_BASE_URL;
 const ENV_API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const environment = {

@@ -51,12 +51,12 @@ export default function VPInputField({
 
   return (
     <View style={styles.container}>
-      {label && (
+      {label ? (
         <Text style={styles.label}>
           {label}
-          {required && <Text style={styles.required}> *</Text>}
+          {required ? <Text style={styles.required}> *</Text> : null}
         </Text>
-      )}
+      ) : null}
 
       <View style={[
         styles.inputContainer,
@@ -64,9 +64,9 @@ export default function VPInputField({
         hasSuccess && styles.inputContainerSuccess,
         disabled && styles.inputContainerDisabled,
       ]}>
-        {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
+        {leftIcon ? <View style={styles.iconContainer}>{leftIcon}</View> : null}
         
-        {prefix && <Text style={styles.prefix}>{prefix}</Text>}
+        {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
 
         <TextInput
           value={value ?? ''}
@@ -95,14 +95,14 @@ export default function VPInputField({
           {...textInputProps}
         />
 
-        {suffix && <Text style={styles.suffix}>{suffix}</Text>}
+        {suffix ? <Text style={styles.suffix}>{suffix}</Text> : null}
         
-        {rightIcon && <View style={styles.iconContainer}>{rightIcon}</View>}
+        {rightIcon ? <View style={styles.iconContainer}>{rightIcon}</View> : null}
       </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
-      {!error && helperText && <Text style={styles.helper}>{helperText}</Text>}
-      {!error && successText && <Text style={styles.success}>{successText}</Text>}
+      {hasError ? <Text style={styles.error}>{error}</Text> : null}
+      {!hasError && helperText ? <Text style={styles.helper}>{helperText}</Text> : null}
+      {hasSuccess && successText ? <Text style={styles.success}>{successText}</Text> : null}
     </View>
   );
 }
