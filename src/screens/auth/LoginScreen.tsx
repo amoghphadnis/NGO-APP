@@ -92,7 +92,7 @@ export default function LoginScreen() {
         </Text>
 
         {/* Error Banner */}
-        {authError && (
+        {authError ? (
           <View style={styles.errorBanner}>
             <View style={styles.errorIconContainer}>
               <Ionicons name="alert-circle" size={24} color="#FFFFFF" />
@@ -102,7 +102,7 @@ export default function LoginScreen() {
               <Text style={styles.errorMessage}>{authError}</Text>
             </View>
           </View>
-        )}
+        ) : null}
 
         {/* Credentials Card */}
         <View style={styles.card}>

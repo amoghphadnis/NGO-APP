@@ -7,6 +7,7 @@ import AppFooter from '@/components/common/AppFooter';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
+import { safeGoBack } from '@/utils/navigateToDashboard';
 
 export default function HelpScreen() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function HelpScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => safeGoBack('/')} style={styles.backButton} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.topBarTitle}>Help & Support</Text>
