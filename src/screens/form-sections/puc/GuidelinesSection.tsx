@@ -137,51 +137,33 @@ export default function PucGuidelinesSection({ navigation }: any) {
             </View>
           </View>
           <View style={styles.documentItem}>
-            <Ionicons name="receipt" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>3. Fee Receipts</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="card" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>4. Bank Passbook</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="finger-print" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>5. Aadhaar Card</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
             <Ionicons name="flash" size={20} color={colors.primary} style={styles.icon} />
             <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>6. Recent Electricity Bill</Text>
+              <Text style={styles.documentTitle}>3. Recent Electricity Bill</Text>
             </View>
           </View>
           <View style={styles.documentItem}>
             <Ionicons name="card" size={20} color={colors.primary} style={styles.icon} />
             <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>7. Ration Card (Both Sides)</Text>
+              <Text style={styles.documentTitle}>4. Ration Card (Both Sides)</Text>
             </View>
           </View>
           <View style={styles.documentItem}>
             <Ionicons name="home" size={20} color={colors.primary} style={styles.icon} />
             <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>8. Dwelling Unit Photo (student with family in front of the house)</Text>
+              <Text style={styles.documentTitle}>5. Dwelling Unit Photo (student with family in front of the house)</Text>
             </View>
           </View>
           <View style={styles.documentItem}>
             <Ionicons name="videocam" size={20} color={colors.primary} style={styles.icon} />
             <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>9. House Video (Exterior + Interior clearly visible)</Text>
+              <Text style={styles.documentTitle}>6. House Video (Exterior + Interior clearly visible)</Text>
             </View>
           </View>
           <View style={styles.documentItem}>
             <Ionicons name="receipt" size={20} color={colors.primary} style={styles.icon} />
             <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>10. Income Certificate</Text>
+              <Text style={styles.documentTitle}>7. Income Certificate</Text>
             </View>
           </View>
         </FormCard>

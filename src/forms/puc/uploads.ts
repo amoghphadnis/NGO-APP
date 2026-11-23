@@ -86,27 +86,6 @@ export const PUC_FORMAT11_UPLOAD_RULES: UploadRule[] = [
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
   },
   {
-    key: PUC_FORMAT11_FILE_KEYS.FEE_RECEIPTS,
-    label: 'Fee Receipts',
-    required: true,
-    maxSize: 2 * 1024 * 1024,
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
-  },
-  {
-    key: PUC_FORMAT11_FILE_KEYS.BANK_PASSBOOK,
-    label: 'Bank Passbook',
-    required: true,
-    maxSize: 2 * 1024 * 1024,
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
-  },
-  {
-    key: PUC_FORMAT11_FILE_KEYS.AADHAAR_CARD,
-    label: 'Aadhaar Card',
-    required: true,
-    maxSize: 2 * 1024 * 1024,
-    acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
-  },
-  {
     key: PUC_FORMAT11_FILE_KEYS.ELECTRICITY_BILL,
     label: 'Electricity Bill',
     required: true,

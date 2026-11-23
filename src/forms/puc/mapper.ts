@@ -47,7 +47,7 @@ export function pucMapper(formData: PucFormat11FormValues): FormData {
   fd.append('Place', toString(formData.personal.Place || 0));
 
   // ── Contact ───────────────────────────────────────────────────────────
-  fd.append('Email', formData.contact.Email);
+  appendIfPresent(fd, 'Email', formData.contact.Email);
   fd.append('ContactNumber', formData.contact.ContactNumber);
   appendIfPresent(fd, 'AlternateNumber', formData.contact.AlternateNumber);
 
@@ -69,24 +69,11 @@ export function pucMapper(formData: PucFormat11FormValues): FormData {
   fd.append('CollegeName', formData.academic.CollegeName);
   fd.append('CollegeType', toString(formData.academic.CollegeType || 0));
   fd.append('CollegeFees', toString(formData.academic.CollegeFees || 0));
-  fd.append('CollegeContactNumber', formData.academic.CollegeContactNumber);
-  appendIfPresent(fd, 'Achievement', formData.academic.Achievement);
-
-  // ── Bank ──────────────────────────────────────────────────────────────
-  fd.append('ParentsBankBalance', toString(formData.bank.ParentsBankBalance || 0));
-  fd.append('AccountHolderName', formData.bank.AccountHolderName);
-  fd.append('AccountNumber', formData.bank.AccountNumber);
-  fd.append('IFSCCode', formData.bank.IFSCCode);
-  fd.append('BankName', formData.bank.BankName);
-  fd.append('BranchName', formData.bank.BranchName);
 
   // ── Documents (all required by contract) ──────────────────────────────
   const fileMappings: Record<string, keyof typeof PUC_FORMAT11_FILE_KEYS> = {
     StudentSelfie: 'STUDENT_SELFIE',
     SSLCMarksCard: 'SSLC_MARKS_CARD',
-    FeeReceipts: 'FEE_RECEIPTS',
-    BankPassbook: 'BANK_PASSBOOK',
-    AadhaarCard: 'AADHAAR_CARD',
     ElectricityBill: 'ELECTRICITY_BILL',
     RationCard: 'RATION_CARD',
     DwellingUnitPhoto: 'DWELLING_UNIT_PHOTO',

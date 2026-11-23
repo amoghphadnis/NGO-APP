@@ -163,16 +163,6 @@ function buildValidPucFormat11(overrides: Partial<PucFormValues> = {}): PucFormV
       CollegeName: 'Test College',
       CollegeType: 1,
       CollegeFees: 25000,
-      CollegeContactNumber: '08012345678',
-      Achievement: 'District topper',
-    },
-    bank: {
-      ParentsBankBalance: 10000,
-      AccountHolderName: 'Test Parent',
-      AccountNumber: '1234567890',
-      IFSCCode: 'TEST0001',
-      BankName: 'Test Bank',
-      BranchName: 'Test Branch',
     },
     documents: {},
     ...overrides,
@@ -362,16 +352,12 @@ describe('Form Submission', () => {
             file: { uri: 'file://sslc.jpg', name: 'sslc.jpg', type: 'image/jpeg' },
             uploadedAt: new Date().toISOString(),
           },
-          FeeReceipts: {
-            file: { uri: 'file://fees.pdf', name: 'fees.pdf', type: 'application/pdf' },
+          ElectricityBill: {
+            file: { uri: 'file://bill.pdf', name: 'bill.pdf', type: 'application/pdf' },
             uploadedAt: new Date().toISOString(),
           },
-          BankPassbook: {
-            file: { uri: 'file://passbook.jpg', name: 'passbook.jpg', type: 'image/jpeg' },
-            uploadedAt: new Date().toISOString(),
-          },
-          AadhaarCard: {
-            file: { uri: 'file://aadhaar.jpg', name: 'aadhaar.jpg', type: 'image/jpeg' },
+          RationCard: {
+            file: { uri: 'file://ration.jpg', name: 'ration.jpg', type: 'image/jpeg' },
             uploadedAt: new Date().toISOString(),
           },
         },
@@ -417,31 +403,30 @@ describe('Form Submission', () => {
       expect(keys).toContain('CourseJoined');
       expect(keys).toContain('CollegeType');
       expect(keys).toContain('CollegeFees');
-      expect(keys).toContain('CollegeContactNumber');
-      expect(keys).toContain('Achievement');
+      expect(keys).not.toContain('CollegeContactNumber');
+      expect(keys).not.toContain('Achievement');
       expect(keys).not.toContain('CourseID');
       expect(keys).not.toContain('CollegeTypeID');
       expect(keys).not.toContain('ExpectedFees');
       expect(keys).not.toContain('SecuredPercentage');
 
-      // Bank fields
-      expect(keys).toContain('ParentsBankBalance');
-      expect(keys).toContain('AccountHolderName');
-      expect(keys).toContain('AccountNumber');
-      expect(keys).toContain('IFSCCode');
-      expect(keys).toContain('BankName');
-      expect(keys).toContain('BranchName');
+      // Bank fields (removed from PUC)
+      expect(keys).not.toContain('ParentsBankBalance');
+      expect(keys).not.toContain('AccountHolderName');
+      expect(keys).not.toContain('AccountNumber');
+      expect(keys).not.toContain('IFSCCode');
+      expect(keys).not.toContain('BankName');
+      expect(keys).not.toContain('BranchName');
 
       // File fields (exact contract names)
       expect(keys).toContain('StudentSelfie');
       expect(keys).toContain('SSLCMarksCard');
-      expect(keys).toContain('FeeReceipts');
-      expect(keys).toContain('BankPassbook');
-      expect(keys).toContain('AadhaarCard');
 
-      // Old file names should NOT be present
+      // Removed file fields should NOT be present
+      expect(keys).not.toContain('FeeReceipts');
+      expect(keys).not.toContain('BankPassbook');
+      expect(keys).not.toContain('AadhaarCard');
       expect(keys).not.toContain('StudentPhoto');
-      expect(keys).not.toContain('ElectricityBill');
       expect(keys).not.toContain('RationCards');
       expect(keys).not.toContain('IncomeCertificate');
       expect(keys).not.toContain('FamilyPhoto');
@@ -461,13 +446,13 @@ describe('Form Submission', () => {
         expect.stringContaining('Missing required file: SSLCMarksCard')
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Missing required file: FeeReceipts')
+        expect.stringContaining('Missing required file: ElectricityBill')
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Missing required file: BankPassbook')
+        expect.stringContaining('Missing required file: RationCard')
       );
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Missing required file: AadhaarCard')
+        expect.stringContaining('Missing required file: IncomeCertificate')
       );
 
       consoleSpy.mockRestore();
@@ -645,16 +630,12 @@ describe('Form Submission', () => {
             file: { uri: 'file://sslc.jpg', name: 'sslc.jpg', type: 'image/jpeg' },
             uploadedAt: new Date().toISOString(),
           },
-          FeeReceipts: {
-            file: { uri: 'file://fees.pdf', name: 'fees.pdf', type: 'application/pdf' },
+          ElectricityBill: {
+            file: { uri: 'file://bill.pdf', name: 'bill.pdf', type: 'application/pdf' },
             uploadedAt: new Date().toISOString(),
           },
-          BankPassbook: {
-            file: { uri: 'file://passbook.jpg', name: 'passbook.jpg', type: 'image/jpeg' },
-            uploadedAt: new Date().toISOString(),
-          },
-          AadhaarCard: {
-            file: { uri: 'file://aadhaar.jpg', name: 'aadhaar.jpg', type: 'image/jpeg' },
+          RationCard: {
+            file: { uri: 'file://ration.jpg', name: 'ration.jpg', type: 'image/jpeg' },
             uploadedAt: new Date().toISOString(),
           },
         },

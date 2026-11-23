@@ -23,9 +23,6 @@ export type PUCFileKey = typeof PUC_FILE_KEYS[keyof typeof PUC_FILE_KEYS];
 export const PUC_FORMAT11_FILE_KEYS = {
   STUDENT_SELFIE: 'StudentSelfie',
   SSLC_MARKS_CARD: 'SSLCMarksCard',
-  FEE_RECEIPTS: 'FeeReceipts',
-  BANK_PASSBOOK: 'BankPassbook',
-  AADHAAR_CARD: 'AadhaarCard',
   // Additional documents required for web/mobile parity (house-visit
   // verification). Backend field names match the professional contract.
   ELECTRICITY_BILL: 'ElectricityBill',

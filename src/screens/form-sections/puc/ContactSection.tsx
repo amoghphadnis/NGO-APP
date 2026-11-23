@@ -67,7 +67,7 @@ export default function ContactSection({ navigation }: any) {
           name="Email"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Email Address"
+              label="Email Address (Optional)"
               value={value}
               onChangeText={onChange}
               placeholder="Enter your email address"
@@ -76,7 +76,6 @@ export default function ContactSection({ navigation }: any) {
               autoCorrect={false}
               error={formState.errors.Email?.message}
               successText={emailSuccess ? 'Email format looks good' : undefined}
-              required
             />
           )}
         />

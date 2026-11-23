@@ -37,23 +37,10 @@ export const PUC_FORM_DEFAULTS = {
     CollegeName: '',
     CollegeType: 0,
     CollegeFees: 0,
-    CollegeContactNumber: '',
-    Achievement: '',
-  },
-  bank: {
-    ParentsBankBalance: 0,
-    AccountHolderName: '',
-    AccountNumber: '',
-    IFSCCode: '',
-    BankName: '',
-    BranchName: '',
   },
   documents: {
     StudentSelfie: undefined,
     SSLCMarksCard: undefined,
-    FeeReceipts: undefined,
-    BankPassbook: undefined,
-    AadhaarCard: undefined,
   },
   review: {
     declarationAccepted: false,

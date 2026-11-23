@@ -41,8 +41,10 @@ export const pucFormat11PersonalSchema = z.object({
 export const pucFormat11ContactSchema = z.object({
   Email: z
     .string()
-    .min(1, { message: 'Email is required' })
-    .email('Enter a valid email address'),
+    .optional()
+    .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: 'Enter a valid email address',
+    }),
   ContactNumber: z
     .string()
     .min(10, { message: 'Please enter a valid 10-digit number' })
@@ -93,10 +95,6 @@ export const pucFormat11AcademicSchema = z.object({
   CollegeName: z.string().min(1, { message: 'College name is required' }),
   CollegeType: z.number().min(1, { message: 'College type is required' }),
   CollegeFees: z.number().min(0, { message: 'Fees must be at least 0' }),
-  CollegeContactNumber: z
-    .string()
-    .min(1, { message: 'College contact number is required' }),
-  Achievement: z.string().optional(),
 });
 
 // ============================================================================
@@ -121,9 +119,6 @@ export const pucFormat11BankSchema = z.object({
 export const pucFormat11DocumentsSchema = z.object({
   StudentSelfie: z.custom<UploadedDocument>().optional(),
   SSLCMarksCard: z.custom<UploadedDocument>().optional(),
-  FeeReceipts: z.custom<UploadedDocument>().optional(),
-  BankPassbook: z.custom<UploadedDocument>().optional(),
-  AadhaarCard: z.custom<UploadedDocument>().optional(),
   ElectricityBill: z.custom<UploadedDocument>().optional(),
   RationCard: z.custom<UploadedDocument>().optional(),
   DwellingUnitPhoto: z.custom<UploadedDocument>().optional(),
@@ -141,7 +136,7 @@ export const pucFormat11FormSchema = z.object({
   address: pucFormat11AddressSchema,
   family: pucFormat11FamilySchema,
   academic: pucFormat11AcademicSchema,
-  bank: pucFormat11BankSchema,
+  bank: pucFormat11BankSchema.optional(),
   documents: pucFormat11DocumentsSchema,
 });
 
