@@ -43,7 +43,7 @@ export function normalizeApiResponse<T>(
   response: StandardApiResponse<T> | ContractApiResponse<T> | RawApiResponse<T> | null | undefined
 ): NormalizedApiResponse<T> {
   const raw: RawApiResponse<T> = (response ?? {}) as RawApiResponse<T>;
-  const flag = raw.success ?? raw.Status ?? false;
+  const flag = raw.success ?? (raw as any).Success ?? raw.Status ?? false;
   const message = raw.message ?? raw.Message ?? '';
   const data = (raw.data ?? raw.Data) as T;
 
@@ -51,7 +51,7 @@ export function normalizeApiResponse<T>(
   const isSuccessMessage = lowered.includes('success') || lowered.includes('saved');
   // An explicit success:false from the server is authoritative — only fall back
   // to the message heuristic when the flag itself is missing.
-  const hasExplicitFlag = raw.success !== undefined || raw.Status !== undefined;
+  const hasExplicitFlag = raw.success !== undefined || (raw as any).Success !== undefined || raw.Status !== undefined;
 
   if (flag || (!hasExplicitFlag && isSuccessMessage)) {
     return {
@@ -85,11 +85,13 @@ export function normalizeApiError(error: any): NormalizedApiError {
       'Request failed';
 
     let errorMessage = message;
-    if (status === 400) errorMessage = 'Invalid request data';
-    if (status === 401) errorMessage = 'Authentication failed';
-    if (status === 404) errorMessage = 'Resource not found';
-    if (status === 409) errorMessage = 'Data already exists';
-    if (status === 417) errorMessage = 'Request failed';
+    if (!errorMessage || errorMessage === 'Request failed') {
+      if (status === 400) errorMessage = 'Invalid request data';
+      if (status === 401) errorMessage = 'Authentication failed';
+      if (status === 404) errorMessage = 'Resource not found';
+      if (status === 409) errorMessage = 'Data already exists';
+      if (status === 417) errorMessage = 'Request failed';
+    }
 
     return {
       success: false,

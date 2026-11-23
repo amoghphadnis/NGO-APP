@@ -263,6 +263,7 @@ describe('Form Submission', () => {
       expect(keys).toContain('FamilyIncome');
       expect(keys).toContain('PUPercentage');
       expect(keys).toContain('CETRank');
+      expect(keys).toContain('PTRank');
       expect(keys).toContain('NEETRank');
       expect(keys).toContain('CourseApplying');
       expect(keys).toContain('CourseStream');

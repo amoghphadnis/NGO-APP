@@ -2,7 +2,7 @@
  * Semi Professional Form Mapper
  * Converts Semi Professional form state to backend API contract
  * Handles multipart/form-data serialization
- * Aligned with the web form: /VP_SemiProfessionalStudent/CreateSemiProfessionalStudent
+ * POST /api/semi-professional/create
  */
 
 import { appendFileToFormData } from '@/submission/attachFiles';
@@ -28,7 +28,7 @@ function toString(value: string | number | undefined | null): string {
 
 /**
  * Maps Semi Professional form data to backend API contract
- * POST /api/semiprofessionalstudent/create (multipart/form-data)
+ * POST /api/semi-professional/create (multipart/form-data)
  */
 export function semiProfessionalMapper(formData: SemiProfessionalFormValues): FormData {
   const fd = new FormData();
@@ -54,9 +54,7 @@ export function semiProfessionalMapper(formData: SemiProfessionalFormValues): Fo
   if (formData.personal.genderID) {
     fd.append('GenderID', toString(formData.personal.genderID));
   }
-  if (formData.personal.casteCategoryID) {
-    fd.append('CasteCategoryID', toString(formData.personal.casteCategoryID));
-  }
+  fd.append('CasteCategoryID', toString(formData.personal.casteCategoryID || 0));
   if (formData.personal.areaTypeID) {
     fd.append('AreaTypeID', toString(formData.personal.areaTypeID));
     fd.append('PlaceID', toString(formData.personal.areaTypeID));
@@ -114,6 +112,7 @@ export function semiProfessionalMapper(formData: SemiProfessionalFormValues): Fo
     fd.append('CETRank', toString(formData.academic.cetRank));
   }
   if (formData.academic.ptRank !== undefined && formData.academic.ptRank !== null) {
+    fd.append('PTRank', toString(formData.academic.ptRank));
     fd.append('NEETRank', toString(formData.academic.ptRank));
   }
 

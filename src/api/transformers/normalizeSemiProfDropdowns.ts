@@ -16,6 +16,8 @@ export interface NormalizedSemiProfDropdowns {
   houseTypes: NormalizedDropdownOption[];
   collegeTypes: NormalizedDropdownOption[];
   semiProfessionalCourses: NormalizedDropdownOption[];
+  courses?: NormalizedDropdownOption[];
+  referenceList?: NormalizedDropdownOption[];
   lastDate?: string;
 }
 
@@ -25,7 +27,7 @@ export interface NormalizedSemiProfDropdowns {
 export function normalizeSemiProfessionalDropdowns(apiResponse: any): NormalizedSemiProfDropdowns {
 
   // The contract wraps master lists inside a `Masters` object; fall back to the root object
-  const masters = apiResponse.Masters || apiResponse;
+  const masters = apiResponse?.Masters || apiResponse?.masters || apiResponse || {};
 
   const raw = {
     districts: masters.DistrictList || masters.Districts || masters.districts || [],
@@ -70,15 +72,25 @@ export function normalizeSemiProfessionalDropdowns(apiResponse: any): Normalized
       masters.houses ||
       [],
     collegeTypes: masters.CollegeTypeList || masters.CollegeTypes || masters.collegeTypes || [],
-    semiProfessionalCourses:
+    courses:
+      masters.CourseList ||
+      masters.Courses ||
+      masters.courses ||
       masters.SemiProfessionalCourseList ||
       masters.SemiProfessionalCourses ||
       masters.semiProfessionalCourses ||
       [],
+    referenceList:
+      masters.ReferenceList ||
+      masters.References ||
+      masters.references ||
+      [],
   };
 
+  const normalizedCourses = normalizeGenericDropdown(raw.courses);
+
   const normalized: NormalizedSemiProfDropdowns = {
-    lastDate: apiResponse.LastDate || apiResponse.lastDate,
+    lastDate: apiResponse?.LastDate || apiResponse?.lastDate || masters?.LastDate || masters?.lastDate,
     districts: normalizeGenericDropdown(raw.districts),
     genders: normalizeGenericDropdown(raw.genders),
     casteCategories: normalizeGenericDropdown(raw.casteCategories),
@@ -88,22 +100,22 @@ export function normalizeSemiProfessionalDropdowns(apiResponse: any): Normalized
     areaTypes: normalizeAreaTypes(raw.areaTypes),
     houseTypes: normalizeHouseTypes(raw.houseTypes),
     collegeTypes: normalizeGenericDropdown(raw.collegeTypes),
-    semiProfessionalCourses: normalizeGenericDropdown(raw.semiProfessionalCourses),
+    semiProfessionalCourses: normalizedCourses,
+    courses: normalizedCourses,
+    referenceList: normalizeGenericDropdown(raw.referenceList),
   };
 
-  console.log('[normalizeSemiProfDropdowns] Normalized:', JSON.stringify(normalized, null, 2));
   return normalized;
 }
 
 function normalizeGenericDropdown(data: any[]): NormalizedDropdownOption[] {
   if (!Array.isArray(data)) {
-    console.log('[normalizeSemiProfDropdowns] Data is not an array:', data);
     return [];
   }
   return data
     .map((item) => ({
-      value: item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value ?? item.PlaceID ?? item.DistrictID,
-      label: item.Name ?? item.name ?? item.label ?? item.Text ?? item.PlaceName ?? item.DistrictName ?? '',
+      value: item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value ?? item.PlaceID ?? item.DistrictID ?? item.CourseID,
+      label: item.Name ?? item.name ?? item.label ?? item.Text ?? item.PlaceName ?? item.DistrictName ?? item.CourseName ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -114,8 +126,8 @@ function normalizeAreaTypes(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.AreaTypeID ?? item.AreaTypeId ?? item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value,
-      label: item.AreaTypeName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
+      value: item.Id ?? item.ID ?? item.id ?? item.AreaTypeID ?? item.AreaTypeId ?? item.value ?? item.Value,
+      label: item.Name ?? item.name ?? item.AreaTypeName ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }
@@ -126,8 +138,8 @@ function normalizeHouseTypes(data: any[]): NormalizedDropdownOption[] {
   }
   return data
     .map((item) => ({
-      value: item.HouseTypeID ?? item.HouseTypeId ?? item.Id ?? item.ID ?? item.id ?? item.value ?? item.Value,
-      label: item.HouseTypeName ?? item.Name ?? item.name ?? item.label ?? item.Text ?? '',
+      value: item.Id ?? item.ID ?? item.id ?? item.HouseTypeID ?? item.HouseTypeId ?? item.value ?? item.Value,
+      label: item.Name ?? item.name ?? item.HouseTypeName ?? item.label ?? item.Text ?? '',
     }))
     .filter((item) => item.value !== undefined && item.value !== null && item.value !== '');
 }

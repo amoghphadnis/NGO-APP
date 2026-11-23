@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Alert } from 'react-native';
 
+import { getSemiProfessionalDropdowns } from '@/api/semiProfessionalApi';
 import { listSemiProfessionalCourses } from '@/api/semiProfessionalCoursesApi';
 import DecimalInputField from '@/components/common/DecimalInputField';
 import FormCard from '@/components/common/FormCard';
@@ -13,22 +14,47 @@ import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { SemiProfAcademicFormValues, semiProfAcademicSchema } from '@/validation/semiProfessionalSchemas';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
+const FALLBACK_SEMI_PROF_COURSES: Option<number>[] = [
+  { value: 1, label: 'B.Sc Nursing' },
+  { value: 2, label: 'GNM-Nursing' },
+  { value: 3, label: 'Physiotherapy' },
+  { value: 4, label: 'B.Sc Agriculture' },
+  { value: 5, label: 'Veterinary Science' },
+  { value: 6, label: 'Horticulture' },
+  { value: 7, label: 'Other' },
+];
+
 export default function AcademicSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const [courseOptions, setCourseOptions] = useState<Option<number>[]>([]);
+  const [courseOptions, setCourseOptions] = useState<Option<number>[]>(FALLBACK_SEMI_PROF_COURSES);
   const [loadingCourses, setLoadingCourses] = useState(true);
 
   useEffect(() => {
     async function loadCourses() {
       try {
+        const dropdownRes = await getSemiProfessionalDropdowns();
+        if (dropdownRes.success && dropdownRes.data?.semiProfessionalCourses?.length) {
+          setCourseOptions(dropdownRes.data.semiProfessionalCourses.map((c) => ({
+            value: Number(c.value),
+            label: c.label,
+          })));
+          return;
+        }
+
         const res = await listSemiProfessionalCourses();
-        if (res.success && res.data) {
+        if (res.success && res.data?.length) {
           setCourseOptions(res.data.map((c) => ({
             value: c.CourseId,
             label: c.CourseName,
           })));
+          return;
         }
+
+        setCourseOptions(FALLBACK_SEMI_PROF_COURSES);
+      } catch (err) {
+        console.warn('[AcademicSection] Error loading courses, using fallback:', err);
+        setCourseOptions(FALLBACK_SEMI_PROF_COURSES);
       } finally {
         setLoadingCourses(false);
       }
