@@ -102,23 +102,20 @@ export default function ReviewSection({ navigation }: any) {
       const a = formData.address;
       const f = formData.family;
       const ac = formData.academic;
-      const b = formData.bank;
       const docs = (formData.documents as any) ?? {};
 
       const hasPersonal = !!(p?.StudentName && p?.DateOfBirth && p?.Gender && p?.Caste);
-      const hasContact = !!(c?.Email && c?.ContactNumber);
+      const hasContact = !!(c?.ContactNumber);
       const hasAddress = !!(a?.District && a?.Taluk && a?.ResidentialAddress);
       const hasFamily = !!(f?.FatherOccupation && f?.MotherOccupation && (f?.TotalFamilyMembers ?? 0) > 0 && (f?.FamilyAnnualIncome ?? 0) > 0);
-      const hasAcademic = !!(ac?.SSLCPercentage !== undefined && ac?.CourseJoined && ac?.CollegeName && ac?.CollegeType && ac?.CollegeContactNumber);
-      const hasBank = !!(b?.AccountHolderName && b?.AccountNumber && b?.IFSCCode && b?.BankName && b?.BranchName);
+      const hasAcademic = !!(ac?.SSLCPercentage !== undefined && ac?.CourseJoined && ac?.CollegeName && ac?.CollegeType);
       const hasDocs = !!(
-        docs?.StudentSelfie?.file && docs?.SSLCMarksCard?.file && docs?.FeeReceipts?.file &&
-        docs?.BankPassbook?.file && docs?.AadhaarCard?.file && docs?.ElectricityBill?.file &&
+        docs?.StudentSelfie?.file && docs?.SSLCMarksCard?.file && docs?.ElectricityBill?.file &&
         docs?.RationCard?.file && docs?.DwellingUnitPhoto?.file && docs?.HouseVideo?.file &&
         docs?.IncomeCertificate?.file
       );
 
-      return hasPersonal && hasContact && hasAddress && hasFamily && hasAcademic && hasBank && hasDocs;
+      return hasPersonal && hasContact && hasAddress && hasFamily && hasAcademic && hasDocs;
     }
 
     if (isPayanaForm(formData)) {
@@ -454,25 +451,9 @@ export default function ReviewSection({ navigation }: any) {
             "SSLC Percentage": `${formData.academic.SSLCPercentage}%`,
             "College Name": formData.academic.CollegeName,
             "College Fees": `₹${formData.academic.CollegeFees}`,
-            "College Contact Number": formData.academic.CollegeContactNumber,
-            "Achievement": formData.academic.Achievement || 'N/A',
           },
           "school",
           () => navigation.navigate('academic')
-        )}
-
-        {isPUCForm(formData) && renderSection(
-          "Bank Details",
-          {
-            "Parents Bank Balance": `₹${formData.bank.ParentsBankBalance}`,
-            "Account Holder": formData.bank.AccountHolderName,
-            "Account Number": formData.bank.AccountNumber,
-            "IFSC Code": formData.bank.IFSCCode,
-            "Bank Name": formData.bank.BankName,
-            "Branch Name": formData.bank.BranchName,
-          },
-          "card",
-          () => navigation.navigate('bank')
         )}
 
         {isPUCForm(formData) && (
@@ -480,7 +461,7 @@ export default function ReviewSection({ navigation }: any) {
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleContainer}>
                 <Ionicons name="attach" size={20} color={colors.primary} style={styles.sectionIcon} />
-                <Text style={styles.sectionTitle}>Documents (10 Mandatory)</Text>
+                <Text style={styles.sectionTitle}>Documents (7 Mandatory)</Text>
               </View>
               <TouchableOpacity onPress={() => navigation.navigate('documents')} style={styles.editButton}>
                 <Ionicons name="create" size={16} color={colors.primary} />
@@ -491,14 +472,11 @@ export default function ReviewSection({ navigation }: any) {
             <View style={styles.sectionContent}>
               {renderDocumentStatus('1. Student Selfie', !!(formData.documents as any)?.StudentSelfie?.file)}
               {renderDocumentStatus('2. SSLC Marks Card', !!(formData.documents as any)?.SSLCMarksCard?.file)}
-              {renderDocumentStatus('3. Fee Receipts', !!(formData.documents as any)?.FeeReceipts?.file)}
-              {renderDocumentStatus('4. Bank Passbook', !!(formData.documents as any)?.BankPassbook?.file)}
-              {renderDocumentStatus('5. Aadhaar Card', !!(formData.documents as any)?.AadhaarCard?.file)}
-              {renderDocumentStatus('6. Electricity Bill', !!(formData.documents as any)?.ElectricityBill?.file)}
-              {renderDocumentStatus('7. Ration Card', !!(formData.documents as any)?.RationCard?.file)}
-              {renderDocumentStatus('8. Dwelling Unit Photo', !!(formData.documents as any)?.DwellingUnitPhoto?.file)}
-              {renderDocumentStatus('9. House Video', !!(formData.documents as any)?.HouseVideo?.file)}
-              {renderDocumentStatus('10. Income Certificate', !!(formData.documents as any)?.IncomeCertificate?.file)}
+              {renderDocumentStatus('3. Electricity Bill', !!(formData.documents as any)?.ElectricityBill?.file)}
+              {renderDocumentStatus('4. Ration Card', !!(formData.documents as any)?.RationCard?.file)}
+              {renderDocumentStatus('5. Dwelling Unit Photo', !!(formData.documents as any)?.DwellingUnitPhoto?.file)}
+              {renderDocumentStatus('6. House Video', !!(formData.documents as any)?.HouseVideo?.file)}
+              {renderDocumentStatus('7. Income Certificate', !!(formData.documents as any)?.IncomeCertificate?.file)}
             </View>
           </FormCard>
         )}

@@ -32,22 +32,22 @@ describe('getFormProgress', () => {
     expect(useFormEngineStore.getState().getFormProgress()).toBe(0);
   });
 
-  it('counts only user-facing pages for PUC (8 pages, not 10)', () => {
+  it('counts only user-facing pages for PUC (7 pages, not 9)', () => {
     const puc = getFormConfig('puc');
-    expect(puc.steps.length).toBe(10);
-    // guidelines + 3 data-entry steps complete = 4/8 = 50%
-    resetStore('puc', { 0: true, 1: true, 2: true, 3: true });
-    expect(useFormEngineStore.getState().getFormProgress()).toBe(50);
+    expect(puc.steps.length).toBe(9);
+    // guidelines + 6 data-entry steps complete = 7/7 = 100%
+    resetStore('puc', { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true });
+    expect(useFormEngineStore.getState().getFormProgress()).toBe(100);
   });
 
   it('ignores review/success completion', () => {
-    // review=8, success=9 for PUC — marking them changes nothing
-    resetStore('puc', { 8: true, 9: true });
+    // review=7, success=8 for PUC — marking them changes nothing
+    resetStore('puc', { 7: true, 8: true });
     expect(useFormEngineStore.getState().getFormProgress()).toBe(0);
   });
 
   it('reaches 100 only when all user-facing pages are complete', () => {
-    resetStore('puc', { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true });
+    resetStore('puc', { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true });
     expect(useFormEngineStore.getState().getFormProgress()).toBe(100);
   });
 

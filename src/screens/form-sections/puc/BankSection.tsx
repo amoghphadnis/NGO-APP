@@ -17,7 +17,7 @@ import { useFormEngineStore } from '../../../store/useFormEngineStore';
 export default function BankSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
-  const bankData = isPUCForm(formData)
+  const bankData = (isPUCForm(formData) && formData.bank)
     ? formData.bank
     : { ParentsBankBalance: 0, AccountHolderName: '', AccountNumber: '', IFSCCode: '', BankName: '', BranchName: '' };
 

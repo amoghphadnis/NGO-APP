@@ -297,16 +297,12 @@ export const useFormEngineStore = create<FormEngineStore>((set, get) => ({
         contact: { Email: '', ContactNumber: '', AlternateNumber: '' },
         address: { District: 0, OtherDistrict: '', Taluk: '', ResidentialAddress: '' },
         family: { FatherOccupation: 0, MotherOccupation: 0, TotalFamilyMembers: undefined as any, FamilyAnnualIncome: 0 },
-        academic: { SSLCPercentage: undefined as any, CourseJoined: 0, CollegeName: '', CollegeType: 0, CollegeFees: 0, CollegeContactNumber: '', Achievement: '' },
-        bank: { ParentsBankBalance: 0, AccountHolderName: '', AccountNumber: '', IFSCCode: '', BankName: '', BranchName: '' },
-        documents: { StudentSelfie: undefined, SSLCMarksCard: undefined, FeeReceipts: undefined, BankPassbook: undefined, AadhaarCard: undefined, ElectricityBill: undefined, RationCard: undefined, DwellingUnitPhoto: undefined, HouseVideo: undefined, IncomeCertificate: undefined },
+        academic: { SSLCPercentage: undefined as any, CourseJoined: 0, CollegeName: '', CollegeType: 0, CollegeFees: 0 },
+        documents: { StudentSelfie: undefined, SSLCMarksCard: undefined, ElectricityBill: undefined, RationCard: undefined, DwellingUnitPhoto: undefined, HouseVideo: undefined, IncomeCertificate: undefined },
       } as unknown as PucFormValues;
       initialUploadState = {
         StudentSelfie: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
         SSLCMarksCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        FeeReceipts: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        BankPassbook: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
-        AadhaarCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
         ElectricityBill: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
         RationCard: { isUploading: false, uploaded: false, error: undefined, progress: 0 },
         DwellingUnitPhoto: { isUploading: false, uploaded: false, error: undefined, progress: 0 },

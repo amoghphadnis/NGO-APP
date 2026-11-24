@@ -12,12 +12,11 @@ export const pucFormConfig: FormConfig = {
     'address',
     'family',
     'academic',
-    'bank',
     'documents',
     'review',
     'success'
   ],
-  totalSteps: 10,
+  totalSteps: 9,
   validation: {
     guidelines: 'guidelinesSchema',
     personal: 'pucFormat11PersonalSchema',
@@ -25,7 +24,6 @@ export const pucFormConfig: FormConfig = {
     address: 'pucFormat11AddressSchema',
     family: 'pucFormat11FamilySchema',
     academic: 'pucFormat11AcademicSchema',
-    bank: 'pucFormat11BankSchema',
     documents: 'pucFormat11DocumentsSchema',
     review: null,
     success: null
@@ -86,15 +84,6 @@ export const pucStepConfigs = [
     validation: 'pucFormat11AcademicSchema',
     required: true,
     icon: 'school'
-  },
-  {
-    id: 'bank' as FormStep,
-    title: 'Bank Details',
-    subtitle: 'Bank account information',
-    component: 'BankSection',
-    validation: 'pucFormat11BankSchema',
-    required: true,
-    icon: 'card'
   },
   {
     id: 'documents' as FormStep,

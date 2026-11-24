@@ -18,9 +18,6 @@ import { useFormEngineStore } from '../../../store/useFormEngineStore';
 const PUC_FORMAT11_DOC_KEYS = [
   'StudentSelfie',
   'SSLCMarksCard',
-  'FeeReceipts',
-  'BankPassbook',
-  'AadhaarCard',
   'ElectricityBill',
   'RationCard',
   'DwellingUnitPhoto',
@@ -31,9 +28,6 @@ const PUC_FORMAT11_DOC_KEYS = [
 const DOC_LABELS: Record<string, { title: string; subtitle: string; icon: string }> = {
   StudentSelfie: { title: 'Student Selfie', subtitle: 'Upload your recent selfie photo', icon: 'person' },
   SSLCMarksCard: { title: 'SSLC Marks Card', subtitle: 'Upload your SSLC marks card', icon: 'school' },
-  FeeReceipts: { title: 'Fee Receipts', subtitle: 'Upload college fee receipts', icon: 'receipt' },
-  BankPassbook: { title: 'Bank Passbook', subtitle: 'Upload bank passbook copy', icon: 'card' },
-  AadhaarCard: { title: 'Aadhaar Card', subtitle: 'Upload Aadhaar card copy', icon: 'finger-print' },
   ElectricityBill: { title: 'Electricity Bill', subtitle: 'Upload latest electricity bill', icon: 'flash' },
   RationCard: { title: 'Ration Card', subtitle: 'Upload ration card (both sides)', icon: 'card' },
   DwellingUnitPhoto: { title: 'Dwelling Unit Photo', subtitle: 'Photo of the student with family in front of the house', icon: 'home' },
@@ -51,15 +45,9 @@ export default function DocumentSection({ navigation }: any) {
   const documentData = isPUCForm(formData) ? formData.documents ?? {
     StudentSelfie: undefined,
     SSLCMarksCard: undefined,
-    FeeReceipts: undefined,
-    BankPassbook: undefined,
-    AadhaarCard: undefined,
   } : {
     StudentSelfie: undefined,
     SSLCMarksCard: undefined,
-    FeeReceipts: undefined,
-    BankPassbook: undefined,
-    AadhaarCard: undefined,
   };
 
   const handleFileUpload = async (documentKey: string) => {
@@ -104,11 +92,11 @@ export default function DocumentSection({ navigation }: any) {
 
   const onSubmit = () => {
     if (!allDocumentsUploaded) {
-      Alert.alert('Required Documents', 'Please upload all 10 required documents before proceeding.');
+      Alert.alert('Required Documents', 'Please upload all 7 required documents before proceeding.');
       return;
     }
     updateValidationState('documents', { isValid: allDocumentsUploaded, data: documentData });
-    markStepComplete(7);
+    markStepComplete(6);
     navigation.navigate('review');
   };
 
@@ -117,7 +105,6 @@ export default function DocumentSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Document Upload"
-      step={8}
       onBack={navigation.goBack}
       onNext={onSubmit}
       nextDisabled={isNextDisabled}
@@ -125,7 +112,7 @@ export default function DocumentSection({ navigation }: any) {
       <FormSectionHeader
         icon="document-text"
         title="Required Documents"
-        subtitle="Upload all 10 required documents"
+        subtitle="Upload all 7 required documents"
         showRequired
       />
 
@@ -135,7 +122,7 @@ export default function DocumentSection({ navigation }: any) {
             <Text style={styles.guidelineText}>• All documents must be clear and readable</Text>
             <Text style={styles.guidelineText}>• File size should not exceed 2MB (50MB for house video)</Text>
             <Text style={styles.guidelineText}>• Accepted formats: PDF, JPG, JPEG, PNG (video for house video)</Text>
-            <Text style={styles.guidelineText}>• All 10 documents are mandatory</Text>
+            <Text style={styles.guidelineText}>• All 7 documents are mandatory</Text>
           </View>
         </FormCard>
 

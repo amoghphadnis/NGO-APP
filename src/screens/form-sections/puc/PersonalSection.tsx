@@ -143,20 +143,8 @@ export default function PersonalSection({ navigation }: any) {
           render={({ field: { onChange, value } }) => (
             <VPDatePickerField
               label="Date of Birth"
-              value={value ? new Date(value) : undefined}
-              onChange={(date) => {
-                if (typeof date === 'string') {
-                  onChange(date);
-                  return;
-                }
-                const formatted = [
-                  date.getFullYear(),
-                  String(date.getMonth() + 1).padStart(2, "0"),
-                  String(date.getDate()).padStart(2, "0"),
-                ].join("-");
-
-                onChange(formatted);
-              }}
+              value={value}
+              onChange={onChange}
               helperText="Enter your date of birth as on certificate"
               error={formState.errors.DateOfBirth?.message}
               required

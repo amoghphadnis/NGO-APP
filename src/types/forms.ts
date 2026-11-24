@@ -91,7 +91,7 @@ export const isProfessionalForm = (data: FormDataUnion): data is ProfessionalFor
 };
 
 export const isPUCForm = (data: FormDataUnion): data is PucFormValues => {
-  return data && 'personal' in data && 'bank' in data && !('category' in data) && !('studentAchievements' in data) && !('agreement' in data);
+  return data && 'personal' in data && 'academic' in data && 'SSLCPercentage' in (data as any).academic && !('category' in data) && !('studentAchievements' in data) && !('agreement' in data);
 };
 
 export const isPayanaForm = (data: FormDataUnion): data is PayanaFormValues => {

@@ -44,7 +44,7 @@ export default function AcademicSection({ navigation }: any) {
 
   const academicData = isPUCForm(formData)
     ? formData.academic
-    : { SSLCPercentage: undefined as any, CourseJoined: 0, CollegeName: '', CollegeType: 0, CollegeFees: 0, CollegeContactNumber: '', Achievement: '' };
+    : { SSLCPercentage: undefined as any, CourseJoined: 0, CollegeName: '', CollegeType: 0, CollegeFees: 0 };
 
   const { control, handleSubmit, formState } = useForm<PucFormat11AcademicFormValues>({
     defaultValues: {
@@ -53,8 +53,6 @@ export default function AcademicSection({ navigation }: any) {
       CollegeName: academicData.CollegeName,
       CollegeType: academicData.CollegeType || 0,
       CollegeFees: academicData.CollegeFees || 0,
-      CollegeContactNumber: academicData.CollegeContactNumber,
-      Achievement: academicData.Achievement,
     },
     resolver: zodResolver(pucFormat11AcademicSchema),
     mode: 'onChange',
@@ -66,7 +64,7 @@ export default function AcademicSection({ navigation }: any) {
     updateSectionData('academic', data);
     updateValidationState('academic', { isValid: true, data });
     markStepComplete(5);
-    navigation.navigate('bank');
+    navigation.navigate('documents');
   };
 
   const onInvalid = () => {
@@ -172,43 +170,6 @@ export default function AcademicSection({ navigation }: any) {
               keyboardType="numeric"
               error={formState.errors.CollegeFees?.message}
               required
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="CollegeContactNumber"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="College Contact Number"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter college contact number"
-              keyboardType="phone-pad"
-              error={formState.errors.CollegeContactNumber?.message}
-              required
-            />
-          )}
-        />
-      </FormCard>
-
-      <FormSectionHeader icon="trophy" title="Achievements" />
-
-      <FormCard>
-        <Controller
-          control={control}
-          name="Achievement"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Achievements (optional)"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter any notable achievements"
-              multiline
-              numberOfLines={3}
-              error={formState.errors.Achievement?.message}
-              helperText="Sports, academics, extracurricular, etc."
             />
           )}
         />
