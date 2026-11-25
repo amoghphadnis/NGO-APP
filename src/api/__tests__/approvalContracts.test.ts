@@ -11,6 +11,7 @@
 import { professionalApprovalApi } from '@/api/professionalApprovalApi';
 import { semiProfessionalApprovalApi } from '@/api/semiProfessionalApprovalApi';
 import { payanaApprovalApi } from '@/api/payanaApprovalApi';
+import { format11PucApprovalApi } from '@/api/format11PucApprovalApi';
 
 jest.mock('@/api/client', () => {
   const mockGet = jest.fn();
@@ -299,5 +300,140 @@ describe('Payana Approval API — Contract Tests', () => {
 
   test('queryKeys.list is correct shape', () => {
     expect(payanaApprovalApi.queryKeys.list).toEqual(['payanaApproval', 'list']);
+  });
+});
+
+// ── Format 1.1 PUC Approval API ──────────────────────────────────────────
+
+describe('Format 1.1 PUC Approval API — Contract Tests', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  describe('getList', () => {
+    test('calls GET /format1-1-puc/list and handles wrapped object response { success, data }', async () => {
+      mockGet.mockResolvedValue({
+        data: {
+          success: true,
+          count: 1,
+          data: [
+            {
+              StudentFormat1ID: 7,
+              StudentName: 'Tarangini K',
+              Email: 'tarangini.kudari@vidyaposhak.org.in',
+              DateOfBirth: '2026-08-18T00:00:00',
+              ContactNumber: '9513322361',
+              AlternateNumber: '9513322361',
+              GenderName: 'Female',
+              CategoryName: 'GM',
+              DistrictName: 'Dharwad',
+              OtherDistrict: '',
+              Taluk: 'Hubballi',
+              CourseName: 'PUC I - Science',
+              CollegeName: 'KLE',
+              CollegeTypeName: 'Private',
+              CollegeFees: 5236,
+              SSLCPercentage: 60,
+              FamilyAnnualIncome: 50000,
+              ApproveStatus: 'Pending',
+              Remark: null,
+            },
+          ],
+        },
+        status: 200,
+        ok: true,
+      });
+
+      const result = await format11PucApprovalApi.getList();
+      expect(mockGet).toHaveBeenCalledWith('/format1-1-puc/list');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(7);
+      expect(result[0].studentName).toBe('Tarangini K');
+      expect(result[0].email).toBe('tarangini.kudari@vidyaposhak.org.in');
+      expect(result[0].district).toBe('Dharwad');
+      expect(result[0].approvalStatus).toBe('Pending');
+      expect(result[0].infoRows).toEqual(
+        expect.arrayContaining([
+          { label: 'District', value: 'Dharwad' },
+          { label: 'Taluk', value: 'Hubballi' },
+          { label: 'Course', value: 'PUC I - Science' },
+          { label: 'College', value: 'KLE' },
+          { label: 'SSLC %', value: '60%' },
+          { label: 'Family Income', value: '₹50000' },
+          { label: 'Contact', value: '9513322361' },
+        ])
+      );
+    });
+
+    test('calls GET /format1-1-puc/list and handles raw array response', async () => {
+      mockGet.mockResolvedValue({
+        data: [
+          {
+            StudentFormat1ID: 8,
+            StudentName: 'Ramesh P',
+            Email: 'ramesh@example.com',
+            DistrictName: 'Belagavi',
+            OtherDistrict: null,
+            ApproveStatus: 'Approved',
+            Remark: 'Verified',
+          },
+        ],
+        status: 200,
+        ok: true,
+      });
+
+      const result = await format11PucApprovalApi.getList();
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(8);
+      expect(result[0].studentName).toBe('Ramesh P');
+      expect(result[0].district).toBe('Belagavi');
+      expect(result[0].approvalStatus).toBe('Approved');
+    });
+
+    test('handles empty or malformed data gracefully', async () => {
+      mockGet.mockResolvedValue({
+        data: null,
+        status: 200,
+        ok: true,
+      });
+
+      const result = await format11PucApprovalApi.getList();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('approve', () => {
+    test('calls POST /format1-1-puc/approve/{id} with { StudentFormat1ID, Remark }', async () => {
+      mockPost.mockResolvedValue({
+        data: { success: true, message: 'Student approved successfully.' },
+        status: 200,
+        ok: true,
+      });
+
+      await format11PucApprovalApi.approve(7, 'All documents valid');
+      expect(mockPost).toHaveBeenCalledWith('/format1-1-puc/approve/7', {
+        StudentFormat1ID: 7,
+        Remark: 'All documents valid',
+      });
+    });
+  });
+
+  describe('reject', () => {
+    test('calls POST /format1-1-puc/reject/{id} with { StudentFormat1ID, Remark }', async () => {
+      mockPost.mockResolvedValue({
+        data: { success: true, message: 'Student rejected successfully.' },
+        status: 200,
+        ok: true,
+      });
+
+      await format11PucApprovalApi.reject(7, 'Income exceeds criteria');
+      expect(mockPost).toHaveBeenCalledWith('/format1-1-puc/reject/7', {
+        StudentFormat1ID: 7,
+        Remark: 'Income exceeds criteria',
+      });
+    });
+  });
+
+  test('queryKey and invalidatePrefix have expected values', () => {
+    expect(format11PucApprovalApi.queryKey).toEqual(['format11PucApproval', 'list']);
+    expect(format11PucApprovalApi.invalidatePrefix).toBe('format11PucApproval');
   });
 });

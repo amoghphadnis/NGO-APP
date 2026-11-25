@@ -55,6 +55,8 @@ export interface ApprovalListScreenProps {
 export default function GenericApprovalListScreen({ title, api }: ApprovalListScreenProps) {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
+  const hydrated = useAuthStore((s) => s.hydrated);
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const [refreshing, setRefreshing] = useState(false);
   const [actionModal, setActionModal] = useState<{
     student: ApprovalStudent;
@@ -67,6 +69,7 @@ export default function GenericApprovalListScreen({ title, api }: ApprovalListSc
   const { data: students, isLoading, isError, error, refetch } = useQuery({
     queryKey: api.queryKey,
     queryFn: () => api.getList(),
+    enabled: hydrated && isLoggedIn && userCanApprove,
   });
 
   const approveMutation = useMutation({
@@ -187,13 +190,27 @@ export default function GenericApprovalListScreen({ title, api }: ApprovalListSc
     );
   };
 
-  if (!userCanApprove) {
+  if (!hydrated) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+        <AppFooter />
+      </SafeAreaView>
+    );
+  }
+
+  if (!isLoggedIn || !userCanApprove) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.errorContainer}>
           <Ionicons name="lock-closed-outline" size={48} color={colors.textSecondary} />
           <Text style={styles.errorText}>
-            You do not have permission to access the approval list.
+            {!isLoggedIn
+              ? 'Please login to access the approval list.'
+              : 'You do not have permission to access the approval list.'}
           </Text>
         </View>
         <AppFooter />

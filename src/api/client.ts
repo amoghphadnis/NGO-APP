@@ -109,6 +109,7 @@ const BEARER_REQUIRED_PATHS = [
   '/new-professional-approval',
   '/payana-student-grid',
   '/format1-1-puc',
+  '/format1-1puc',
   '/students/getall',
   '/students/get/',
   '/students/approve',
