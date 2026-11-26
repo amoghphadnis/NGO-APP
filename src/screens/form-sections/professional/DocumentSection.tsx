@@ -121,19 +121,55 @@ export default function DocumentSection({ navigation }: any) {
       <FormSectionHeader
         icon="attach"
         title="Required Documents"
-        subtitle="Upload all mandatory documents (PDF/JPG/PNG, max 2MB each)"
+        subtitle="Upload the following documents. Take photos using your mobile phone and upload them. (Only image/file photos are allowed)"
         showRequired
       />
 
-      {renderUploadField(PROFESSIONAL_FILE_KEYS.STUDENT_SELFIE, 'Student Selfie/Photograph', 'Upload your selfie or photograph')}
-      {renderUploadField(PROFESSIONAL_FILE_KEYS.CET_NEET_RANK_SHEET, 'CET/NEET Rank Sheet', 'Upload your CET or NEET rank sheet')}
-      {renderUploadField(PROFESSIONAL_FILE_KEYS.DWELLING_UNIT_PHOTO, 'Dwelling Unit Photo', 'Upload photo of your dwelling unit')}
-      {renderUploadField(PROFESSIONAL_FILE_KEYS.MARKS_SHEET_12, '12th Marks Sheet', 'Upload your 12th/PU marks sheet')}
-      {renderUploadField(PROFESSIONAL_FILE_KEYS.REQUEST_LETTER, 'Request Letter', 'Upload handwritten request letter')}
-      {renderUploadField(PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO, 'House Video', 'Upload video of your house (MP4, MOV, max 50MB)')}
-      {renderUploadField(PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL, 'Electricity Bill', 'Upload recent electricity bill')}
-      {renderUploadField(PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE, 'Income Certificate', 'Upload family income certificate')}
-      {renderUploadField(PROFESSIONAL_FILE_KEYS.RATION_CARD, 'Ration Card', 'Upload ration card (both sides)')}
+      {renderUploadField(
+        PROFESSIONAL_FILE_KEYS.STUDENT_SELFIE,
+        "Student's Selfie *",
+        'Upload your selfie or photograph'
+      )}
+      {renderUploadField(
+        PROFESSIONAL_FILE_KEYS.MARKS_SHEET_12,
+        '12th/PUC Mark Sheet *',
+        'Upload your 12th/PUC marks sheet'
+      )}
+      {renderUploadField(
+        PROFESSIONAL_FILE_KEYS.DWELLING_UNIT_PHOTO,
+        'Dwelling Unit Photograph *',
+        'Photo of the student with family members in front of the house'
+      )}
+      {renderUploadField(
+        PROFESSIONAL_FILE_KEYS.CET_NEET_RANK_SHEET,
+        'CET/NEET Rank Sheet *',
+        'Upload your CET or NEET rank sheet'
+      )}
+      {renderUploadField(
+        PROFESSIONAL_FILE_KEYS.REQUEST_LETTER,
+        'Hand Written Request Letter *',
+        'Handwritten request letter addressed to Vidya Poshak'
+      )}
+      {renderUploadField(
+        PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO,
+        'Short Video of the House *',
+        'Record from outside moving inside, covering all rooms including kitchen, in landscape mode (MP4/MOV, max 50MB)'
+      )}
+      {renderUploadField(
+        PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL,
+        'Latest Electricity bill or House/Tax/site receipts / or related documents *',
+        'Upload latest electricity bill or tax/site receipt'
+      )}
+      {renderUploadField(
+        PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE,
+        'Income Certificate *',
+        'Upload family income certificate'
+      )}
+      {renderUploadField(
+        PROFESSIONAL_FILE_KEYS.RATION_CARD,
+        'Ration Card Copy (both sides) *',
+        'Upload ration card (both front and back sides)'
+      )}
 
       <UploadSizeNotice totalBytes={getTotalUploadSizeBytes(documentData)} />
     </FormScreenLayout>

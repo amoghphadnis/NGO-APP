@@ -504,7 +504,7 @@ export default function ReviewSection({ navigation }: any) {
                 )}
               </View>
               <Text style={styles.checkboxLabel}>
-                I accept the declaration and confirm that all information is accurate
+                I have read and agree to the terms & Conditions.
               </Text>
             </TouchableOpacity>
           </View>

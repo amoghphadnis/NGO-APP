@@ -85,14 +85,14 @@ export default function AcademicSection({ navigation }: any) {
           name="CETRank"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="CET Rank (Mandatory for Engineering course)"
+              label="CET Rank (Mandatory for students seeking admission to an Engineering course)"
               value={value === undefined || value === null ? '' : String(value)}
               onChangeText={(text) => {
                 const cleanText = text.replace(/[^0-9]/g, '');
                 const num = cleanText === '' ? undefined : parseInt(cleanText, 10);
                 onChange(num);
               }}
-              placeholder="Enter CET rank (optional)"
+              placeholder="Enter CET rank"
               keyboardType="numeric"
               error={formState.errors.CETRank?.message}
             />

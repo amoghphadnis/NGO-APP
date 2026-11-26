@@ -32,7 +32,7 @@ const VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.3gp', '.wmv
 export const PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
   {
     key: PROFESSIONAL_FILE_KEYS.STUDENT_SELFIE,
-    label: 'Student Selfie/Photograph',
+    label: "Student's Selfie",
     required: false,
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
@@ -46,35 +46,35 @@ export const PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
   },
   {
     key: PROFESSIONAL_FILE_KEYS.DWELLING_UNIT_PHOTO,
-    label: 'Dwelling Unit Photo',
+    label: 'Dwelling Unit Photograph',
     required: false,
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
   },
   {
     key: PROFESSIONAL_FILE_KEYS.MARKS_SHEET_12,
-    label: '12th Marks Sheet',
+    label: '12th/PUC Mark Sheet',
     required: false,
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
   },
   {
     key: PROFESSIONAL_FILE_KEYS.REQUEST_LETTER,
-    label: 'Request Letter',
+    label: 'Hand Written Request Letter',
     required: false,
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
   },
   {
     key: PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO,
-    label: 'House Video',
+    label: 'Short Video of the House',
     required: false,
     maxSize: 50 * 1024 * 1024,
     acceptedTypes: PROFESSIONAL_VIDEO_TYPES,
   },
   {
     key: PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL,
-    label: 'Electricity Bill',
+    label: 'Latest Electricity bill or House/Tax/site receipts / or related documents',
     required: false,
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
@@ -88,7 +88,7 @@ export const PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
   },
   {
     key: PROFESSIONAL_FILE_KEYS.RATION_CARD,
-    label: 'Ration Card',
+    label: 'Ration Card Copy (both sides)',
     required: false,
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
