@@ -152,10 +152,10 @@ export default function PersonalSection({ navigation }: any) {
           name="StudentName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Student Name"
+              label="Name of the student"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter your full name"
+              placeholder="Enter full name of the student"
               error={formState.errors.StudentName?.message}
               required
             />
@@ -167,7 +167,7 @@ export default function PersonalSection({ navigation }: any) {
           name="DateOfBirth"
           render={({ field: { onChange, value } }) => (
             <VPDatePickerField
-              label="Date of Birth"
+              label="Date of birth"
               value={value}
               onChange={onChange}
               placeholder="Select date of birth"
@@ -182,10 +182,10 @@ export default function PersonalSection({ navigation }: any) {
           name="ContactNumber"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Contact Number"
+              label="Contact number (WhatsApp number)"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter 10-digit mobile number"
+              placeholder="Enter 10-digit WhatsApp number"
               keyboardType="phone-pad"
               maxLength={10}
               error={formState.errors.ContactNumber?.message}
@@ -199,7 +199,7 @@ export default function PersonalSection({ navigation }: any) {
           name="AlternateNumber"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Alternate Number"
+              label="Alternate number"
               value={value ?? ''}
               onChangeText={onChange}
               placeholder="Enter 10-digit alternate number"
@@ -230,9 +230,9 @@ export default function PersonalSection({ navigation }: any) {
               onChangeText={onChange}
               placeholder="Enter complete residential address"
               multiline
-              numberOfLines={3}
+              numberOfLines={4}
               error={formState.errors.ResidentialAddress?.message}
-              helperText="Include house number, street name, and landmarks"
+              helperText="It must include your father's name, house number, street name, village/city name, landmark near your house, post, taluka, district, and pin code"
               required
             />
           )}
@@ -335,6 +335,7 @@ export default function PersonalSection({ navigation }: any) {
               onChange={onChange}
               placeholder="Select caste category"
               error={formState.errors.CasteCategoryID?.message}
+              required
               disabled={loadingDropdowns}
             />
           )}

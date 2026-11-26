@@ -4,17 +4,17 @@ import { z } from 'zod';
 // Professional Personal schema (Applicant's Information: personal + contact + address)
 export const professionalPersonalDetailsSchema = z.object({
   Email: z.string().min(1, { message: 'Email is required' }).email('Enter a valid email address'),
-  StudentName: z.string().min(1, { message: 'Student name is required' }),
+  StudentName: z.string().min(1, { message: 'Name of the student is required' }),
   DateOfBirth: z.string().min(1, { message: 'Date of birth is required' }),
-  ContactNumber: z.string().min(10, { message: 'Valid 10-digit contact number required' }).max(10),
+  ContactNumber: z.string().min(10, { message: 'Valid 10-digit WhatsApp contact number required' }).max(10),
   AlternateNumber: z.string().min(10, { message: 'Valid 10-digit alternate number required' }).max(10),
   ResidentialAddress: z.string().min(1, { message: 'Residential address is required' }),
   GoogleMapLink: z.string().min(1, { message: 'Google Map link is required' }).url('Enter a valid URL'),
-  AreaTypeID: z.number().min(1, { message: 'Area type is required' }),
+  AreaTypeID: z.number().min(1, { message: 'Place is required' }),
   DistrictID: z.number().min(1, { message: 'District is required' }),
   OtherDistrict: z.string().optional(),
   GenderID: z.number().min(1, { message: 'Gender is required' }),
-  CasteCategoryID: z.number().optional(),
+  CasteCategoryID: z.number().min(1, { message: 'Caste & Category is required' }),
 }).refine(
   (data) => {
     if (data.DistrictID === 11) {

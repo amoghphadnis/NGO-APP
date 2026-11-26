@@ -4,13 +4,13 @@
  * Maps to web menu: Approval/Reject → "Format 1.1 PUC-I Student Approval/Reject"
  * (legacy /VP_Format1_1PUC_Grid/Format1_1PUC_Grid)
  *
- * Base Route: /api/format1-1puc
+ * Base Route: /api/format1-1-puc
  *
  * Endpoints:
- *   GET  /api/format1-1puc/list            → Format1_1PUCModel[] (raw array)
- *   POST /api/format1-1puc/approve         → { success, message }  body: { StudentFormat1ID, Remark }
- *   POST /api/format1-1puc/reject          → { success, message }  body: { StudentFormat1ID, Remark }
- *   DELETE /api/format1-1puc/delete/{id}   → { success, message }
+ *   GET  /api/format1-1-puc/list            → { success, count, data: [...] } or Format1_1PUCModel[]
+ *   POST /api/format1-1-puc/approve/{id}    → { success, message }  body: { Remark }
+ *   POST /api/format1-1-puc/reject/{id}     → { success, message }  body: { Remark }
+ *   DELETE /api/format1-1-puc/delete/{id}   → { success, message }
  *
  * All endpoints require JWT authentication.
  * Branch Executives are scoped to their mapped districts server-side.
@@ -19,9 +19,9 @@
 import { ApprovalMutationResponse, ApprovalStudent } from '@/types/approval';
 import api from './client';
 
-const BASE_URL = '/format1-1puc';
+const BASE_URL = '/format1-1-puc';
 
-/** Raw row from GET /api/format1-1puc/list (Format1_1_PUC table) */
+/** Raw row from GET /api/format1-1-puc/list (Format1_1_PUC table) */
 export interface RawFormat11PucApprovalStudent {
   StudentFormat1ID: number;
   StudentName: string | null;
@@ -47,6 +47,11 @@ export interface RawFormat11PucApprovalStudent {
   CollegeContactNumber: string | null;
   Achievement: string | null;
   ParentsBankBalance: number | null;
+  StudentSelfiePath?: string | null;
+  SSLCMarksCardPath?: string | null;
+  FeeReceiptPath?: string | null;
+  BankPassbookPath?: string | null;
+  AadhaarCardPath?: string | null;
   Status: string | null;
   CreatedDate: string | null;
   ApproveStatus: string | null;
@@ -67,8 +72,8 @@ function mapToApprovalStudent(raw: RawFormat11PucApprovalStudent): ApprovalStude
       { label: 'Taluk', value: raw.Taluk },
       { label: 'Course', value: raw.CourseName },
       { label: 'College', value: raw.CollegeName },
-      { label: 'SSLC %', value: raw.SSLCPercentage?.toString() ?? null },
-      { label: 'Family Income', value: raw.FamilyAnnualIncome?.toString() ?? null },
+      { label: 'SSLC %', value: raw.SSLCPercentage != null ? `${raw.SSLCPercentage}%` : null },
+      { label: 'Family Income', value: raw.FamilyAnnualIncome != null ? `₹${raw.FamilyAnnualIncome}` : null },
       { label: 'Contact', value: raw.ContactNumber },
     ],
   };
@@ -76,15 +81,22 @@ function mapToApprovalStudent(raw: RawFormat11PucApprovalStudent): ApprovalStude
 
 export async function getFormat11PucApprovalList(): Promise<ApprovalStudent[]> {
   const response = await api.get(`${BASE_URL}/list`);
-  const body = response.data as RawFormat11PucApprovalStudent[];
-  return (body || []).map(mapToApprovalStudent);
+  const rawData = response.data;
+  const list: RawFormat11PucApprovalStudent[] = Array.isArray(rawData)
+    ? rawData
+    : Array.isArray(rawData?.data)
+      ? rawData.data
+      : Array.isArray(rawData?.Data)
+        ? rawData.Data
+        : [];
+  return list.map(mapToApprovalStudent);
 }
 
 export async function approveFormat11PucStudent(
   id: number,
   remark?: string
 ): Promise<ApprovalMutationResponse> {
-  const response = await api.post(`${BASE_URL}/approve`, {
+  const response = await api.post(`${BASE_URL}/approve/${id}`, {
     StudentFormat1ID: id,
     Remark: remark || '',
   });
@@ -95,7 +107,7 @@ export async function rejectFormat11PucStudent(
   id: number,
   remark?: string
 ): Promise<ApprovalMutationResponse> {
-  const response = await api.post(`${BASE_URL}/reject`, {
+  const response = await api.post(`${BASE_URL}/reject/${id}`, {
     StudentFormat1ID: id,
     Remark: remark || '',
   });

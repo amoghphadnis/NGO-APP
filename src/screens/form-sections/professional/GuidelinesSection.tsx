@@ -54,12 +54,72 @@ export default function GuidelinesSection({ navigation }: any) {
     >
       <ApplicationTitleBanner />
 
+      {/* Website Top Notice */}
+      <View style={styles.topNoticeBanner}>
+        <Ionicons name="information-circle-outline" size={18} color="#0284c7" style={{ marginRight: 6 }} />
+        <Text style={styles.topNoticeText}>
+          Note: Please read instructions carefully & eligibility criteria before filling out the form.
+        </Text>
+      </View>
+
+      {/* Instructions / Document Checklist */}
+      <FormSectionHeader
+        icon="document-text"
+        title="Instructions"
+        subtitle="Please keep the following documents and information ready before filling out the application form:"
+      />
+
+      <FormCard>
+        <View style={styles.documentItem}>
+          <Text style={styles.bulletNumber}>1.</Text>
+          <Text style={styles.documentTitle}>PUC/12th Marks Card</Text>
+        </View>
+        <View style={styles.documentItem}>
+          <Text style={styles.bulletNumber}>2.</Text>
+          <Text style={styles.documentTitle}>Student's Selfie/Photograph</Text>
+        </View>
+        <View style={styles.documentItem}>
+          <Text style={styles.bulletNumber}>3.</Text>
+          <Text style={styles.documentTitle}>CET/NEET Rank Card</Text>
+        </View>
+        <View style={styles.documentItem}>
+          <Text style={styles.bulletNumber}>4.</Text>
+          <Text style={styles.documentTitle}>Latest Electricity bill</Text>
+        </View>
+        <View style={styles.documentItem}>
+          <Text style={styles.bulletNumber}>5.</Text>
+          <Text style={styles.documentTitle}>
+            Dwelling Unit Photo (Photo of the student with family members in front of the house)
+          </Text>
+        </View>
+        <View style={styles.documentItem}>
+          <Text style={styles.bulletNumber}>6.</Text>
+          <Text style={styles.documentTitle}>Ration Card (both sides)</Text>
+        </View>
+        <View style={styles.documentItem}>
+          <Text style={styles.bulletNumber}>7.</Text>
+          <Text style={styles.documentTitle}>Income Certificate</Text>
+        </View>
+        <View style={styles.documentItem}>
+          <Text style={styles.bulletNumber}>8.</Text>
+          <Text style={styles.documentTitle}>
+            Short Video of the House (Please record a short video of your house starting from the outside and moving inside. The video should cover all rooms, including the kitchen, and must be recorded in landscape mode)
+          </Text>
+        </View>
+        <View style={styles.documentItem}>
+          <Text style={styles.bulletNumber}>9.</Text>
+          <Text style={styles.documentTitle}>
+            Request Letter for financial assistance addressed to Vidya Poshak (Handwritten)
+          </Text>
+        </View>
+      </FormCard>
+
       {/* Eligibility Section */}
       <FormSectionHeader
-          icon="checkmark-circle"
-          title="Eligibility Criteria"
-          subtitle="Please ensure you meet these requirements"
-        />
+        icon="checkmark-circle"
+        title="Eligibility Criteria"
+        subtitle="Please ensure you meet these requirements"
+      />
         
         <FormCard>
           <View style={styles.guidelineItem}>
@@ -119,70 +179,6 @@ export default function GuidelinesSection({ navigation }: any) {
             <Text style={styles.guidelineText}>
               <Text style={styles.bold}>Last date to apply: 30 Jul 2026</Text>
             </Text>
-          </View>
-        </FormCard>
-
-        {/* Required Documents */}
-        <FormSectionHeader
-          icon="attach"
-          title="Required Documents (9 Total)"
-          subtitle="Keep these documents ready for upload (PDF/JPG/PNG, max 2MB each)"
-        />
-
-        <FormCard>
-          <View style={styles.documentItem}>
-            <Ionicons name="camera" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>1. Student Selfie/Photograph</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>2. CET/NEET Rank Sheet</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="home" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>3. Dwelling Unit Photo</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="document" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>4. 12th Marks Sheet</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="pencil" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>5. Request Letter</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="videocam" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>6. House Video</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="flash" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>7. Electricity Bill</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="receipt" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>8. Income Certificate</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="card" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>9. Ration Card</Text>
-            </View>
           </View>
         </FormCard>
 
@@ -248,6 +244,30 @@ export default function GuidelinesSection({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  topNoticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e0f2fe',
+    borderColor: '#7dd3fc',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  topNoticeText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#0369a1',
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  bulletNumber: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
+    width: 22,
+    marginRight: 6,
+  },
   guidelineItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -255,7 +275,7 @@ const styles = StyleSheet.create({
   },
   documentItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: spacing.md,
   },
   documentContent: {
