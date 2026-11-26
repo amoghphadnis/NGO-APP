@@ -45,14 +45,22 @@ export default function PucGuidelinesSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Application Guidelines"
-      step={0}
-      totalSteps={10}
+      step={1}
+      totalSteps={7}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
       nextLabel="Accept & Continue"
     >
       <ApplicationTitleBanner />
+
+      {/* Website Top Notice */}
+      <View style={styles.topNoticeBanner}>
+        <Ionicons name="information-circle-outline" size={18} color="#0284c7" style={{ marginRight: 6 }} />
+        <Text style={styles.topNoticeText}>
+          Note: Please read instructions carefully & eligibility criteria before filling out the form.
+        </Text>
+      </View>
 
       {/* Guidelines */}
       <FormSectionHeader
@@ -116,54 +124,54 @@ export default function PucGuidelinesSection({ navigation }: any) {
           </View>
         </FormCard>
 
-        {/* Required Documents */}
+        {/* Required Documents / Instructions */}
         <FormSectionHeader
-          icon="attach"
+          icon="document-text"
           title="Instructions"
-          subtitle="Keep these documents ready for upload (PDF/JPG/PNG, max 2MB each; house video max 50MB)"
+          subtitle="Please keep the following documents and information ready before filling out the application form:"
         />
 
         <FormCard>
           <View style={styles.documentItem}>
-            <Ionicons name="camera" size={20} color={colors.primary} style={styles.icon} />
+            <Ionicons name="document" size={20} color={colors.primary} style={styles.icon} />
             <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>1. Student Selfie/Photo</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="school" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>2. SSLC Marks Card</Text>
+              <Text style={styles.documentTitle}>1. SSLC Marks Card (Photo)</Text>
             </View>
           </View>
           <View style={styles.documentItem}>
             <Ionicons name="flash" size={20} color={colors.primary} style={styles.icon} />
             <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>3. Recent Electricity Bill</Text>
+              <Text style={styles.documentTitle}>2. Recent Electricity Bill (Photo)</Text>
             </View>
           </View>
           <View style={styles.documentItem}>
             <Ionicons name="card" size={20} color={colors.primary} style={styles.icon} />
             <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>4. Ration Card (Both Sides)</Text>
+              <Text style={styles.documentTitle}>3. Ration Card Photo (Both Sides)</Text>
             </View>
           </View>
           <View style={styles.documentItem}>
-            <Ionicons name="home" size={20} color={colors.primary} style={styles.icon} />
+            <Ionicons name="camera" size={20} color={colors.primary} style={styles.icon} />
             <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>5. Dwelling Unit Photo (student with family in front of the house)</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="videocam" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>6. House Video (Exterior + Interior clearly visible)</Text>
+              <Text style={styles.documentTitle}>4. Student photo/selfie</Text>
             </View>
           </View>
           <View style={styles.documentItem}>
             <Ionicons name="receipt" size={20} color={colors.primary} style={styles.icon} />
             <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>7. Income Certificate</Text>
+              <Text style={styles.documentTitle}>5. Income Certificate</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="home" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>6. Family Photo taken in front of your dwelling unit/house</Text>
+            </View>
+          </View>
+          <View style={styles.documentItem}>
+            <Ionicons name="videocam" size={20} color={colors.primary} style={styles.icon} />
+            <View style={styles.documentContent}>
+              <Text style={styles.documentTitle}>7. Full Video of the Dwelling Unit (Exterior + Interior clearly visible)</Text>
             </View>
           </View>
         </FormCard>
@@ -202,6 +210,23 @@ export default function PucGuidelinesSection({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  topNoticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e0f2fe',
+    borderColor: '#7dd3fc',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  topNoticeText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#0369a1',
+    fontWeight: '500',
+    lineHeight: 20,
+  },
   guidelineItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',

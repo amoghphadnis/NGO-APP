@@ -68,22 +68,30 @@ export interface PucFormat11AddressSection {
   OtherDistrict?: string;
   Taluk: string;
   ResidentialAddress: string;
+  PinCode?: string;
 }
 
 export interface PucFormat11FamilySection {
+  FatherName?: string;
+  MotherName?: string;
   FatherOccupation: number;
   MotherOccupation: number;
   TotalFamilyMembers: number;
   FamilyAnnualIncome: number;
+  HouseTypeID?: number;
+  MonthlyRent?: number;
+  ReferenceSourceID?: number;
 }
 
 export interface PucFormat11AcademicSection {
   SSLCPercentage: number;
+  SSLCPercentageNumber?: number;
+  SSLCTotalMarks?: number;
   CourseJoined: number;
   CollegeName: string;
   CollegeType: number;
   CollegeFees: number;
-  CollegeContactNumber: string;
+  CollegeContactNumber?: string;
   Achievement?: string;
 }
 

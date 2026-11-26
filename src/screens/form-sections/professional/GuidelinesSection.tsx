@@ -172,12 +172,18 @@ export default function GuidelinesSection({ navigation }: any) {
           </View>
         </FormCard>
 
-        {/* Deadline */}
+        {/* Deadline & Contact */}
         <FormCard>
           <View style={styles.guidelineItem}>
             <Ionicons name="calendar" size={20} color={colors.warning} style={styles.icon} />
             <Text style={styles.guidelineText}>
               <Text style={styles.bold}>Last date to apply: 30 Jul 2026</Text>
+            </Text>
+          </View>
+          <View style={styles.guidelineItem}>
+            <Ionicons name="call" size={20} color={colors.primary} style={styles.icon} />
+            <Text style={styles.guidelineText}>
+              If any queries, contact: <Text style={styles.bold}>0836-2747357</Text>
             </Text>
           </View>
         </FormCard>

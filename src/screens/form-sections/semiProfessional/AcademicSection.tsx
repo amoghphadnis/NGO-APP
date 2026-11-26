@@ -84,8 +84,6 @@ export default function AcademicSection({ navigation }: any) {
     mode: 'onChange',
   });
 
-
-
   const onSubmit = (data: SemiProfAcademicFormValues) => {
     updateSectionData('academic', data);
     updateValidationState('academic', { isValid: true, data });
@@ -156,7 +154,7 @@ export default function AcademicSection({ navigation }: any) {
           name="ptRank"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Agriculture/Veterinary/Horticulture (PT Rank)"
+              label="Agriculture/ Veterinary/ Horticulture (PT Rank)"
               value={value?.toString() ?? ''}
               onChangeText={(text) => {
                 const num = parseInt(text.replace(/[^0-9]/g, ''), 10);
@@ -185,7 +183,7 @@ export default function AcademicSection({ navigation }: any) {
           name="semiProfessionalCourseID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Course Applying For"
+              label="Course Applying"
               value={value}
               options={courseOptions}
               onChange={(id) => {

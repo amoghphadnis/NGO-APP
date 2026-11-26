@@ -62,7 +62,7 @@ export const SEMI_PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
   },
   {
     key: SEMI_PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL,
-    label: 'Latest Electricity Bill / Bhagyajyothi Document',
+    label: 'Latest Electricity bill or Bhagyajyothi connection related document',
     required: true,
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: IMAGE_DOC_TYPES,
@@ -76,7 +76,7 @@ export const SEMI_PROFESSIONAL_UPLOAD_RULES: UploadRule[] = [
   },
   {
     key: SEMI_PROFESSIONAL_FILE_KEYS.RATION_CARD,
-    label: 'Ration Card Copy (Both Sides)',
+    label: 'Ration Card Copy (both sides)',
     required: true,
     maxSize: 2 * 1024 * 1024,
     acceptedTypes: IMAGE_DOC_TYPES,
@@ -100,48 +100,27 @@ export function validateSemiProfUpload(file: any, key: string): { valid: boolean
     return rule.required ? { valid: false, error: `${rule.label} is required` } : { valid: true };
   }
 
-  const fileName = (file.name || '').toLowerCase();
-  const fileType = (file.type || '').toLowerCase();
-  const isVideo = fileType.startsWith('video/') || VIDEO_EXTENSIONS.some((ext) => fileName.endsWith(ext));
-  const isTargetingVideo = key === SEMI_PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO;
+  const isVideo = key === SEMI_PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO;
 
-  // Reject videos on document/image fields
-  if (!isTargetingVideo && isVideo) {
-    return {
-      valid: false,
-      error: `${rule.label} cannot be a video. Only images (JPG, PNG) and PDF files up to 2MB are allowed.`,
-    };
-  }
+  if (isVideo) {
+    const isVideoMime = file.type ? file.type.startsWith('video/') || VIDEO_TYPES.includes(file.type.toLowerCase()) : false;
+    const isVideoExt = file.name ? VIDEO_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext)) : false;
 
-  // Reject images/PDFs on video fields
-  if (isTargetingVideo && !isVideo) {
-    return {
-      valid: false,
-      error: 'Short Video of the House must be a video file (MP4, MOV, etc.) and cannot be an image or PDF.',
-    };
-  }
-
-  // Check file size
-  if (file.size > rule.maxSize) {
-    const limitMB = Math.round(rule.maxSize / (1024 * 1024));
-    return {
-      valid: false,
-      error: `${rule.label} exceeds ${limitMB}MB limit (file size: ${(file.size / (1024 * 1024)).toFixed(2)}MB). Maximum allowed is ${limitMB}MB.`,
-    };
-  }
-
-  if (isTargetingVideo) {
-    const isVideoExt = VIDEO_EXTENSIONS.some((ext) => fileName.endsWith(ext));
-    const isVideoMime = (file.type && file.type.startsWith('video/')) || rule.acceptedTypes.includes(file.type);
     if (!isVideoMime && !isVideoExt) {
-      return { valid: false, error: 'Short Video of the House must be a video file (MP4, MOV, etc.)' };
+      return { valid: false, error: 'Please upload a video file (MP4, AVI, MOV, MKV, WMV, 3GP, WEBM)' };
     }
   } else {
-    const hasAllowedExt = DOCUMENT_EXTENSIONS.some((ext) => fileName.endsWith(ext));
-    const hasAllowedMime = rule.acceptedTypes.includes(file.type);
-    if (!hasAllowedExt && !hasAllowedMime) {
-      return { valid: false, error: `${rule.label} must be ${rule.acceptedTypes.join(', ')}` };
+    const isDocMime = file.type ? IMAGE_DOC_TYPES.includes(file.type.toLowerCase()) : false;
+    const isDocExt = file.name ? DOCUMENT_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext)) : false;
+
+    if (!isDocMime && !isDocExt) {
+      return { valid: false, error: 'Please upload an image or PDF file (JPG, PNG, PDF)' };
     }
+  }
+
+  if (file.size && file.size > rule.maxSize) {
+    const maxMB = Math.round(rule.maxSize / (1024 * 1024));
+    return { valid: false, error: `File size must not exceed ${maxMB}MB` };
   }
 
   return { valid: true };

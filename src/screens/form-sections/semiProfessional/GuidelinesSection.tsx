@@ -45,7 +45,7 @@ export default function GuidelinesSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Application Guidelines"
-      step={0}
+      step={1}
       totalSteps={7}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit)}
@@ -54,159 +54,195 @@ export default function GuidelinesSection({ navigation }: any) {
     >
       <ApplicationTitleBanner />
 
+      {/* Website Top Notice */}
+      <View style={styles.topNoticeBanner}>
+        <Ionicons name="information-circle-outline" size={18} color="#0284c7" style={{ marginRight: 6 }} />
+        <Text style={styles.topNoticeText}>
+          Note: Please read the instructions and eligibility criteria carefully before filling out the form.
+        </Text>
+      </View>
+
       {/* Instructions — keep documents ready (web parity) */}
       <FormSectionHeader
-          icon="document-text"
-          title="Instructions"
-          subtitle="Please keep the following documents and information ready before filling out the application form:"
+        icon="document-text"
+        title="Instructions"
+        subtitle="Please keep the following documents and information ready before filling out the application form:"
+      />
+
+      <FormCard>
+        <View style={styles.documentItem}>
+          <Ionicons name="document" size={20} color={colors.primary} style={styles.icon} />
+          <View style={styles.documentContent}>
+            <Text style={styles.documentTitle}>1. PUC II Year Marks Card</Text>
+          </View>
+        </View>
+        <View style={styles.documentItem}>
+          <Ionicons name="camera" size={20} color={colors.primary} style={styles.icon} />
+          <View style={styles.documentContent}>
+            <Text style={styles.documentTitle}>2. Student&apos;s Selfie/Photograph</Text>
+          </View>
+        </View>
+        <View style={styles.documentItem}>
+          <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
+          <View style={styles.documentContent}>
+            <Text style={styles.documentTitle}>3. CET Rank Sheet</Text>
+            <Text style={styles.documentSubtitle}>(For B.Sc-Nursing, GNM- Nursing, Physiotherapy, B.Sc Agriculture, Veterinary Science &amp; Horticulture)</Text>
+          </View>
+        </View>
+        <View style={styles.documentItem}>
+          <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
+          <View style={styles.documentContent}>
+            <Text style={styles.documentTitle}>4. Agriculture/ Veterinary/ Horticulture (PT Rank)</Text>
+          </View>
+        </View>
+        <View style={styles.documentItem}>
+          <Ionicons name="flash" size={20} color={colors.primary} style={styles.icon} />
+          <View style={styles.documentContent}>
+            <Text style={styles.documentTitle}>5. Latest Electricity Bill</Text>
+          </View>
+        </View>
+        <View style={styles.documentItem}>
+          <Ionicons name="home" size={20} color={colors.primary} style={styles.icon} />
+          <View style={styles.documentContent}>
+            <Text style={styles.documentTitle}>6. Dwelling Unit Photo</Text>
+            <Text style={styles.documentSubtitle}>(Photo of the student with family members in front of the house)</Text>
+          </View>
+        </View>
+        <View style={styles.documentItem}>
+          <Ionicons name="card" size={20} color={colors.primary} style={styles.icon} />
+          <View style={styles.documentContent}>
+            <Text style={styles.documentTitle}>7. Ration Card (Both sides)</Text>
+          </View>
+        </View>
+        <View style={styles.documentItem}>
+          <Ionicons name="receipt" size={20} color={colors.primary} style={styles.icon} />
+          <View style={styles.documentContent}>
+            <Text style={styles.documentTitle}>8. Income Certificate</Text>
+          </View>
+        </View>
+        <View style={styles.documentItem}>
+          <Ionicons name="videocam" size={20} color={colors.primary} style={styles.icon} />
+          <View style={styles.documentContent}>
+            <Text style={styles.documentTitle}>9. Short Video of the House</Text>
+            <Text style={styles.documentSubtitle}>Please record a short video of your house, starting from the outside and moving inside. The video should cover all rooms, including the kitchen, and must be recorded in landscape mode.</Text>
+          </View>
+        </View>
+      </FormCard>
+
+      {/* Eligibility Criteria */}
+      <FormSectionHeader
+        icon="checkmark-circle"
+        title="Eligibility Criteria"
+        subtitle="Please ensure you meet these requirements"
+      />
+
+      <FormCard>
+        <View style={styles.guidelineItem}>
+          <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+          <Text style={styles.guidelineText}>
+            The student should have appeared for the <Text style={styles.bold}>PUC II /12 Grade examination for the first time in 2026</Text>
+          </Text>
+        </View>
+        <View style={styles.guidelineItem}>
+          <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+          <Text style={styles.guidelineText}>
+            Applicants must be aspiring to enroll in a Semi-Professional course such as <Text style={styles.bold}>For B.Sc-Nursing, GNM- Nursing, Physiotherapy, B.Sc- Agriculture, Veterinary Science &amp; Horticulture</Text>
+          </Text>
+        </View>
+        <View style={styles.guidelineItem}>
+          <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+          <Text style={styles.guidelineText}>
+            This application is <Text style={styles.bold}>only for students from Karnataka</Text>
+          </Text>
+        </View>
+        <View style={styles.guidelineItem}>
+          <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+          <Text style={styles.guidelineText}>
+            Should have scored <Text style={styles.bold}>80% and above</Text> in the PUC II examination
+          </Text>
+        </View>
+        <View style={styles.guidelineItem}>
+          <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+          <Text style={styles.guidelineText}>
+            The <Text style={styles.bold}>total family income</Text> should be <Text style={styles.bold}>less than ₹15,000/- per month</Text>
+          </Text>
+        </View>
+        <View style={styles.guidelineItem}>
+          <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
+          <Text style={styles.guidelineText}>
+            <Text style={styles.bold}>Parents must be residents of Karnataka</Text>
+          </Text>
+        </View>
+      </FormCard>
+
+      {/* Deadline & Contact */}
+      <FormCard>
+        <View style={styles.guidelineItem}>
+          <Ionicons name="calendar" size={20} color={colors.warning} style={styles.icon} />
+          <Text style={styles.guidelineText}>
+            <Text style={styles.bold}>Last date to apply: 30 Dec 2026</Text>
+          </Text>
+        </View>
+        <View style={styles.guidelineItem}>
+          <Ionicons name="call" size={20} color={colors.primary} style={styles.icon} />
+          <Text style={styles.guidelineText}>
+            If any queries, contact: <Text style={styles.bold}>0836-2747357</Text>
+          </Text>
+        </View>
+      </FormCard>
+
+      {/* Terms Acceptance */}
+      <FormSectionHeader
+        icon="shield-checkmark"
+        title="Terms & Conditions"
+        subtitle="Accept the terms to proceed"
+      />
+
+      <FormCard>
+        <Controller
+          control={control}
+          name="guidelinesAccepted"
+          render={({ field: { onChange, value } }) => (
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => onChange(!value)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.checkbox, value && styles.checkboxChecked]}>
+                {value && (
+                  <Ionicons name="checkmark" size={16} color={colors.card} />
+                )}
+              </View>
+              <Text style={styles.checkboxLabel}>
+                I have read and agree to the Terms &amp; Conditions.
+              </Text>
+            </TouchableOpacity>
+          )}
         />
-
-        <FormCard>
-          <View style={styles.documentItem}>
-            <Ionicons name="document" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>1. PUC II Year Marks Card</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="camera" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>2. Student&apos;s Selfie/Photograph</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>3. CET Rank Sheet</Text>
-              <Text style={styles.documentSubtitle}>(For B.Sc-Nursing, GNM- Nursing, Physiotherapy, B.Sc Agriculture, Veterinary Science &amp; Horticulture)</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="trophy" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>4. Agriculture/ Veterinary/ Horticulture (PT Rank)</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="flash" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>5. Latest Electricity Bill</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="home" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>6. Dwelling Unit Photo</Text>
-              <Text style={styles.documentSubtitle}>(Photo of the student with family members in front of the house)</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="card" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>7. Ration Card (Both sides)</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="receipt" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>8. Income Certificate</Text>
-            </View>
-          </View>
-          <View style={styles.documentItem}>
-            <Ionicons name="videocam" size={20} color={colors.primary} style={styles.icon} />
-            <View style={styles.documentContent}>
-              <Text style={styles.documentTitle}>9. Short Video of the House</Text>
-              <Text style={styles.documentSubtitle}>Please record a short video of your house, starting from the outside and moving inside. The video should cover all rooms, including the kitchen, and must be recorded in landscape mode.</Text>
-            </View>
-          </View>
-        </FormCard>
-
-        {/* Eligibility Criteria */}
-        <FormSectionHeader
-          icon="checkmark-circle"
-          title="Eligibility Criteria"
-          subtitle="Please ensure you meet these requirements"
-        />
-
-        <FormCard>
-          <View style={styles.guidelineItem}>
-            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              The student should have appeared for the <Text style={styles.bold}>PUC II /12th Grade examination for the first time in 2026</Text>
-            </Text>
-          </View>
-          <View style={styles.guidelineItem}>
-            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              Applicants must be aspiring to enroll in a Semi-Professional course such as <Text style={styles.bold}>B.Sc-Nursing, GNM- Nursing, Physiotherapy, B.Sc- Agriculture, Veterinary Science &amp; Horticulture</Text>
-            </Text>
-          </View>
-          <View style={styles.guidelineItem}>
-            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              This application is <Text style={styles.bold}>only for students from Karnataka</Text>
-            </Text>
-          </View>
-          <View style={styles.guidelineItem}>
-            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              Should have scored <Text style={styles.bold}>80%</Text> and above in the PUC II examination
-            </Text>
-          </View>
-          <View style={styles.guidelineItem}>
-            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              The <Text style={styles.bold}>total family income</Text> should be <Text style={styles.bold}>less than ₹15,000/- per month</Text>
-            </Text>
-          </View>
-          <View style={styles.guidelineItem}>
-            <Ionicons name="checkmark" size={20} color={colors.success} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              <Text style={styles.bold}>Parents must be residents of Karnataka</Text>
-            </Text>
-          </View>
-          <View style={styles.guidelineItem}>
-            <Ionicons name="calendar" size={20} color={colors.warning} style={styles.icon} />
-            <Text style={styles.guidelineText}>
-              <Text style={styles.bold}>Last date to apply: 10 Nov 2026</Text>
-            </Text>
-          </View>
-        </FormCard>
-
-        {/* Terms Acceptance */}
-        <FormSectionHeader
-          icon="shield-checkmark"
-          title="Terms & Conditions"
-          subtitle="Accept the terms to proceed"
-        />
-
-        <FormCard>
-          <Controller
-            control={control}
-            name="guidelinesAccepted"
-            render={({ field: { onChange, value } }) => (
-              <TouchableOpacity
-                style={styles.checkboxContainer}
-                onPress={() => onChange(!value)}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.checkbox, value && styles.checkboxChecked]}>
-                  {value && (
-                    <Ionicons name="checkmark" size={16} color={colors.card} />
-                  )}
-                </View>
-                <Text style={styles.checkboxLabel}>
-                  I have read and agree to the Terms &amp; Conditions.
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
-        </FormCard>
+      </FormCard>
     </FormScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  topNoticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0F2FE',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    borderRadius: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  topNoticeText: {
+    flex: 1,
+    fontSize: platform.normalize.fontSize.small,
+    lineHeight: platform.normalize.lineHeight.small,
+    color: '#0369A1',
+    fontWeight: '500',
+  },
   guidelineItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',

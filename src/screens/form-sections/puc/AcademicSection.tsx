@@ -44,11 +44,12 @@ export default function AcademicSection({ navigation }: any) {
 
   const academicData = isPUCForm(formData)
     ? formData.academic
-    : { SSLCPercentage: undefined as any, CourseJoined: 0, CollegeName: '', CollegeType: 0, CollegeFees: 0 };
+    : { SSLCPercentage: undefined as any, SSLCTotalMarks: undefined as any, CourseJoined: 0, CollegeName: '', CollegeType: 0, CollegeFees: 0 };
 
   const { control, handleSubmit, formState } = useForm<PucFormat11AcademicFormValues>({
     defaultValues: {
       SSLCPercentage: academicData.SSLCPercentage || undefined,
+      SSLCTotalMarks: (academicData as any).SSLCTotalMarks || undefined,
       CourseJoined: academicData.CourseJoined || 0,
       CollegeName: academicData.CollegeName,
       CollegeType: academicData.CollegeType || 0,
@@ -63,7 +64,7 @@ export default function AcademicSection({ navigation }: any) {
   const onSubmit = (data: PucFormat11AcademicFormValues) => {
     updateSectionData('academic', data);
     updateValidationState('academic', { isValid: true, data });
-    markStepComplete(5);
+    markStepComplete(3);
     navigation.navigate('documents');
   };
 
@@ -76,7 +77,8 @@ export default function AcademicSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Academic Details"
-      step={6}
+      step={4}
+      totalSteps={7}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
@@ -91,26 +93,10 @@ export default function AcademicSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="SSLCPercentage"
-          render={({ field: { onChange, value } }) => (
-            <DecimalInputField
-              label="SSLC Percentage"
-              value={value}
-              onChangeValue={onChange}
-              placeholder="Enter SSLC percentage"
-              error={formState.errors.SSLCPercentage?.message}
-              helperText="Percentage obtained in SSLC (0-100)"
-              required
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
           name="CourseJoined"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Course Joined"
+              label="Course"
               value={value}
               onChange={onChange}
               options={courseOptions}
@@ -121,11 +107,7 @@ export default function AcademicSection({ navigation }: any) {
             />
           )}
         />
-      </FormCard>
 
-      <FormSectionHeader icon="business" title="College Details" showRequired />
-
-      <FormCard>
         <Controller
           control={control}
           name="CollegeName"
@@ -163,12 +145,52 @@ export default function AcademicSection({ navigation }: any) {
           name="CollegeFees"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="College Fees"
-              value={String(value)}
-              onChangeText={(text) => onChange(Number(text))}
-              placeholder="Enter college fees"
+              label="Expected Fees"
+              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
+              onChangeText={(text) => {
+                const clean = text.replace(/[^0-9]/g, '');
+                onChange(clean === '' ? 0 : Number(clean));
+              }}
+              placeholder="Enter expected fees"
               keyboardType="numeric"
               error={formState.errors.CollegeFees?.message}
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="SSLCPercentage"
+          render={({ field: { onChange, value } }) => (
+            <DecimalInputField
+              label="SSLC Percentage"
+              value={value}
+              onChangeValue={onChange}
+              placeholder="Enter SSLC percentage"
+              suffix="%"
+              error={formState.errors.SSLCPercentage?.message}
+              helperText="Only students who have secured more than 80% are eligible"
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="SSLCTotalMarks"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="SSLC Total Marks"
+              value={value === undefined || value === null || isNaN(value) ? '' : String(value)}
+              onChangeText={(text) => {
+                const clean = text.replace(/[^0-9]/g, '');
+                onChange(clean === '' ? undefined : Number(clean));
+              }}
+              placeholder="Enter total marks obtained (e.g. 580)"
+              keyboardType="numeric"
+              maxLength={4}
+              error={formState.errors.SSLCTotalMarks?.message}
               required
             />
           )}

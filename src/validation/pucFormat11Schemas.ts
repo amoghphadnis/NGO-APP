@@ -9,7 +9,7 @@ import { UploadedDocument } from '@/types/documents';
 import { z } from 'zod';
 
 // ============================================================================
-// Personal Section
+// Personal Section (Personal + Contact + Address)
 // ============================================================================
 
 export const pucFormat11PersonalSchema = z.object({
@@ -20,18 +20,32 @@ export const pucFormat11PersonalSchema = z.object({
     .refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid date' })
     .refine((val) => new Date(val) <= new Date(), {
       message: 'Date cannot be in the future',
-    })
-    .refine((val) => {
-      const dob = new Date(val);
-      const today = new Date();
-      let age = today.getFullYear() - dob.getFullYear();
-      const m = today.getMonth() - dob.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-      return age >= 13;
-    }, { message: 'You must be at least 13 years old' }),
+    }),
   Gender: z.number().min(1, { message: 'Gender is required' }),
-  Caste: z.number().min(1, { message: 'Caste is required' }),
-  Place: z.number().min(1, { message: 'Place is required' }),
+  ContactNumber: z
+    .string()
+    .min(10, { message: 'Please enter a valid 10-digit WhatsApp number' })
+    .max(10, { message: 'Please enter a valid 10-digit WhatsApp number' })
+    .regex(/^[0-9]{10}$/, 'Please enter a valid 10-digit WhatsApp number'),
+  AlternateNumber: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^[0-9]{10}$/.test(val), {
+      message: 'Please enter a valid 10-digit alternate number',
+    }),
+  Email: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: 'Enter a valid email address',
+    }),
+  ResidentialAddress: z.string().min(1, { message: 'Residential address is required' }),
+  Place: z.number().min(1, { message: 'Area is required' }),
+  District: z.number().min(1, { message: 'District is required' }),
+  OtherDistrict: z.string().optional(),
+  Taluk: z.string().min(1, { message: 'Taluka is required' }),
+  PinCode: z.string().optional(),
+  Caste: z.number().optional(),
 });
 
 // ============================================================================
@@ -47,14 +61,14 @@ export const pucFormat11ContactSchema = z.object({
     }),
   ContactNumber: z
     .string()
-    .min(10, { message: 'Please enter a valid 10-digit number' })
-    .max(10, { message: 'Please enter a valid 10-digit number' })
-    .regex(/^[0-9]{10}$/, 'Please enter a valid 10-digit number'),
+    .min(10, { message: 'Please enter a valid 10-digit WhatsApp number' })
+    .max(10, { message: 'Please enter a valid 10-digit WhatsApp number' })
+    .regex(/^[0-9]{10}$/, 'Please enter a valid 10-digit WhatsApp number'),
   AlternateNumber: z
     .string()
     .optional()
     .refine((val) => !val || /^[0-9]{10}$/.test(val), {
-      message: 'Please enter a valid 10-digit number',
+      message: 'Please enter a valid 10-digit alternate number',
     }),
 });
 
@@ -65,21 +79,28 @@ export const pucFormat11ContactSchema = z.object({
 export const pucFormat11AddressSchema = z.object({
   District: z.number().min(1, { message: 'District is required' }),
   OtherDistrict: z.string().optional(),
-  Taluk: z.string().min(1, { message: 'Taluk is required' }),
+  Taluk: z.string().min(1, { message: 'Taluka is required' }),
   ResidentialAddress: z.string().min(1, { message: 'Residential address is required' }),
+  PinCode: z.string().optional(),
 });
 
 // ============================================================================
-// Family Section
+// Family Section (Parents + Occupations + Family Members + Housing + Reference)
 // ============================================================================
 
 export const pucFormat11FamilySchema = z.object({
-  FatherOccupation: z.number().min(1, { message: "Father's occupation is required" }),
-  MotherOccupation: z.number().min(1, { message: "Mother's occupation is required" }),
+  FatherName: z.string().min(1, { message: 'Father name is required' }),
+  MotherName: z.string().min(1, { message: 'Mother name is required' }),
+  FatherOccupation: z.number().min(1, { message: "Father/Guardian occupation is required" }),
+  MotherOccupation: z.number().min(1, { message: "Mother/Guardian occupation is required" }),
   TotalFamilyMembers: z.number({ message: 'Total family members is required' }).min(1, { message: 'At least 1 family member required' }),
   FamilyAnnualIncome: z
-    .number({ message: 'Family annual income is required' })
-    .positive({ message: 'Annual family income must be greater than 0' }),
+    .number({ message: 'Family income is required' })
+    .positive({ message: 'Family income must be greater than 0' }),
+  CasteCategoryID: z.number().optional(),
+  HouseTypeID: z.number().min(1, { message: 'House type is required' }),
+  MonthlyRent: z.number().optional(),
+  ReferenceSourceID: z.number().min(1, { message: 'Reference source is required' }),
 });
 
 // ============================================================================
@@ -88,13 +109,14 @@ export const pucFormat11FamilySchema = z.object({
 
 export const pucFormat11AcademicSchema = z.object({
   SSLCPercentage: z
-    .number({ message: 'Percentage is required' })
+    .number({ message: 'SSLC Percentage is required' })
     .min(1, { message: 'Percentage must be greater than 0' })
     .max(100, { message: 'Percentage cannot exceed 100' }),
+  SSLCTotalMarks: z.number().optional(),
   CourseJoined: z.number().min(1, { message: 'Course is required' }),
   CollegeName: z.string().min(1, { message: 'College name is required' }),
   CollegeType: z.number().min(1, { message: 'College type is required' }),
-  CollegeFees: z.number().min(0, { message: 'Fees must be at least 0' }),
+  CollegeFees: z.number().min(0, { message: 'Expected fees must be at least 0' }),
 });
 
 // ============================================================================
@@ -124,6 +146,7 @@ export const pucFormat11DocumentsSchema = z.object({
   DwellingUnitPhoto: z.custom<UploadedDocument>().optional(),
   HouseVideo: z.custom<UploadedDocument>().optional(),
   IncomeCertificate: z.custom<UploadedDocument>().optional(),
+  GoogleMapLink: z.string().optional(),
 });
 
 // ============================================================================

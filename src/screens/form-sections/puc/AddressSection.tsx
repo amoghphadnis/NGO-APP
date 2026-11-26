@@ -20,6 +20,7 @@ export default function AddressSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData } = useFormEngineStore();
 
   const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
+  const [areaOptions, setAreaOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
@@ -30,6 +31,21 @@ export default function AddressSection({ navigation }: any) {
           value: Number(d.value),
           label: d.label
         })) || []);
+        const places = response.data.places?.map((p: any) => ({
+          value: Number(p.value),
+          label: p.label
+        })) || [];
+        setAreaOptions(places.length > 0 ? places : [
+          { value: 1, label: 'Urban' },
+          { value: 2, label: 'Rural' },
+          { value: 3, label: 'Semi-Urban' },
+        ]);
+      } else {
+        setAreaOptions([
+          { value: 1, label: 'Urban' },
+          { value: 2, label: 'Rural' },
+          { value: 3, label: 'Semi-Urban' },
+        ]);
       }
       setLoadingDropdowns(false);
     }
@@ -38,7 +54,7 @@ export default function AddressSection({ navigation }: any) {
 
   const addressData = isPUCForm(formData)
     ? formData.address
-    : { District: 0, OtherDistrict: '', Taluk: '', ResidentialAddress: '' };
+    : { District: 0, OtherDistrict: '', Taluk: '', ResidentialAddress: '', PinCode: '' };
 
   const { control, handleSubmit, formState } = useForm<PucFormat11AddressFormValues>({
     defaultValues: {
@@ -46,6 +62,7 @@ export default function AddressSection({ navigation }: any) {
       OtherDistrict: addressData.OtherDistrict,
       Taluk: addressData.Taluk,
       ResidentialAddress: addressData.ResidentialAddress,
+      PinCode: (addressData as any).PinCode || '',
     },
     resolver: zodResolver(pucFormat11AddressSchema),
     mode: 'onChange',
@@ -134,11 +151,28 @@ export default function AddressSection({ navigation }: any) {
           name="Taluk"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Taluk"
+              label="Taluka"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter taluk"
+              placeholder="Enter taluka"
               error={formState.errors.Taluk?.message}
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="PinCode"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Pincode"
+              value={value || ''}
+              onChangeText={onChange}
+              placeholder="Enter 6-digit pincode"
+              keyboardType="numeric"
+              maxLength={6}
+              error={formState.errors.PinCode?.message}
               required
             />
           )}

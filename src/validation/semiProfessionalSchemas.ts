@@ -9,9 +9,8 @@ export const semiProfPersonalSchema = z.object({
   contactNumber: z.string().min(10, { message: 'Valid 10-digit contact number required' }).max(10),
   alternateNumber: z.string().min(10, { message: 'Valid 10-digit alternate number required' }).max(10),
   genderID: z.number().min(1, { message: 'Gender is required' }),
-  // Web parity: caste category select is not marked required on the web form
-  casteCategoryID: z.number().optional(),
-  areaTypeID: z.number().min(1, { message: 'Area type is required' }),
+  casteCategoryID: z.number({ message: 'Caste & Category is required' }).min(1, { message: 'Caste & Category is required' }),
+  areaTypeID: z.number().min(1, { message: 'Place is required' }),
   districtID: z.number().min(1, { message: 'District is required' }),
   otherDistrict: z.string().optional(),
   residentialAddress: z.string().min(1, { message: 'Residential address is required' }),
@@ -49,8 +48,8 @@ export const semiProfAcademicSchema = z.object({
     .max(100, { message: 'Percentage cannot exceed 100' }),
   cetRank: z.number({ message: 'CET rank is required' }).positive({ message: 'CET rank is required' }),
   ptRank: z.number({ message: 'Agriculture/Veterinary/Horticulture (PT) rank is required' }).positive({ message: 'Agriculture/Veterinary/Horticulture (PT) rank is required' }),
-  semiProfessionalCourseID: z.number({ message: 'Course is required' }).min(1, { message: 'Course applying for is required' }),
-  courseApplying: z.string().min(1, { message: 'Course applying for is required' }),
+  semiProfessionalCourseID: z.number({ message: 'Course is required' }).min(1, { message: 'Course applying is required' }),
+  courseApplying: z.string().min(1, { message: 'Course applying is required' }),
   courseStream: z.string().min(1, { message: 'Course stream is required' }),
 });
 

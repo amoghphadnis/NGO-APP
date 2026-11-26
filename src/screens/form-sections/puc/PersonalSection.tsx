@@ -1,27 +1,20 @@
-import ModalSelectField, { Option } from "@/components/common/ModalSelectField";
-import { Ionicons } from "@expo/vector-icons";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import {
-    Alert,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import ModalSelectField, { Option } from '@/components/common/ModalSelectField';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
-import { getPUCDropdowns } from "@/api/pucApi";
-import FormCard from "@/components/common/FormCard";
-import FormSectionHeader from "@/components/common/FormSectionHeader";
-import VPDatePickerField from "@/components/common/VPDatePickerField";
-import VPInputField from "@/components/common/VPInputField";
-import FormScreenLayout from "@/components/layout/FormScreenLayout";
-import { colors } from "@/theme/colors";
-import { platform } from "@/theme/platform";
-import { spacing } from "@/theme/spacing";
-import { isPUCForm } from "@/types/forms";
-import { PucFormat11PersonalFormValues, pucFormat11PersonalSchema } from "@/validation/pucFormat11Schemas";
-import { useFormEngineStore } from "../../../store/useFormEngineStore";
+import { getPUCDropdowns } from '@/api/pucApi';
+import FormCard from '@/components/common/FormCard';
+import FormSectionHeader from '@/components/common/FormSectionHeader';
+import VPDatePickerField from '@/components/common/VPDatePickerField';
+import VPInputField from '@/components/common/VPInputField';
+import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import { colors } from '@/theme/colors';
+import { spacing } from '@/theme/spacing';
+import { isPUCForm } from '@/types/forms';
+import { PucFormat11PersonalFormValues, pucFormat11PersonalSchema } from '@/validation/pucFormat11Schemas';
+import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 export default function PersonalSection({ navigation }: any) {
   const {
@@ -32,8 +25,9 @@ export default function PersonalSection({ navigation }: any) {
   } = useFormEngineStore();
 
   const [genderOptions, setGenderOptions] = useState<Option<number>[]>([]);
+  const [districtOptions, setDistrictOptions] = useState<Option<number>[]>([]);
+  const [areaOptions, setAreaOptions] = useState<Option<number>[]>([]);
   const [casteOptions, setCasteOptions] = useState<Option<number>[]>([]);
-  const [placeOptions, setPlaceOptions] = useState<Option<number>[]>([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   useEffect(() => {
@@ -44,6 +38,10 @@ export default function PersonalSection({ navigation }: any) {
           value: Number(g.value),
           label: g.label
         })) || []);
+        setDistrictOptions(response.data.districts?.map((d: any) => ({
+          value: Number(d.value),
+          label: d.label
+        })) || []);
         setCasteOptions(response.data.castes?.map((c: any) => ({
           value: Number(c.value),
           label: c.label
@@ -52,13 +50,13 @@ export default function PersonalSection({ navigation }: any) {
           value: Number(p.value),
           label: p.label
         })) || [];
-        setPlaceOptions(places.length > 0 ? places : [
+        setAreaOptions(places.length > 0 ? places : [
           { value: 1, label: 'Urban' },
           { value: 2, label: 'Rural' },
           { value: 3, label: 'Semi-Urban' },
         ]);
       } else {
-        setPlaceOptions([
+        setAreaOptions([
           { value: 1, label: 'Urban' },
           { value: 2, label: 'Rural' },
           { value: 3, label: 'Semi-Urban' },
@@ -69,34 +67,59 @@ export default function PersonalSection({ navigation }: any) {
     loadDropdowns();
   }, []);
 
-  const personalData = isPUCForm(formData)
-    ? formData.personal
-    : { StudentName: "", DateOfBirth: "", Gender: 0, Caste: 0, Place: 0 };
+  const personalData = isPUCForm(formData) ? formData.personal : ({} as any);
+  const contactData = isPUCForm(formData) ? (formData as any).contact : ({} as any);
+  const addressData = isPUCForm(formData) ? (formData as any).address : ({} as any);
 
   const { control, handleSubmit, watch, formState } =
     useForm<PucFormat11PersonalFormValues>({
       defaultValues: {
-        StudentName: personalData.StudentName,
-        DateOfBirth:
-          typeof personalData.DateOfBirth === "string"
-            ? personalData.DateOfBirth
-            : "",
-        Gender: personalData.Gender || 0,
-        Caste: personalData.Caste || 0,
-        Place: personalData.Place || 0,
+        StudentName: personalData?.StudentName || '',
+        DateOfBirth: typeof personalData?.DateOfBirth === 'string' ? personalData.DateOfBirth : '',
+        Gender: personalData?.Gender || 0,
+        ContactNumber: contactData?.ContactNumber || personalData?.ContactNumber || '',
+        AlternateNumber: contactData?.AlternateNumber || personalData?.AlternateNumber || '',
+        Email: contactData?.Email || personalData?.Email || '',
+        ResidentialAddress: addressData?.ResidentialAddress || personalData?.ResidentialAddress || '',
+        Place: addressData?.Place || personalData?.Place || 0,
+        District: addressData?.District || personalData?.District || 0,
+        OtherDistrict: addressData?.OtherDistrict || personalData?.OtherDistrict || '',
+        Taluk: addressData?.Taluk || personalData?.Taluk || '',
+        PinCode: addressData?.PinCode || personalData?.PinCode || '',
+        Caste: personalData?.Caste || 0,
       },
       resolver: zodResolver(pucFormat11PersonalSchema),
-      mode: "onChange",
+      mode: 'onChange',
     });
 
-  const watchedName = watch("StudentName");
-  const nameSuccess = !!watchedName && !formState.errors.StudentName;
+  const selectedDistrict = watch('District');
+  const showOtherDistrict = selectedDistrict === 11;
 
   const onSubmit = (data: PucFormat11PersonalFormValues) => {
-    updateSectionData("personal", data);
-    updateValidationState("personal", { isValid: true, data });
+    // Keep personal, contact, and address synchronized for wire compatibility
+    updateSectionData('personal', {
+      StudentName: data.StudentName,
+      DateOfBirth: data.DateOfBirth,
+      Gender: data.Gender,
+      Place: data.Place,
+      Caste: data.Caste || 0,
+    });
+    updateSectionData('contact', {
+      ContactNumber: data.ContactNumber,
+      AlternateNumber: data.AlternateNumber,
+      Email: data.Email,
+    });
+    updateSectionData('address', {
+      ResidentialAddress: data.ResidentialAddress,
+      District: data.District,
+      OtherDistrict: data.OtherDistrict,
+      Taluk: data.Taluk,
+      PinCode: data.PinCode,
+      Place: data.Place,
+    });
+    updateValidationState('personal', { isValid: true, data });
     markStepComplete(1);
-    navigation.navigate("contact");
+    navigation.navigate('family');
   };
 
   const onInvalid = () => {
@@ -107,15 +130,17 @@ export default function PersonalSection({ navigation }: any) {
 
   return (
     <FormScreenLayout
-      title="Personal Details"
+      title="Applicant's Information"
       step={2}
+      totalSteps={7}
       onBack={navigation.goBack}
       onNext={handleSubmit(onSubmit, onInvalid)}
       nextDisabled={isNextDisabled}
     >
+      {/* Personal Details */}
       <FormSectionHeader
         icon="person"
-        title="Basic Information"
+        title="Personal Details"
         subtitle="Fields marked with * are required"
         showRequired
       />
@@ -129,9 +154,8 @@ export default function PersonalSection({ navigation }: any) {
               label="Student Name"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter your full name"
+              placeholder="Enter student full name"
               error={formState.errors.StudentName?.message}
-              successText={nameSuccess ? "Name looks good" : undefined}
               required
             />
           )}
@@ -145,47 +169,114 @@ export default function PersonalSection({ navigation }: any) {
               label="Date of Birth"
               value={value}
               onChange={onChange}
-              helperText="Enter your date of birth as on certificate"
+              placeholder="Select date of birth"
               error={formState.errors.DateOfBirth?.message}
               required
             />
           )}
         />
-      </FormCard>
 
-      <FormSectionHeader icon="people" title="Demographics" showRequired />
-
-      <FormCard>
         <Controller
           control={control}
           name="Gender"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
               label="Gender"
-              placeholder="Select gender"
               value={value}
               onChange={onChange}
               options={genderOptions}
+              placeholder="Select gender"
               error={formState.errors.Gender?.message}
               required
               disabled={loadingDropdowns}
             />
           )}
         />
+      </FormCard>
+
+      {/* Contact Details */}
+      <FormSectionHeader
+        icon="mail"
+        title="Contact Details"
+        subtitle="How can we reach you?"
+        showRequired
+      />
+
+      <FormCard>
+        <Controller
+          control={control}
+          name="ContactNumber"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Contact Number (WhatsApp Number)"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter 10-digit WhatsApp number"
+              keyboardType="phone-pad"
+              maxLength={10}
+              error={formState.errors.ContactNumber?.message}
+              helperText="Retain this number for all communications"
+              required
+            />
+          )}
+        />
 
         <Controller
           control={control}
-          name="Caste"
+          name="AlternateNumber"
           render={({ field: { onChange, value } }) => (
-            <ModalSelectField
-              label="Caste"
-              placeholder="Select caste"
+            <VPInputField
+              label="Alternate Number"
+              value={value || ''}
+              onChangeText={onChange}
+              placeholder="Enter 10-digit alternate number"
+              keyboardType="phone-pad"
+              maxLength={10}
+              error={formState.errors.AlternateNumber?.message}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="Email"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Email"
+              value={value || ''}
+              onChangeText={onChange}
+              placeholder="Enter your email address (optional)"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              error={formState.errors.Email?.message}
+            />
+          )}
+        />
+      </FormCard>
+
+      {/* Address Details */}
+      <FormSectionHeader
+        icon="location"
+        title="Address"
+        subtitle="Where do you reside?"
+        showRequired
+      />
+
+      <FormCard>
+        <Controller
+          control={control}
+          name="ResidentialAddress"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Residential Address"
               value={value}
-              onChange={onChange}
-              options={casteOptions}
-              error={formState.errors.Caste?.message}
+              onChangeText={onChange}
+              placeholder="Enter your full residential address"
+              multiline
+              numberOfLines={3}
+              error={formState.errors.ResidentialAddress?.message}
               required
-              disabled={loadingDropdowns}
             />
           )}
         />
@@ -195,50 +286,89 @@ export default function PersonalSection({ navigation }: any) {
           name="Place"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Place"
-              placeholder="Select place"
+              label="Area"
               value={value}
               onChange={onChange}
-              options={placeOptions}
+              options={areaOptions}
+              placeholder="Select area"
               error={formState.errors.Place?.message}
               required
               disabled={loadingDropdowns}
             />
           )}
         />
-      </FormCard>
 
-      <FormCard>
-        <View style={styles.infoBanner}>
-          <Ionicons
-            name="shield-checkmark"
-            size={24}
-            color={colors.primary}
-            style={styles.bannerIcon}
+        <Controller
+          control={control}
+          name="District"
+          render={({ field: { onChange, value } }) => (
+            <ModalSelectField
+              label="District"
+              value={value}
+              onChange={onChange}
+              options={districtOptions}
+              placeholder="Select district"
+              error={formState.errors.District?.message}
+              required
+              disabled={loadingDropdowns}
+            />
+          )}
+        />
+
+        {showOtherDistrict && (
+          <Controller
+            control={control}
+            name="OtherDistrict"
+            render={({ field: { onChange, value } }) => (
+              <VPInputField
+                label="Other District"
+                value={value || ''}
+                onChangeText={onChange}
+                placeholder="Enter district name"
+                error={formState.errors.OtherDistrict?.message}
+                required
+              />
+            )}
           />
-          <Text style={styles.bannerText}>
-            Your personal information is securely encrypted and will only be
-            used for scholarship purposes.
-          </Text>
-        </View>
+        )}
+
+        <Controller
+          control={control}
+          name="Taluk"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Taluka"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter taluka"
+              error={formState.errors.Taluk?.message}
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="PinCode"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Pincode"
+              value={value || ''}
+              onChangeText={onChange}
+              placeholder="Enter 6-digit pincode"
+              keyboardType="numeric"
+              maxLength={6}
+              error={formState.errors.PinCode?.message}
+            />
+          )}
+        />
       </FormCard>
     </FormScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  infoBanner: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  bannerIcon: {
-    marginRight: spacing.form.labelSpacing,
-    marginTop: 2,
-  },
-  bannerText: {
-    flex: 1,
-    fontSize: platform.normalize.fontSize.body,
-    lineHeight: platform.normalize.lineHeight.body,
-    color: colors.textSecondary,
+  infoContainer: {
+    padding: spacing.sm,
   },
 });
