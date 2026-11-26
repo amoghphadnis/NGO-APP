@@ -52,7 +52,7 @@ export default function CategorySection({ navigation }: any) {
     referenceSourceID: 0,
   };
 
-  const { control, handleSubmit, formState } = useForm<PucCategoryHousingFormValues>({
+  const { control, handleSubmit, formState, watch } = useForm<PucCategoryHousingFormValues>({
     defaultValues: {
       casteCategoryID: categoryData.casteCategoryID || 0,
       houseTypeID: categoryData.houseTypeID || 0,
@@ -63,10 +63,13 @@ export default function CategorySection({ navigation }: any) {
     mode: 'onChange',
   });
 
+  const selectedHouseType = watch('houseTypeID');
+  const showMonthlyRent = selectedHouseType === 2 || selectedHouseType === 3;
+
   const onSubmit = (data: PucCategoryHousingFormValues) => {
     updateSectionData('category', data);
     updateValidationState('category', { isValid: true, data });
-    markStepComplete(4);
+    markStepComplete(5);
     navigation.navigate('academic');
   };
 
@@ -80,11 +83,11 @@ export default function CategorySection({ navigation }: any) {
       onNext={handleSubmit(onSubmit)}
       nextDisabled={isNextDisabled}
     >
-      {/* Caste Category */}
+      {/* Category & Housing Details */}
       <FormSectionHeader
-        icon="people"
-        title="Caste Category"
-        subtitle="Select your caste category"
+        icon="home"
+        title="Category & Housing"
+        subtitle="Please provide category and accommodation details"
         showRequired
       />
       
@@ -94,28 +97,18 @@ export default function CategorySection({ navigation }: any) {
           name="casteCategoryID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Caste"
+              label="Caste & Category"
               value={value}
               onChange={onChange}
               options={casteOptions}
-              placeholder="Select caste"
+              placeholder="Select caste & category"
               error={formState.errors.casteCategoryID?.message}
               required
               disabled={loadingDropdowns}
             />
           )}
         />
-      </FormCard>
 
-      {/* Housing Details */}
-      <FormSectionHeader
-        icon="home"
-        title="Housing Details"
-        subtitle="Information about your residence"
-        showRequired
-      />
-      
-      <FormCard>
         <Controller
           control={control}
           name="houseTypeID"
@@ -133,37 +126,29 @@ export default function CategorySection({ navigation }: any) {
           )}
         />
 
-        <Controller
-          control={control}
-          name="monthlyRent"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Monthly Rent"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter monthly rent amount"
-              keyboardType="numeric"
-              error={formState.errors.monthlyRent?.message}
-            />
-          )}
-        />
-      </FormCard>
+        {showMonthlyRent && (
+          <Controller
+            control={control}
+            name="monthlyRent"
+            render={({ field: { onChange, value } }) => (
+              <VPInputField
+                label="Monthly Rent (If rented house)"
+                value={value}
+                onChangeText={onChange}
+                placeholder="Enter monthly rent amount"
+                keyboardType="numeric"
+                error={formState.errors.monthlyRent?.message}
+              />
+            )}
+          />
+        )}
 
-      {/* Reference Source */}
-      <FormSectionHeader
-        icon="information-circle"
-        title="Reference Source"
-        subtitle="How did you come to know about this financial assistance program?"
-        showRequired
-      />
-      
-      <FormCard>
         <Controller
           control={control}
           name="referenceSourceID"
           render={({ field: { onChange, value } }) => (
             <ModalSelectField
-              label="Reference Source"
+              label="Reference Source (How did you come to know about this financial assistance program?)"
               value={value}
               onChange={onChange}
               options={referenceSourceOptions}

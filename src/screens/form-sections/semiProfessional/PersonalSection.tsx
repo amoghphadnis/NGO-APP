@@ -185,7 +185,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
           name="contactNumber"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Contact Number (WhatsApp Number)"
+              label="Contact number (WhatsApp number)"
               value={value}
               onChangeText={onChange}
               placeholder="Enter 10-digit mobile number"
@@ -202,7 +202,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
           name="alternateNumber"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Alternate Number"
+              label="Alternate number"
               value={value ?? ''}
               onChangeText={onChange}
               placeholder="Enter 10-digit alternate number"
@@ -228,14 +228,14 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
           name="residentialAddress"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Residential Address"
+              label="Residential Address (Please include your Father's name, house number, street name, village/city name, landmark near your house, post name, taluka and pincode)"
               value={value}
               onChangeText={onChange}
               placeholder="Enter complete address"
               multiline
               numberOfLines={4}
               error={formState.errors.residentialAddress?.message}
-              helperText="Include father's name, house number, street name, village/city, landmark, post, taluka, district and pin code"
+              helperText="• Father's name, house number, street name&#10;• Village/City name, landmark near house&#10;• Post name, taluka, district and pincode"
               required
             />
           )}
@@ -314,6 +314,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
         icon="person-circle"
         title="Other Details"
         subtitle="Gender and category"
+        showRequired
       />
 
       <FormCard>
@@ -345,6 +346,7 @@ export default function PersonalSection({ navigation }: PersonalSectionProps) {
               onChange={onChange}
               placeholder="Select caste category"
               error={formState.errors.casteCategoryID?.message}
+              required
               disabled={loadingDropdowns}
             />
           )}

@@ -56,19 +56,29 @@ export function pucMapper(formData: PucFormat11FormValues): FormData {
   appendIfPresent(fd, 'OtherDistrict', formData.address.OtherDistrict);
   fd.append('Taluk', formData.address.Taluk);
   fd.append('ResidentialAddress', formData.address.ResidentialAddress);
+  appendIfPresent(fd, 'PinCode', (formData.address as any).PinCode);
 
   // ── Family ────────────────────────────────────────────────────────────
+  appendIfPresent(fd, 'FatherName', (formData.family as any).FatherName);
+  appendIfPresent(fd, 'MotherName', (formData.family as any).MotherName);
   fd.append('FatherOccupation', toString(formData.family.FatherOccupation || 0));
   fd.append('MotherOccupation', toString(formData.family.MotherOccupation || 0));
   fd.append('TotalFamilyMembers', toString(formData.family.TotalFamilyMembers || 0));
   fd.append('FamilyAnnualIncome', toString(formData.family.FamilyAnnualIncome || 0));
+  appendIfPresent(fd, 'HouseTypeID', (formData.family as any).HouseTypeID);
+  appendIfPresent(fd, 'MonthlyRent', (formData.family as any).MonthlyRent);
+  appendIfPresent(fd, 'ReferenceSourceID', (formData.family as any).ReferenceSourceID);
 
   // ── Academic ──────────────────────────────────────────────────────────
   fd.append('SSLCPercentage', toString(formData.academic.SSLCPercentage || 0));
+  appendIfPresent(fd, 'TotalMarks', (formData.academic as any).SSLCTotalMarks);
   fd.append('CourseJoined', toString(formData.academic.CourseJoined || 0));
   fd.append('CollegeName', formData.academic.CollegeName);
   fd.append('CollegeType', toString(formData.academic.CollegeType || 0));
   fd.append('CollegeFees', toString(formData.academic.CollegeFees || 0));
+
+  // ── Location ──────────────────────────────────────────────────────────
+  appendIfPresent(fd, 'GoogleMapLink', (formData.documents as any)?.GoogleMapLink);
 
   // ── Documents (all required by contract) ──────────────────────────────
   const fileMappings: Record<string, keyof typeof PUC_FORMAT11_FILE_KEYS> = {

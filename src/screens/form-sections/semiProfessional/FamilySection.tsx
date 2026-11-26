@@ -128,7 +128,7 @@ export default function FamilySection({ navigation }: any) {
           name="fatherName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Father's Name"
+              label="Father Name"
               value={value}
               onChangeText={onChange}
               placeholder="Enter father's full name"
@@ -143,7 +143,7 @@ export default function FamilySection({ navigation }: any) {
           name="motherName"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Mother's Name"
+              label="Mother Name"
               value={value}
               onChangeText={onChange}
               placeholder="Enter mother's full name"
@@ -241,13 +241,13 @@ export default function FamilySection({ navigation }: any) {
             name="monthlyRent"
             render={({ field: { onChange, value } }) => (
               <DecimalInputField
-                label="Monthly Rent Amount"
+                label="Monthly Rent"
                 value={typeof value === 'number' ? value : undefined}
                 onChangeValue={(v) => onChange(v ?? '')}
                 placeholder="Enter monthly rent"
                 prefix="₹"
                 error={formState.errors.monthlyRent?.message}
-                helperText="If you are staying in a rented house, kindly mention the monthly rent amount"
+                helperText="If you are staying in rented house, kindly mention the monthly rent amount"
               />
             )}
           />
@@ -264,7 +264,7 @@ export default function FamilySection({ navigation }: any) {
               placeholder="Enter total family income"
               prefix="₹"
               error={formState.errors.familyIncome?.message}
-              helperText="Total income from all sources"
+              helperText="The total family income should be less than ₹15,000/- per month"
               required
             />
           )}

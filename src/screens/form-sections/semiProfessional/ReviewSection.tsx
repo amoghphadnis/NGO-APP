@@ -78,13 +78,41 @@ export default function ReviewSection({ navigation }: any) {
 
   const isFormComplete = () => {
     const p = spFormData.personal;
-    const hasPersonal = p?.studentName && p?.email && p?.dateOfBirth && p?.contactNumber && p?.genderID && p?.casteCategoryID && p?.areaTypeID && p?.districtID && p?.residentialAddress;
+    const hasPersonal = !!(
+      p?.studentName &&
+      p?.email &&
+      p?.dateOfBirth &&
+      p?.contactNumber &&
+      p?.alternateNumber &&
+      p?.genderID &&
+      p?.casteCategoryID &&
+      p?.areaTypeID &&
+      p?.districtID &&
+      (p?.districtID !== 11 || (p?.otherDistrict && p.otherDistrict.trim().length > 0)) &&
+      p?.residentialAddress &&
+      p?.googleMapLink
+    );
     const f = spFormData.family;
-    const hasFamily = f?.fatherName && f?.motherName && f?.fatherOccupationID && f?.motherOccupationID && f?.familyMembers > 0 && f?.houseTypeID && f?.familyIncome > 0;
+    const hasFamily = !!(
+      f?.fatherName &&
+      f?.motherName &&
+      f?.fatherOccupationID &&
+      f?.motherOccupationID &&
+      f?.familyMembers > 0 &&
+      f?.houseTypeID &&
+      f?.familyIncome !== undefined &&
+      f?.familyIncome >= 0
+    );
     const a = spFormData.academic;
-    const hasAcademic = a?.puPercentage !== undefined && a?.cetRank && a?.ptRank && a?.courseApplying && a?.courseStream;
+    const hasAcademic = !!(
+      a?.puPercentage !== undefined &&
+      a?.cetRank &&
+      a?.ptRank &&
+      a?.courseApplying &&
+      a?.courseStream
+    );
     const d = spFormData.documents;
-    const hasAllDocuments =
+    const hasAllDocuments = !!(
       d?.studentSelfie &&
       d?.cetRankSheet &&
       d?.ptRankSheet &&
@@ -93,7 +121,8 @@ export default function ReviewSection({ navigation }: any) {
       d?.houseVideo &&
       d?.electricityBill &&
       d?.incomeCertificate &&
-      d?.rationCard;
+      d?.rationCard
+    );
     return hasPersonal && hasFamily && hasAcademic && hasAllDocuments;
   };
 
@@ -178,24 +207,21 @@ export default function ReviewSection({ navigation }: any) {
       </View>
 
       <View style={styles.sectionContent}>
-        {Object.entries(data).map(([key, value]) => {
-          if (!value) return null;
-          return (
-            <View key={key} style={styles.dataRow}>
-              <Text style={styles.dataLabel}>{key}:</Text>
-              <Text style={styles.dataValue}>{String(value)}</Text>
-            </View>
-          );
-        })}
+        {Object.entries(data).map(([key, value]) => (
+          <View key={key} style={styles.dataRow}>
+            <Text style={styles.dataLabel}>{key}:</Text>
+            <Text style={styles.dataValue}>{String(value || 'Not provided')}</Text>
+          </View>
+        ))}
       </View>
     </FormCard>
   );
 
-  const renderDocumentStatus = (label: string, uploaded: boolean) => (
+  const renderDocumentStatus = (label: string, isUploaded: boolean) => (
     <View style={styles.documentRow}>
-      <Text style={styles.documentLabel}>{label}</Text>
-      <Text style={uploaded ? styles.documentUploaded : styles.documentPending}>
-        {uploaded ? '✓' : '○'}
+      <Text style={styles.documentLabel}>{label}:</Text>
+      <Text style={isUploaded ? styles.documentUploaded : styles.documentPending}>
+        {isUploaded ? '✓ Uploaded' : 'Pending'}
       </Text>
     </View>
   );
@@ -224,133 +250,133 @@ export default function ReviewSection({ navigation }: any) {
       loading={submissionState.isSubmitting}
     >
       <FormSectionHeader
-          icon="checkmark-circle"
-          title="Application Summary"
-          subtitle="Review all information before submitting"
-        />
+        icon="checkmark-circle"
+        title="Application Summary"
+        subtitle="Review all information before submitting"
+      />
 
-        {renderSection(
-          "Applicant's Information",
-          {
-            "Email": p?.email,
-            "Student Name": p?.studentName,
-            "Date of Birth": formatDate(p?.dateOfBirth),
-            "Contact Number": p?.contactNumber,
-            "Alternate Number": p?.alternateNumber || 'N/A',
-            "Gender": labelFor(dropdowns.genders, p?.genderID),
-            "Caste Category": labelFor(dropdowns.casteCategories, p?.casteCategoryID),
-            "Area Type": labelFor(dropdowns.areaTypes, p?.areaTypeID),
-            "District": labelFor(dropdowns.districts, p?.districtID),
-            "Other District": p?.otherDistrict || 'N/A',
-            "Residential Address": p?.residentialAddress,
-            "Google Map Link": p?.googleMapLink || 'N/A',
-          },
-          "person",
-          () => navigation.navigate('personal')
-        )}
+      {renderSection(
+        "Applicant's Information",
+        {
+          "Email": p?.email,
+          "Name of the Student": p?.studentName,
+          "Date of Birth": formatDate(p?.dateOfBirth),
+          "Contact number (WhatsApp number)": p?.contactNumber,
+          "Alternate number": p?.alternateNumber || 'N/A',
+          "Gender": labelFor(dropdowns.genders, p?.genderID),
+          "Caste & Category": labelFor(dropdowns.casteCategories, p?.casteCategoryID),
+          "Place": labelFor(dropdowns.areaTypes, p?.areaTypeID),
+          "District": labelFor(dropdowns.districts, p?.districtID),
+          "Other District": p?.otherDistrict || 'N/A',
+          "Residential Address": p?.residentialAddress,
+          "Google Map Link": p?.googleMapLink || 'N/A',
+        },
+        "person",
+        () => navigation.navigate('personal')
+      )}
 
-        {renderSection(
-          "Family Details",
-          {
-            "Father's Name": f?.fatherName,
-            "Mother's Name": f?.motherName,
-            "Father's Occupation": labelFor(dropdowns.fatherOccupations, f?.fatherOccupationID),
-            "Mother's Occupation": labelFor(dropdowns.motherOccupations, f?.motherOccupationID),
-            "Family Members": f?.familyMembers,
-            "House Type": labelFor(dropdowns.houseTypes, f?.houseTypeID),
-            "Monthly Rent": f?.monthlyRent ? `₹${f.monthlyRent}` : 'N/A',
-            "Family Income": f?.familyIncome ? `₹${f.familyIncome}` : 'N/A',
-          },
-          "people",
-          () => navigation.navigate('family')
-        )}
+      {renderSection(
+        "Family Details",
+        {
+          "Father Name": f?.fatherName,
+          "Mother Name": f?.motherName,
+          "Father/Guardian Occupation": labelFor(dropdowns.fatherOccupations, f?.fatherOccupationID),
+          "Mother/Guardian Occupation": labelFor(dropdowns.motherOccupations, f?.motherOccupationID),
+          "Total Number of Family Members": f?.familyMembers,
+          "House Type": labelFor(dropdowns.houseTypes, f?.houseTypeID),
+          "Monthly Rent": f?.monthlyRent ? `₹${f.monthlyRent}` : 'N/A',
+          "Total Monthly Family Income (in ₹)": f?.familyIncome ? `₹${f.familyIncome}` : 'N/A',
+        },
+        "people",
+        () => navigation.navigate('family')
+      )}
 
-        {renderSection(
-          "Academic Details",
-          {
-            "PUC II / 12th Percentage": a?.puPercentage !== undefined ? `${a.puPercentage}%` : 'N/A',
-            "CET Rank": a?.cetRank || 'N/A',
-            "Agriculture/Veterinary/Horticulture (PT Rank)": a?.ptRank || 'N/A',
-            "Course Applying For": a?.courseApplying,
-            "Course Stream": a?.courseStream,
-          },
-          "school",
-          () => navigation.navigate('academic')
-        )}
+      {renderSection(
+        "Academic Details",
+        {
+          "Secured Percentage in PUC II / 12th Grade": a?.puPercentage ? `${a.puPercentage}%` : 'N/A',
+          "CET Rank": a?.cetRank,
+          "Agriculture/ Veterinary/ Horticulture (PT Rank)": a?.ptRank,
+          "Course Applying": a?.courseApplying,
+          "Course Stream": a?.courseStream,
+        },
+        "school",
+        () => navigation.navigate('academic')
+      )}
 
-        <FormCard>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleContainer}>
-              <Ionicons name="attach" size={20} color={colors.primary} style={styles.sectionIcon} />
-              <Text style={styles.sectionTitle}>Documents (9 Required)</Text>
+      <FormCard>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleContainer}>
+            <Ionicons name="attach" size={20} color={colors.primary} style={styles.sectionIcon} />
+            <Text style={styles.sectionTitle}>Uploaded Documents</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('documents')} style={styles.editButton}>
+            <Ionicons name="create" size={16} color={colors.primary} />
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.sectionContent}>
+          {renderDocumentStatus("1. Student's Selfie", !!d?.studentSelfie)}
+          {renderDocumentStatus('2. CET Rank Sheet', !!d?.cetRankSheet)}
+          {renderDocumentStatus('3. Agriculture/Veterinary/Horticulture (PT Rank)', !!d?.ptRankSheet)}
+          {renderDocumentStatus('4. Dwelling Unit Photograph', !!d?.dwellingUnitPhoto)}
+          {renderDocumentStatus('5. PUC II / 12th Marks Sheet', !!d?.marksSheet12)}
+          {renderDocumentStatus('6. Short Video of the House', !!d?.houseVideo)}
+          {renderDocumentStatus('7. Latest Electricity bill or Bhagyajyothi connection related document', !!d?.electricityBill)}
+          {renderDocumentStatus('8. Income Certificate', !!d?.incomeCertificate)}
+          {renderDocumentStatus('9. Ration Card Copy (both sides)', !!d?.rationCard)}
+        </View>
+      </FormCard>
+
+      <FormSectionHeader
+        icon="shield-checkmark"
+        title="Declaration"
+        subtitle="Please read and accept the declaration"
+      />
+
+      <FormCard>
+        <View style={styles.declarationContainer}>
+          <Text style={styles.declarationText}>
+            I hereby declare that all the information provided by me in this scholarship application is true, correct, and complete to the best of my knowledge and belief. I understand that any false or misleading information may result in the rejection of my application and disqualification from future scholarship opportunities.
+          </Text>
+
+          <TouchableOpacity
+            style={styles.checkboxContainer}
+            onPress={() => setDeclarationAccepted(!declarationAccepted)}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.checkbox, declarationAccepted && styles.checkboxChecked]}>
+              {declarationAccepted && (
+                <Ionicons name="checkmark" size={16} color={colors.card} />
+              )}
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('documents')} style={styles.editButton}>
-              <Ionicons name="create" size={16} color={colors.primary} />
-              <Text style={styles.editButtonText}>Edit</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.sectionContent}>
-            {renderDocumentStatus("1. Student's Selfie", !!d?.studentSelfie)}
-            {renderDocumentStatus('2. CET Rank Sheet', !!d?.cetRankSheet)}
-            {renderDocumentStatus('3. Agriculture/Veterinary/Horticulture (PT Rank)', !!d?.ptRankSheet)}
-            {renderDocumentStatus('4. Dwelling Unit Photograph', !!d?.dwellingUnitPhoto)}
-            {renderDocumentStatus('5. PUC II / 12th Marks Sheet', !!d?.marksSheet12)}
-            {renderDocumentStatus('6. Short Video of the House', !!d?.houseVideo)}
-            {renderDocumentStatus('7. Electricity Bill / Bhagyajyothi Document', !!d?.electricityBill)}
-            {renderDocumentStatus('8. Income Certificate', !!d?.incomeCertificate)}
-            {renderDocumentStatus('9. Ration Card Copy (Both Sides)', !!d?.rationCard)}
-          </View>
-        </FormCard>
-
-        <FormSectionHeader
-          icon="shield-checkmark"
-          title="Declaration"
-          subtitle="Please read and accept the declaration"
-        />
-
-        <FormCard>
-          <View style={styles.declarationContainer}>
-            <Text style={styles.declarationText}>
-              I hereby declare that all the information provided by me in this scholarship application is true, correct, and complete to the best of my knowledge and belief. I understand that any false or misleading information may result in the rejection of my application and disqualification from future scholarship opportunities.
+            <Text style={styles.checkboxLabel}>
+              I have read and agree to the Terms &amp; Conditions.
             </Text>
+          </TouchableOpacity>
+        </View>
+      </FormCard>
 
-            <TouchableOpacity
-              style={styles.checkboxContainer}
-              onPress={() => setDeclarationAccepted(!declarationAccepted)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.checkbox, declarationAccepted && styles.checkboxChecked]}>
-                {declarationAccepted && (
-                  <Ionicons name="checkmark" size={16} color={colors.card} />
-                )}
-              </View>
-              <Text style={styles.checkboxLabel}>
-                I have read and agree to the Terms & Conditions
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </FormCard>
+      <UploadSizeNotice totalBytes={totalUploadBytes} />
 
-        <UploadSizeNotice totalBytes={totalUploadBytes} />
-
-        {submissionState.error ? (
-          <FormCard>
-            <View style={styles.errorContainer}>
-              <Ionicons name="alert-circle" size={24} color={colors.error} style={styles.noticeIcon} />
-              <Text style={styles.errorText}>{submissionState.error}</Text>
-            </View>
-          </FormCard>
-        ) : null}
-
+      {submissionState.error ? (
         <FormCard>
-          <View style={styles.noticeContainer}>
-            <Ionicons name="information-circle" size={24} color={colors.primary} style={styles.noticeIcon} />
-            <Text style={styles.noticeText}>
-              Once submitted, you will not be able to modify your application. Please review all information carefully before proceeding.
-            </Text>
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle" size={24} color={colors.error} style={styles.noticeIcon} />
+            <Text style={styles.errorText}>{submissionState.error}</Text>
           </View>
         </FormCard>
+      ) : null}
+
+      <FormCard>
+        <View style={styles.noticeContainer}>
+          <Ionicons name="information-circle" size={24} color={colors.primary} style={styles.noticeIcon} />
+          <Text style={styles.noticeText}>
+            Once submitted, you will not be able to modify your application. Please review all information carefully before proceeding.
+          </Text>
+        </View>
+      </FormCard>
     </FormScreenLayout>
   );
 }

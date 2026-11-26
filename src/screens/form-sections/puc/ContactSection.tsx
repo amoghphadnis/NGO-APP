@@ -64,31 +64,13 @@ export default function ContactSection({ navigation }: any) {
       <FormCard>
         <Controller
           control={control}
-          name="Email"
-          render={({ field: { onChange, value } }) => (
-            <VPInputField
-              label="Email Address (Optional)"
-              value={value}
-              onChangeText={onChange}
-              placeholder="Enter your email address"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              error={formState.errors.Email?.message}
-              successText={emailSuccess ? 'Email format looks good' : undefined}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
           name="ContactNumber"
           render={({ field: { onChange, value } }) => (
             <VPInputField
-              label="Contact Number"
+              label="Contact Number (WhatsApp Number)"
               value={value}
               onChangeText={onChange}
-              placeholder="Enter 10-digit mobile number"
+              placeholder="Enter 10-digit WhatsApp number"
               keyboardType="phone-pad"
               maxLength={10}
               error={formState.errors.ContactNumber?.message}
@@ -110,7 +92,25 @@ export default function ContactSection({ navigation }: any) {
               keyboardType="phone-pad"
               maxLength={10}
               error={formState.errors.AlternateNumber?.message}
-              helperText="Optional alternate contact number"
+              required
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="Email"
+          render={({ field: { onChange, value } }) => (
+            <VPInputField
+              label="Email"
+              value={value}
+              onChangeText={onChange}
+              placeholder="Enter your email address"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              error={formState.errors.Email?.message}
+              successText={emailSuccess ? 'Email format looks good' : undefined}
             />
           )}
         />

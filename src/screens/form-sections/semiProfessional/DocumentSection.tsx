@@ -1,4 +1,5 @@
 import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import FormCard from '@/components/common/FormCard';
 import FormSectionHeader from '@/components/common/FormSectionHeader';
@@ -22,10 +23,10 @@ const DOC_KEYS = [
   { key: SEMI_PROFESSIONAL_FILE_KEYS.PT_RANK_SHEET, label: 'Agriculture/Veterinary/Horticulture (PT Rank) *', subtitle: 'Upload PT rank sheet (PDF/JPG/PNG, max 2MB)' },
   { key: SEMI_PROFESSIONAL_FILE_KEYS.DWELLING_UNIT_PHOTO, label: 'Dwelling Unit Photograph *', subtitle: 'Upload a photo of your house (JPG/PNG, max 2MB)' },
   { key: SEMI_PROFESSIONAL_FILE_KEYS.MARKS_SHEET_12, label: 'PUC II / 12th Marks Sheet *', subtitle: 'Upload 12th marks sheet (PDF/JPG/PNG, max 2MB)' },
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO, label: 'Short Video of the House *', subtitle: 'Record from outside moving inside, covering all rooms including kitchen, in landscape mode (MP4/AVI/MOV/MKV/WMV/3GP/WEBM, max 50MB)' },
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL, label: 'Latest Electricity Bill / Bhagyajyothi Document *', subtitle: 'Upload electricity bill or connection document (JPG/PNG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO, label: 'Short Video of the House *', subtitle: 'Please record a short video of your house, starting from the outside and moving inside, the video should cover all rooms, including the kitchen, and must be recorded in landscape mode (MP4/AVI/MOV/MKV/WMV/3GP/WEBM, max 50MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.ELECTRICITY_BILL, label: 'Latest Electricity bill or Bhagyajyothi connection related document *', subtitle: 'Upload electricity bill or connection document (JPG/PNG, max 2MB)' },
   { key: SEMI_PROFESSIONAL_FILE_KEYS.INCOME_CERTIFICATE, label: 'Income Certificate *', subtitle: 'Upload income certificate (JPG/PNG, max 2MB)' },
-  { key: SEMI_PROFESSIONAL_FILE_KEYS.RATION_CARD, label: 'Ration Card Copy (Both Sides) *', subtitle: 'Upload both sides of ration card (JPG/PNG, max 2MB)' },
+  { key: SEMI_PROFESSIONAL_FILE_KEYS.RATION_CARD, label: 'Ration Card Copy (both sides) *', subtitle: 'Upload both sides of ration card (JPG/PNG, max 2MB)' },
 ];
 
 export default function DocumentSection({ navigation }: any) {
@@ -90,88 +91,115 @@ export default function DocumentSection({ navigation }: any) {
       onNext={onSubmit}
       nextDisabled={false}
     >
+      {/* Website Top Notice */}
+      <View style={styles.topNoticeBanner}>
+        <Ionicons name="information-circle-outline" size={18} color="#0284c7" style={{ marginRight: 6 }} />
+        <Text style={styles.topNoticeText}>
+          Instructions: Upload the following documents. Take photos using your mobile phone and upload them. (Only image files are allowed; For House Video, upload video files only [MP4, AVI, MOV, MKV, WMV, 3GP, WEBM])
+        </Text>
+      </View>
+
       <FormSectionHeader
-          icon="attach"
-          title="Upload Documents"
-          subtitle="Take photos using your mobile phone and upload them (only image files allowed). For House Video, upload video files only (MP4, AVI, MOV, MKV, WMV, 3GP, WEBM)."
-        />
+        icon="attach"
+        title="Upload Documents"
+        subtitle="Fields marked with * are required"
+        showRequired
+      />
 
-        {DOC_KEYS.map((doc) => {
-          const rule = getSemiProfUploadRule(doc.key);
-          const isVideo = doc.key === SEMI_PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO;
-          return (
-            <FormCard key={doc.key}>
-              <FileUploadField
-                title={doc.label}
-                subtitle={doc.subtitle}
-                file={documentData[doc.key]?.file}
-                meta={uploadState[doc.key]}
-                onUpload={() => handleFileUpload(doc.key)}
-                onDelete={() => handleDeleteFile(doc.key)}
-                maxSize={rule?.maxSize ?? 2 * 1024 * 1024}
-                acceptedTypes={isVideo ? VIDEO_TYPES : rule?.acceptedTypes ?? ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
-              />
-            </FormCard>
-          );
-        })}
+      {DOC_KEYS.map((doc) => {
+        const rule = getSemiProfUploadRule(doc.key);
+        const isVideo = doc.key === SEMI_PROFESSIONAL_FILE_KEYS.HOUSE_VIDEO;
+        return (
+          <FormCard key={doc.key}>
+            <FileUploadField
+              title={doc.label}
+              subtitle={doc.subtitle}
+              file={documentData[doc.key]?.file}
+              meta={uploadState[doc.key]}
+              onUpload={() => handleFileUpload(doc.key)}
+              onDelete={() => handleDeleteFile(doc.key)}
+              maxSize={rule?.maxSize ?? 2 * 1024 * 1024}
+              acceptedTypes={isVideo ? VIDEO_TYPES : rule?.acceptedTypes ?? ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']}
+            />
+          </FormCard>
+        );
+      })}
 
-        <FormCard>
-          <View style={styles.guidelineContainer}>
-            <View style={styles.guidelineItem}>
-              <Text style={styles.guidelineBullet}>•</Text>
-              <Text style={styles.guidelineText}>
-                Take photos using your mobile phone and upload them (only image files allowed)
-              </Text>
-            </View>
-            <View style={styles.guidelineItem}>
-              <Text style={styles.guidelineBullet}>•</Text>
-              <Text style={styles.guidelineText}>
-                For House Video, upload video files only (MP4, AVI, MOV, MKV, WMV, 3GP, WEBM)
-              </Text>
-            </View>
-            <View style={styles.guidelineItem}>
-              <Text style={styles.guidelineBullet}>•</Text>
-              <Text style={styles.guidelineText}>
-                Documents must be clear, readable, and not exceed 2MB (50MB for video)
-              </Text>
-            </View>
-            <View style={styles.guidelineItem}>
-              <Text style={styles.guidelineBullet}>•</Text>
-              <Text style={styles.guidelineText}>
-                All 9 documents are mandatory — verified by the scholarship committee
-              </Text>
-            </View>
+      <FormCard>
+        <View style={styles.guidelineContainer}>
+          <View style={styles.guidelineItem}>
+            <Text style={styles.guidelineBullet}>•</Text>
+            <Text style={styles.guidelineText}>
+              Take photos using your mobile phone and upload them (only image files allowed)
+            </Text>
           </View>
-        </FormCard>
-
-        <FormSectionHeader
-          icon="checkmark-circle"
-          title="Upload Status"
-          subtitle="Current upload progress"
-        />
-
-        <UploadSizeNotice totalBytes={getTotalUploadSizeBytes(documentData)} />
-
-        <FormCard>
-          <View style={styles.statusContainer}>
-            {DOC_KEYS.map((doc) => (
-              <View key={doc.key} style={styles.statusItem}>
-                <Text style={styles.statusLabel}>{doc.label}:</Text>
-                <Text style={[
-                  styles.statusText,
-                  documentData[doc.key]?.file ? styles.successText : styles.pendingText
-                ]}>
-                  {documentData[doc.key]?.file ? '✓ Uploaded' : 'Pending'}
-                </Text>
-              </View>
-            ))}
+          <View style={styles.guidelineItem}>
+            <Text style={styles.guidelineBullet}>•</Text>
+            <Text style={styles.guidelineText}>
+              For House Video, upload video files only (MP4, AVI, MOV, MKV, WMV, 3GP, WEBM)
+            </Text>
           </View>
-        </FormCard>
+          <View style={styles.guidelineItem}>
+            <Text style={styles.guidelineBullet}>•</Text>
+            <Text style={styles.guidelineText}>
+              Documents must be clear, readable, and not exceed 2MB (50MB for video)
+            </Text>
+          </View>
+          <View style={styles.guidelineItem}>
+            <Text style={styles.guidelineBullet}>•</Text>
+            <Text style={styles.guidelineText}>
+              All 9 documents are mandatory — verified by the scholarship committee
+            </Text>
+          </View>
+        </View>
+      </FormCard>
+
+      <FormSectionHeader
+        icon="checkmark-circle"
+        title="Upload Status"
+        subtitle="Current upload progress"
+      />
+
+      <UploadSizeNotice totalBytes={getTotalUploadSizeBytes(documentData)} />
+
+      <FormCard>
+        <View style={styles.statusContainer}>
+          {DOC_KEYS.map((doc) => (
+            <View key={doc.key} style={styles.statusItem}>
+              <Text style={styles.statusLabel}>{doc.label}:</Text>
+              <Text style={[
+                styles.statusText,
+                documentData[doc.key]?.file ? styles.successText : styles.pendingText
+              ]}>
+                {documentData[doc.key]?.file ? '✓ Uploaded' : 'Pending'}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </FormCard>
     </FormScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  topNoticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0F2FE',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    borderRadius: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  topNoticeText: {
+    flex: 1,
+    fontSize: platform.normalize.fontSize.small,
+    lineHeight: platform.normalize.lineHeight.small,
+    color: '#0369A1',
+    fontWeight: '500',
+  },
   guidelineContainer: {
     padding: spacing.sm,
   },

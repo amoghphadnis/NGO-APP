@@ -8,20 +8,16 @@ export const pucFormConfig: FormConfig = {
   steps: [
     'guidelines',
     'personal',
-    'contact',
-    'address',
     'family',
     'academic',
     'documents',
     'review',
     'success'
   ],
-  totalSteps: 9,
+  totalSteps: 7,
   validation: {
     guidelines: 'guidelinesSchema',
     personal: 'pucFormat11PersonalSchema',
-    contact: 'pucFormat11ContactSchema',
-    address: 'pucFormat11AddressSchema',
     family: 'pucFormat11FamilySchema',
     academic: 'pucFormat11AcademicSchema',
     documents: 'pucFormat11DocumentsSchema',
@@ -42,35 +38,17 @@ export const pucStepConfigs = [
   },
   {
     id: 'personal' as FormStep,
-    title: 'Personal Details',
-    subtitle: 'Tell us about yourself',
+    title: "Applicant's Information",
+    subtitle: 'Personal, contact and address details',
     component: 'PersonalSection',
     validation: 'pucFormat11PersonalSchema',
     required: true,
     icon: 'person'
   },
   {
-    id: 'contact' as FormStep,
-    title: 'Contact Information',
-    subtitle: 'How can we reach you',
-    component: 'ContactSection',
-    validation: 'pucFormat11ContactSchema',
-    required: true,
-    icon: 'mail'
-  },
-  {
-    id: 'address' as FormStep,
-    title: 'Address Details',
-    subtitle: 'Where do you live',
-    component: 'AddressSection',
-    validation: 'pucFormat11AddressSchema',
-    required: true,
-    icon: 'location'
-  },
-  {
     id: 'family' as FormStep,
-    title: 'Family Information',
-    subtitle: 'Tell us about your family',
+    title: 'Family Details',
+    subtitle: 'Family and housing information',
     component: 'FamilySection',
     validation: 'pucFormat11FamilySchema',
     required: true,

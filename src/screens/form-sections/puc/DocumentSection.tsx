@@ -6,6 +6,7 @@ import FormSectionHeader from '@/components/common/FormSectionHeader';
 import FileUploadField from '@/components/form/FileUploadField';
 import UploadSizeNotice from '@/components/form/UploadSizeNotice';
 import FormScreenLayout from '@/components/layout/FormScreenLayout';
+import VPInputField from '@/components/common/VPInputField';
 import { validateUpload } from '@/forms/puc/uploads';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
@@ -16,23 +17,35 @@ import { getTotalUploadSizeBytes } from '@/utils/uploadSize';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 const PUC_FORMAT11_DOC_KEYS = [
-  'StudentSelfie',
   'SSLCMarksCard',
+  'StudentSelfie',
   'ElectricityBill',
   'RationCard',
+  'IncomeCertificate',
   'DwellingUnitPhoto',
   'HouseVideo',
-  'IncomeCertificate',
 ] as const;
 
 const DOC_LABELS: Record<string, { title: string; subtitle: string; icon: string }> = {
-  StudentSelfie: { title: 'Student Selfie', subtitle: 'Upload your recent selfie photo', icon: 'person' },
-  SSLCMarksCard: { title: 'SSLC Marks Card', subtitle: 'Upload your SSLC marks card', icon: 'school' },
-  ElectricityBill: { title: 'Electricity Bill', subtitle: 'Upload latest electricity bill', icon: 'flash' },
-  RationCard: { title: 'Ration Card', subtitle: 'Upload ration card (both sides)', icon: 'card' },
-  DwellingUnitPhoto: { title: 'Dwelling Unit Photo', subtitle: 'Photo of the student with family in front of the house', icon: 'home' },
-  HouseVideo: { title: 'House Video', subtitle: 'Upload video of your house (MP4, MOV, max 50MB)', icon: 'videocam' },
+  SSLCMarksCard: { title: 'SSLC Marks Card', subtitle: 'Upload your SSLC marks card (Photo)', icon: 'school' },
+  StudentSelfie: { title: 'Student Recent Photo', subtitle: 'Upload your recent photo/selfie', icon: 'person' },
+  ElectricityBill: {
+    title: 'Electricity Recent Bill (Not less than 3 Months) or Bhagya Jyoti Connection Related Document',
+    subtitle: 'Upload latest electricity bill or Bhagya Jyoti document',
+    icon: 'flash',
+  },
+  RationCard: { title: 'Ration Card (both sides)', subtitle: 'Upload ration card (both sides)', icon: 'card' },
   IncomeCertificate: { title: 'Income Certificate', subtitle: 'Upload income certificate', icon: 'receipt' },
+  DwellingUnitPhoto: {
+    title: 'Latest Family Photo (in front of House)',
+    subtitle: 'Family photo taken in front of your dwelling unit/house',
+    icon: 'home',
+  },
+  HouseVideo: {
+    title: 'Full House Video (Outside & Inside)',
+    subtitle: 'Full video of the dwelling unit (exterior + interior clearly visible, max 50MB)',
+    icon: 'videocam',
+  },
 };
 
 const IMAGE_DOC_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -42,13 +55,7 @@ const HOUSE_VIDEO_KEY = 'HouseVideo';
 export default function DocumentSection({ navigation }: any) {
   const { updateSectionData, markStepComplete, updateValidationState, formData, uploadState, updateUploadState } = useFormEngineStore();
 
-  const documentData = isPUCForm(formData) ? formData.documents ?? {
-    StudentSelfie: undefined,
-    SSLCMarksCard: undefined,
-  } : {
-    StudentSelfie: undefined,
-    SSLCMarksCard: undefined,
-  };
+  const documentData = isPUCForm(formData) ? (formData.documents as any) ?? {} : {};
 
   const handleFileUpload = async (documentKey: string) => {
     updateUploadState(documentKey, { isUploading: true, error: undefined, progress: 0 });
@@ -96,7 +103,7 @@ export default function DocumentSection({ navigation }: any) {
       return;
     }
     updateValidationState('documents', { isValid: allDocumentsUploaded, data: documentData });
-    markStepComplete(6);
+    markStepComplete(4);
     navigation.navigate('review');
   };
 
@@ -105,6 +112,8 @@ export default function DocumentSection({ navigation }: any) {
   return (
     <FormScreenLayout
       title="Document Upload"
+      step={5}
+      totalSteps={7}
       onBack={navigation.goBack}
       onNext={onSubmit}
       nextDisabled={isNextDisabled}
@@ -151,6 +160,31 @@ export default function DocumentSection({ navigation }: any) {
             </React.Fragment>
           );
         })}
+
+        <FormSectionHeader
+          icon="location"
+          title="House Location"
+          subtitle="Mention your home address Google Map link here"
+          showRequired
+        />
+        <FormCard>
+          <VPInputField
+            label="Your House Location (Google Maps link)"
+            value={(documentData as any).GoogleMapLink || ''}
+            onChangeText={(text) => {
+              const updated = {
+                ...documentData,
+                GoogleMapLink: text,
+              };
+              updateSectionData('documents', updated);
+            }}
+            placeholder="Paste Google Maps link here"
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            required
+          />
+        </FormCard>
 
         <UploadSizeNotice totalBytes={getTotalUploadSizeBytes(documentData)} />
     </FormScreenLayout>
