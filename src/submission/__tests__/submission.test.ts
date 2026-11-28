@@ -392,36 +392,35 @@ describe('Form Submission', () => {
       expect(keys).toContain('Email');
       expect(keys).toContain('ContactNumber');
 
-      // Address fields (contract names)
+      // Address fields (both Format 1.1 and New_Students names for API compatibility)
       expect(keys).toContain('District');
       expect(keys).toContain('Taluk');
       expect(keys).toContain('ResidentialAddress');
-      expect(keys).not.toContain('DistrictID');
-      expect(keys).not.toContain('Taluka');
-      expect(keys).not.toContain('Address');
-      expect(keys).not.toContain('Pincode');
+      expect(keys).toContain('DistrictID');
+      expect(keys).toContain('Taluka');
+      expect(keys).toContain('Address');
 
-      // Family fields (contract names)
+      // Family fields (both Format 1.1 and New_Students names for API compatibility)
       expect(keys).toContain('FatherOccupation');
       expect(keys).toContain('MotherOccupation');
       expect(keys).toContain('TotalFamilyMembers');
       expect(keys).toContain('FamilyAnnualIncome');
-      expect(keys).not.toContain('FatherOccupationID');
-      expect(keys).not.toContain('MotherOccupationID');
-      expect(keys).not.toContain('FamilyMembers');
-      expect(keys).not.toContain('FamilyIncome');
+      expect(keys).toContain('FatherOccupationID');
+      expect(keys).toContain('MotherOccupationID');
+      expect(keys).toContain('FamilyMembers');
+      expect(keys).toContain('FamilyIncome');
 
-      // Academic fields (contract names)
+      // Academic fields (both Format 1.1 and New_Students names for API compatibility)
       expect(keys).toContain('SSLCPercentage');
       expect(keys).toContain('CourseJoined');
       expect(keys).toContain('CollegeType');
       expect(keys).toContain('CollegeFees');
+      expect(keys).toContain('CourseID');
+      expect(keys).toContain('CollegeTypeID');
+      expect(keys).toContain('ExpectedFees');
+      expect(keys).toContain('SecuredPercentage');
       expect(keys).not.toContain('CollegeContactNumber');
       expect(keys).not.toContain('Achievement');
-      expect(keys).not.toContain('CourseID');
-      expect(keys).not.toContain('CollegeTypeID');
-      expect(keys).not.toContain('ExpectedFees');
-      expect(keys).not.toContain('SecuredPercentage');
 
       // Bank fields (removed from PUC)
       expect(keys).not.toContain('ParentsBankBalance');
@@ -431,20 +430,15 @@ describe('Form Submission', () => {
       expect(keys).not.toContain('BankName');
       expect(keys).not.toContain('BranchName');
 
-      // File fields (exact contract names)
+      // File fields (both Format 1.1 and New_Students names)
       expect(keys).toContain('StudentSelfie');
+      expect(keys).toContain('StudentPhoto');
       expect(keys).toContain('SSLCMarksCard');
 
       // Removed file fields should NOT be present
       expect(keys).not.toContain('FeeReceipts');
       expect(keys).not.toContain('BankPassbook');
       expect(keys).not.toContain('AadhaarCard');
-      expect(keys).not.toContain('StudentPhoto');
-      expect(keys).not.toContain('RationCards');
-      expect(keys).not.toContain('IncomeCertificate');
-      expect(keys).not.toContain('FamilyPhoto');
-      expect(keys).not.toContain('HouseVideo');
-      expect(keys).not.toContain('HouseVisitLink');
     });
 
     it('should log missing files for PUC Format 1.1', () => {
