@@ -3,17 +3,19 @@
  *
  * Implements the official Application Settings API Contract:
  *
- * Controller: ApplicationSettingsApiController
- * Base Route: /api/application-settings
+ * Controller: ApplicationSettingsApiController / VPStudentApiController
+ * Base Routes:
+ *   Primary:  /api/students/application-settingsvp
+ *   Fallback: /api/application-settings
  *
  * Endpoints:
- *   1. GET /api/application-settings/form-types
- *      → { success: true, data: [{ Text: string, Value: string }] }
- *   2. GET /api/application-settings/last-date?formType={formType}
- *      → { success: true, id: number, lastDate: "yyyy-MM-dd" }
- *   3. POST /api/application-settings/update-last-date
- *      → body { FormType: string, LastDateToApply: string }
- *      → { success: true, message: string }
+ *   1. GET /api/students/application-settingsvp/form-types
+ *      → { Success: true, FormTypes: [{ Text: string, Value: string }] }
+ *   2. GET /api/students/application-settingsvp/last-date?formType={formType}
+ *      → { Success: true, Id: number, FormType: string, LastDateToApply: "yyyy-MM-dd" }
+ *   3. POST /api/students/application-settingsvp/update-last-date
+ *      → body (x-www-form-urlencoded): FormType={formType}&LastDateToApply={yyyy-MM-dd}
+ *      → { Success: true, Message: string }
  */
 
 import api from './client';
@@ -53,16 +55,65 @@ export interface LastDateResponse {
 }
 
 export async function getFormTypes(): Promise<FormTypeItem[]> {
-  const response = await api.get('/application-settings/form-types');
-  const body = response.data as FormTypesResponse;
-  return body.data || [];
+  try {
+    const response = await api.get('/students/application-settingsvp/form-types');
+    const data = response.data;
+    if (data?.FormTypes && Array.isArray(data.FormTypes)) {
+      return data.FormTypes;
+    }
+    if (data?.data && Array.isArray(data.data)) {
+      return data.data;
+    }
+  } catch {}
+
+  try {
+    const response = await api.get('/application-settings/form-types');
+    const body = response.data as FormTypesResponse;
+    if (body?.data && Array.isArray(body.data)) {
+      return body.data;
+    }
+  } catch {}
+
+  return [
+    { Text: 'Professional', Value: 'Professional' },
+    { Text: 'PUC, Diploma', Value: 'Diploma' },
+    { Text: 'Semi Professional', Value: 'Semi Professional' },
+  ];
 }
 
 export async function getLastDate(formType: string): Promise<LastDateResponse> {
-  const response = await api.get(
-    `/application-settings/last-date?formType=${encodeURIComponent(formType)}`
-  );
-  return response.data as LastDateResponse;
+  try {
+    const response = await api.get(
+      `/students/application-settingsvp/last-date?formType=${encodeURIComponent(formType)}`
+    );
+    const data = response.data;
+    const lastDate = data?.LastDateToApply ?? data?.lastDate ?? data?.LastDate;
+    return {
+      success: data?.Success ?? data?.success ?? true,
+      id: data?.Id ?? data?.id,
+      lastDate: lastDate || undefined,
+      message: data?.Message ?? data?.message,
+    };
+  } catch (primaryErr: any) {
+    try {
+      const response = await api.get(
+        `/application-settings/last-date?formType=${encodeURIComponent(formType)}`
+      );
+      const data = response.data;
+      const lastDate = data?.LastDateToApply ?? data?.lastDate ?? data?.LastDate;
+      return {
+        success: data?.Success ?? data?.success ?? true,
+        id: data?.Id ?? data?.id,
+        lastDate: lastDate || undefined,
+        message: data?.Message ?? data?.message,
+      };
+    } catch {
+      return {
+        success: false,
+        message: primaryErr?.message || 'Failed to fetch last date',
+      };
+    }
+  }
 }
 
 export async function getApplicationSettings(): Promise<ApplicationSetting[]> {
@@ -107,11 +158,36 @@ export async function updateLastDateToApply(
   formType: string,
   lastDateToApply: string
 ): Promise<UpdateLastDateResponse> {
-  const response = await api.post('/application-settings/update-last-date', {
-    FormType: formType,
-    LastDateToApply: lastDateToApply,
-  });
-  return response.data as UpdateLastDateResponse;
+  const formBody = `FormType=${encodeURIComponent(formType)}&LastDateToApply=${encodeURIComponent(lastDateToApply)}`;
+  try {
+    const response = await api.post(
+      '/students/application-settingsvp/update-last-date',
+      formBody,
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+    const data = response.data;
+    return {
+      success: data?.Success ?? data?.success ?? true,
+      message: data?.Message ?? data?.message ?? 'Last date updated successfully.',
+    };
+  } catch (primaryErr: any) {
+    try {
+      const response = await api.post('/application-settings/update-last-date', {
+        FormType: formType,
+        LastDateToApply: lastDateToApply,
+      });
+      const data = response.data;
+      return {
+        success: data?.Success ?? data?.success ?? true,
+        message: data?.Message ?? data?.message ?? 'Last date updated successfully.',
+      };
+    } catch {
+      return {
+        success: false,
+        message: primaryErr?.message || 'Failed to update last date',
+      };
+    }
+  }
 }
 
 export const applicationSettingsApi = {

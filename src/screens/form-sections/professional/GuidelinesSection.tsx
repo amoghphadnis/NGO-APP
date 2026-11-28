@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { z } from 'zod';
@@ -11,6 +12,7 @@ import FormScreenLayout from '@/components/layout/FormScreenLayout';
 import { colors } from '@/theme/colors';
 import { platform } from '@/theme/platform';
 import { spacing } from '@/theme/spacing';
+import { getFormLastDate } from '@/utils/applicationDeadline';
 import { useFormEngineStore } from '../../../store/useFormEngineStore';
 
 const guidelinesSchema = z.object({
@@ -25,6 +27,17 @@ interface GuidelinesFormData {
 
 export default function GuidelinesSection({ navigation }: any) {
   const { markStepComplete, updateValidationState } = useFormEngineStore();
+  const [lastDate, setLastDate] = useState<string>('30 Jul 2026');
+
+  useEffect(() => {
+    let mounted = true;
+    getFormLastDate('Professional').then((date) => {
+      if (mounted && date) setLastDate(date);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
   
   const { control, handleSubmit, formState } = useForm<GuidelinesFormData>({
     defaultValues: {
@@ -177,7 +190,7 @@ export default function GuidelinesSection({ navigation }: any) {
           <View style={styles.guidelineItem}>
             <Ionicons name="calendar" size={20} color={colors.warning} style={styles.icon} />
             <Text style={styles.guidelineText}>
-              <Text style={styles.bold}>Last date to apply: 30 Jul 2026</Text>
+              <Text style={styles.bold}>Last date to apply: {lastDate}</Text>
             </Text>
           </View>
           <View style={styles.guidelineItem}>
