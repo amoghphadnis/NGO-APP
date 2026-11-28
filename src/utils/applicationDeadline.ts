@@ -161,3 +161,23 @@ export async function fetchApplicationDeadlines(): Promise<Record<ProgramKey, Pr
 export function deadlineKeyFor(formType: HomeFormType): ProgramKey {
   return formType;
 }
+
+/**
+ * Fetches the formatted display last date for a specific form type.
+ * e.g. 'Professional' -> "20 Dec 2026"
+ *      'Diploma' -> "20 Dec 2026"
+ *      'Semi Professional' -> "20 Dec 2026"
+ */
+export async function getFormLastDate(
+  formType: 'Professional' | 'Diploma' | 'Semi Professional' | string
+): Promise<string | null> {
+  try {
+    const res = await applicationSettingsApi.getLastDate(formType);
+    if (res.lastDate) {
+      return formatDisplayDate(res.lastDate);
+    }
+  } catch (err) {
+    console.warn(`[getFormLastDate] Failed to fetch last date for ${formType}:`, err);
+  }
+  return null;
+}
